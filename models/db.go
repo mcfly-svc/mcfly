@@ -9,7 +9,8 @@ import (
 type Datastore interface {
 	SaveProject(*Project) (error)
 	DeleteProject(int64) (error)
-	GetProjects() ([]Project, error)
+	GetProjects() (*[]Project, error)
+	GetProjectById(int64) (*Project, error)
 }
 
 type DB struct {

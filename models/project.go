@@ -16,10 +16,9 @@ func (db *DB) SaveProject(p *Project) error {
 	return nil
 }
 
-
-func (db *DB) GetProjects() ([]Project, error) {
-	projects := []Project{}
-	err := db.Select(&projects, `SELECT * FROM project`)
+func (db *DB) GetProjects() (*[]Project, error) {
+	projects := &[]Project{}
+	err := db.Select(projects, `SELECT * FROM project`)
 	if err != nil {
 		return nil, err
 	}
@@ -33,4 +32,13 @@ func (db *DB) DeleteProject(id int64) error {
 		return &QueryExecError{"DeleteProject", q, err}
 	}
 	return nil
+}
+
+func (db *DB) GetProjectById(id int64) (*Project, error) {
+	project := &Project{}
+	err := db.Get(project, `SELECT * FROM project WHERE id=$1`, id)
+	if err != nil {
+		return nil, err
+	}
+	return project, nil
 }

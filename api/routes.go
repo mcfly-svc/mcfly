@@ -28,6 +28,12 @@ func AllRoutes(handlers *Handlers) Routes {
             handlers.ProjectsGet,
         },
         Route{
+            "ProjectGet",
+            "GET",
+            "/api/0/projects/{project_id}",
+            handlers.ProjectGet,
+        },
+        Route{
             "ProjectsDelete",
             "DELETE",
             "/api/0/projects/{project_id}",

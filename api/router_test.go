@@ -2,6 +2,8 @@ package api_test
 
 import (
 	"github.com/mikec/marsupi-api/api"
+	"github.com/mikec/marsupi-api/apiutil"
+  "github.com/mikec/marsupi-api/logging"
 
 	"fmt"
   "io"
@@ -15,13 +17,20 @@ import (
 var (
     server   			*httptest.Server
     reader   			io.Reader
-    projectsUrl		string
+    autil					apiutil.ApiUtil
 )
 
-func init() {
-    server = httptest.NewServer(api.NewRouter("postgres://localhost:5432/marsupi_test?sslmode=disable")) 
+/*type MockLogger struct {}
 
-    projectsUrl = fmt.Sprintf("%s/api/0/projects", server.URL)
+func (m MockLogger) Handler(h http.Handler, s string) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		h.ServeHTTP(w, r)
+	})
+}*/
+
+func init() {
+    server = httptest.NewServer(api.NewRouter("postgres://localhost:5432/marsupi_test?sslmode=disable", logging.HttpRequestLogger{}))
+		autil = apiutil.ApiUtil{server.URL}
 }
 
 func TestMain(m *testing.M) {

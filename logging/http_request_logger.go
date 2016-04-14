@@ -6,7 +6,9 @@ import (
     "time"
 )
 
-func HttpRequestLogger(inner http.Handler, name string) http.Handler {
+type HttpRequestLogger struct {}
+
+func (self HttpRequestLogger) Handler(inner http.Handler, name string) http.Handler {
     return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
         start := time.Now()
 

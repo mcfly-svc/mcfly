@@ -1,13 +1,11 @@
 package api_test
 
 import (
-	"github.com/mikec/marsupi-api/models"
+  "github.com/mikec/marsupi-api/testutil"
+
+  "github.com/stretchr/testify/assert"
 
 	"testing"
-  "fmt"
-  "encoding/json"
-  "net/http"
-  "strings"
   "io/ioutil"
 )
 
@@ -15,138 +13,121 @@ import (
 func TestCreateProject(t *testing.T) {
 	cleanupDB()
 
-	res := createExampleProject(t)
-
-  if res.StatusCode != 200 {
-      t.Errorf("Success expected: Got %d", res.StatusCode)
+	res, err := autil.CreateProject(`{"service": "github", "username": "mikec", "name": "example-project-1"}`)
+  if err != nil {
+    t.Error(err)
   }
+
+  rt := &testutil.ResponseTest{t, res}
+  rt.ExpectHttpStatus(200)
 }
 
-// create 3 projects, and expect to get 3 projects
+// create 2 projects, and expect to get 2 projects
 func TestGetProjects(t *testing.T) {
 	cleanupDB()
 
-	createProject(t, `{"service": "github", "username": "mikec", "name": "example-project-1"}`)
-	createProject(t, `{"service": "github", "username": "mikec", "name": "example-project-2"}`)
-	createProject(t, `{"service": "github", "username": "mikec", "name": "example-project-3"}`)
-
-	projects := getProjects(t)
-
-  expected := 3
-  actual := len(projects)
-  if expected != actual {
-  	t.Error(fmt.Sprintf("Expected %d projects but got %d", expected, actual))
+	_, err := autil.CreateProject(`{"service": "github", "username": "mikec", "name": "example-project-1"}`)
+  if err != nil {
+    t.Error(err)
   }
 
+  _, err = autil.CreateProject(`{"service": "github", "username": "mikec", "name": "example-project-2"}`)
+  if err != nil {
+    t.Error(err)
+  }
+
+	projects, _, err := autil.GetProjects()
+  if err != nil {
+    t.Error(err)
+  }
+
+  assert.Len(t, projects, 2, "Wrong number of projects")
+}
+
+// create a project and get it by ID
+func TestGetProject(t *testing.T) {
+  cleanupDB()
+
+  _, err := autil.CreateProject(`{"service": "github", "username": "mikec", "name": "example-project-1"}`)
+  if err != nil {
+    t.Error(err)
+  }
+
+  projects, _, err := autil.GetProjects()
+  if err != nil {
+    t.Error(err)
+  }
+
+  project, _, err := autil.GetProject(projects[0].ID)
+  if err != nil {
+    t.Error(err)
+  }
+
+  assert.Equal(t, project, &projects[0])
 }
 
 // creating two projecs with the same service/username/name should fail
 func TestCreateDuplicateProjects(t *testing.T) {
   cleanupDB()
 
-  createExampleProject(t)
-  res := createExampleProject(t)
-
-  if res.StatusCode != 400 {
-    t.Error(fmt.Sprintf("Expected 400 status but got %d", res.StatusCode))
+  _, err := autil.CreateProject(`{"service": "github", "username": "mikec", "name": "example-project-1"}`)
+  if err != nil {
+    t.Error(err)
   }
+
+  res, err := autil.CreateProject(`{"service": "github", "username": "mikec", "name": "example-project-1"}`)
+  if err != nil {
+    t.Error(err)
+  }
+
+  rt := &testutil.ResponseTest{t, res}
+  rt.ExpectHttpStatus(400)
 }
 
 // creating a project with invalid json should fail
 func TestCreateProjectInvalidJson(t *testing.T) {
 	cleanupDB()
 
-	res := createProject(t, `{ "bad" }`)
+	res, err := autil.CreateProject(`{ "bad" }`)
+  if err != nil {
+    t.Error(err)
+  }
 
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
 		t.Error(err)
 	}
 
-	expected := string(body)
-	actual := "Invalid JSON\n"
-	if expected != actual {
-		t.Error(fmt.Sprintf("Expected %s but got %s", expected, actual))
-	}
+  assert.Equal(t, string(body), "Invalid JSON\n")
 }
 
 // creating a project, then deleting it, should return 200 status and delete the project
 func TestDeleteProject(t *testing.T) {
   cleanupDB()
 
-  createExampleProject(t)
-
-  projects := getProjects(t)
-
-  projectId := projects[0].ID
-  res := deleteProject(t, projectId)
-
-  if res.StatusCode != 200 {
-    t.Errorf("Success expected: Got %d", res.StatusCode)
+  _, err := autil.CreateProject(`{"service": "github", "username": "mikec", "name": "example-project-1"}`)
+  if err != nil {
+    t.Error(err)
   }
 
-  newProjects := getProjects(t)
-
-  expected := 0
-  actual := len(newProjects)
-  if expected != actual {
-    t.Error(fmt.Sprintf("Expected %d projects but got %d", expected, actual))
+  projects, _, err := autil.GetProjects()
+  if err != nil {
+    t.Error(err)
   }
+
+  res, err := autil.DeleteProject(projects[0].ID)
+  if err != nil {
+    t.Error(err)
+  }
+
+  rt := &testutil.ResponseTest{t, res}
+  rt.ExpectHttpStatus(200)
+
+  newProjects, _, err := autil.GetProjects()
+  if err != nil {
+    t.Error(err)
+  }
+
+  assert.Len(t, newProjects, 0)
 }
 
-
-// helpers
-
-func createExampleProject(t *testing.T) (*http.Response) {
-	return createProject(t, `{"service": "github", "username": "mikec", "name": "example-project"}`)
-}
-
-func createProject(t *testing.T, json string) (*http.Response) {
-  reader = strings.NewReader(json)
-
-  request, err := http.NewRequest("POST", projectsUrl, reader)
-  if err != nil {
-    t.Error(err)
-  }
-
-  res, err := http.DefaultClient.Do(request)
-  if err != nil {
-    t.Error(err)
-  }
-  return res
-}
-
-func deleteProject(t *testing.T, id int64) (*http.Response) {
-  url := fmt.Sprintf("%s/%d", projectsUrl, id)
-  request, err := http.NewRequest("DELETE", url, nil)
-  if err != nil {
-    t.Error(err)
-  }
-
-  res, err := http.DefaultClient.Do(request)
-  if err != nil {
-    t.Error(err)
-  }
-  return res
-}
-
-func getProjects(t *testing.T) []models.Project {
-	request, err := http.NewRequest("GET", projectsUrl, nil)
-  if err != nil {
-    t.Error(err)
-  }
-
-  res, err := http.DefaultClient.Do(request)
-  if err != nil {
-    t.Error(err)
-  }
-
-  decoder := json.NewDecoder(res.Body)
-  var projects []models.Project
-  err = decoder.Decode(&projects)
-  if err != nil {
-    t.Error(err)
-  }
-
-  return projects
-}

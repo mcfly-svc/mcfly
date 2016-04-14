@@ -6,7 +6,6 @@ import (
 
     "github.com/gorilla/mux"
 
-    "github.com/mikec/marsupi-api/logging"
     "github.com/mikec/marsupi-api/models"
 )
 
@@ -14,7 +13,11 @@ type Handlers struct {
     db models.Datastore
 }
 
-func NewRouter(dbUrl string) *mux.Router {
+type RequestLogger interface {
+    Handler(http.Handler, string) http.Handler
+}
+
+func NewRouter(dbUrl string, logger RequestLogger) *mux.Router {
 
     db, err := models.NewDB(dbUrl)
     if err != nil {
@@ -31,8 +34,7 @@ func NewRouter(dbUrl string) *mux.Router {
 
         var handler http.Handler
 
-        handler = route.HandlerFunc
-        handler = logging.HttpRequestLogger(handler, route.Name)
+        handler = logger.Handler(route.HandlerFunc, route.Name)
 
         router.
             Methods(route.Method).
