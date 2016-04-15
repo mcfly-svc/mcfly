@@ -110,7 +110,7 @@ func TestCreateProjectInvalidJson(t *testing.T) {
 
   rt := &testutil.ResponseTest{t, res}
   rt.ExpectHttpStatus(400)
-  rt.ExpectResponseBody(api.ApiError{"Invalid JSON"})
+  rt.ExpectResponseBody(api.InvalidJsonApiErr)
 }
 
 // creating a project, then deleting it, should return 200 status and delete the project

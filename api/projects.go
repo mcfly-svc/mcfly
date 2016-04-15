@@ -18,13 +18,13 @@ func (handlers *Handlers) ProjectsPost(w http.ResponseWriter, req *http.Request)
     var p *models.Project
     if err := decodeRequestBodyJson(req, &p); err != nil {
         log.Println(err)
-        writeErrorResponse(w, "Invalid JSON")
+        writeErrorResponse(w, InvalidJsonApiErr)
         return
     }
     
     if saveErr := handlers.db.SaveProject(p); saveErr != nil {
         log.Println(saveErr)
-        writeErrorResponse(w, "Failed to save project")
+        writeErrorResponse(w, "Failed to save projects")
         return
     }
 

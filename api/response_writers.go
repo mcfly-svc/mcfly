@@ -1,6 +1,7 @@
 package api
 
 import (
+  "fmt"
 	"net/http"
 	"encoding/json"
 )
@@ -13,10 +14,20 @@ type ApiError struct {
   Error         string        `json:"error"`
 }
 
-func writeErrorResponse(w http.ResponseWriter, errorMessage string) {
+func writeErrorResponse(w http.ResponseWriter, apiError interface{}) {
+
+  switch v := apiError.(type) {
+  case string:
+    apiError = ApiError{v}
+  case ApiError:
+    apiError = v
+  default:
+    panic(fmt.Errorf("Unexpected type %T", apiError))
+  }
+
   w.Header().Set("Content-Type", "application/json; charset=UTF-8")
   w.WriteHeader(http.StatusBadRequest)
-  if err := json.NewEncoder(w).Encode(ApiError{errorMessage}); err != nil {
+  if err := json.NewEncoder(w).Encode(apiError); err != nil {
     panic(err)
   }
 }
