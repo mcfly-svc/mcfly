@@ -1,12 +1,12 @@
 package api_test
 
 import (
+  "github.com/mikec/marsupi-api/api"
   "github.com/mikec/marsupi-api/testutil"
 
   "github.com/stretchr/testify/assert"
 
 	"testing"
-  "io/ioutil"
 )
 
 // create project should return 200 status
@@ -77,7 +77,7 @@ func TestGetProjectThatDoesNotExist(t *testing.T) {
 
   rt := &testutil.ResponseTest{t, res}
   rt.ExpectHttpStatus(400)
-  rt.ExpectResponseBody("Failed to get project with id=123\n")
+  rt.ExpectResponseBody(api.ApiError{"Failed to get project with id=123"})
 
 }
 
@@ -108,12 +108,9 @@ func TestCreateProjectInvalidJson(t *testing.T) {
     t.Error(err)
   }
 
-	body, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		t.Error(err)
-	}
-
-  assert.Equal(t, string(body), "Invalid JSON\n")
+  rt := &testutil.ResponseTest{t, res}
+  rt.ExpectHttpStatus(400)
+  rt.ExpectResponseBody(api.ApiError{"Invalid JSON"})
 }
 
 // creating a project, then deleting it, should return 200 status and delete the project

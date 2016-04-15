@@ -18,13 +18,13 @@ func (handlers *Handlers) ProjectsPost(w http.ResponseWriter, req *http.Request)
     var p *models.Project
     if err := decodeRequestBodyJson(req, &p); err != nil {
         log.Println(err)
-        writeErrorMessage(w, "Invalid JSON")
+        writeErrorResponse(w, "Invalid JSON")
         return
     }
     
     if saveErr := handlers.db.SaveProject(p); saveErr != nil {
         log.Println(saveErr)
-        writeErrorMessage(w, "Failed to save project")
+        writeErrorResponse(w, "Failed to save project")
         return
     }
 
@@ -37,7 +37,7 @@ func (handlers *Handlers) ProjectsGet(w http.ResponseWriter, req *http.Request) 
     projects, err := handlers.db.GetProjects()
     if err != nil {
         log.Println(err)
-        writeErrorMessage(w, "Failed to get projects")
+        writeErrorResponse(w, "Failed to get projects")
         return
     }
 
@@ -55,7 +55,7 @@ func (handlers *Handlers) ProjectGet(w http.ResponseWriter, req *http.Request) {
     project, err := handlers.db.GetProjectById(id)
     if err != nil {
         log.Println(err)
-        writeErrorMessage(w, fmt.Sprintf("Failed to get project with id=%d", id))
+        writeErrorResponse(w, fmt.Sprintf("Failed to get project with id=%d", id))
         return
     }
 
@@ -71,13 +71,13 @@ func (handlers *Handlers) ProjectsDelete(w http.ResponseWriter, req *http.Reques
     id, err := strconv.ParseInt(project_id, 10, 64)
     if err != nil {
         log.Println(err)
-        writeErrorMessage(w, fmt.Sprintf("%s is not a valid project ID", project_id))
+        writeErrorResponse(w, fmt.Sprintf("%s is not a valid project ID", project_id))
         return
     }
 
     if err := handlers.db.DeleteProject(id); err != nil {
         log.Println(err)
-        writeErrorMessage(w, "Failed to delete project")
+        writeErrorResponse(w, "Failed to delete project")
         return
     }
 
