@@ -3,6 +3,9 @@ package apiutil
 import (
 	"github.com/mikec/marsupi-api/models"
 
+  //"io/ioutil"
+  //"log"
+
   "io"
 	"net/http"
 	"fmt"
@@ -19,6 +22,7 @@ func (self *ApiUtil) ProjectsURL() string {
 }
 
 func (self *ApiUtil) ProjectURL(projectId int64) string {
+  fmt.Println(fmt.Sprintf("%s/%d", self.ProjectsURL(), projectId))
 	return fmt.Sprintf("%s/%d", self.ProjectsURL(), projectId)
 }
 
@@ -60,14 +64,18 @@ func (self *ApiUtil) GetProject(id int64) (*models.Project, *http.Response, erro
     return nil, nil, err
   }
 
-  decoder := json.NewDecoder(res.Body)
-  var p *models.Project
-  err = decoder.Decode(&p)
-  if err != nil {
-    return nil, res, err
+  if res.StatusCode == 200 {
+    decoder := json.NewDecoder(res.Body)
+    var p *models.Project
+    err = decoder.Decode(&p)
+    if err != nil {
+      panic(err)
+    }
+    return p, res, nil
   }
 
-  return p, res, nil
+  return nil, res, nil
+
 }
 
 func DoGet(url string) (*http.Response, error) {

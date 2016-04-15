@@ -66,6 +66,21 @@ func TestGetProject(t *testing.T) {
   assert.Equal(t, project, &projects[0])
 }
 
+// get a project that doesn't exist
+func TestGetProjectThatDoesNotExist(t *testing.T) {
+  cleanupDB()
+
+  _, res, err := autil.GetProject(123)
+  if err != nil {
+    t.Error(err)
+  }
+
+  rt := &testutil.ResponseTest{t, res}
+  rt.ExpectHttpStatus(400)
+  rt.ExpectResponseBody("Failed to get project with id=123\n")
+
+}
+
 // creating two projecs with the same service/username/name should fail
 func TestCreateDuplicateProjects(t *testing.T) {
   cleanupDB()
