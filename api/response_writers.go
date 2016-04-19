@@ -2,6 +2,7 @@ package api
 
 import (
   "fmt"
+  "log"
 	"net/http"
 	"encoding/json"
 )
@@ -22,20 +23,24 @@ func writeErrorResponse(w http.ResponseWriter, apiError interface{}) {
   case ApiError:
     apiError = v
   default:
-    panic(fmt.Errorf("Unexpected type %T", apiError))
+    log.Fatal(fmt.Errorf("Unexpected type %T", apiError))
   }
 
   w.Header().Set("Content-Type", "application/json; charset=UTF-8")
   w.WriteHeader(http.StatusBadRequest)
   if err := json.NewEncoder(w).Encode(apiError); err != nil {
-    panic(err)
+    log.Fatal(err)
   }
 }
 
 func writeSuccessResponse(w http.ResponseWriter) {  
+  writeResponse(w, ApiResponse{"success!"})
+}
+
+func writeResponse(w http.ResponseWriter, v interface{}) {
   w.Header().Set("Content-Type", "application/json; charset=UTF-8")
   w.WriteHeader(http.StatusOK)
-  if err := json.NewEncoder(w).Encode(ApiResponse{"success!"}); err != nil {
-    panic(err)
+  if err := json.NewEncoder(w).Encode(v); err != nil {
+    log.Fatal(err)
   }
 }

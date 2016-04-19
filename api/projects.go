@@ -16,7 +16,7 @@ import (
 func (handlers *Handlers) ProjectsPost(w http.ResponseWriter, req *http.Request) {
     
     var p *models.Project
-    if err := decodeRequestBodyJson(req, &p); err != nil {
+    if err := decodeRequest(req, &p); err != nil {
         log.Println(err)
         writeErrorResponse(w, InvalidJsonApiErr)
         return

@@ -39,5 +39,11 @@ func AllRoutes(handlers *Handlers) Routes {
             "/api/0/projects/{project_id}",
             handlers.ProjectsDelete,
         },
+        Route{
+            "UsersPost",
+            "POST",
+            "/api/0/users",
+            handlers.UsersPost,
+        },
     }
 }
