@@ -5,13 +5,12 @@ import (
 	"net/http"
 	"fmt"
 	"strings"
-  "github.com/mikec/marsupi-api/api"
 )
 
 type EntityEndpoint struct {
   Name                      string
   ServerURL                 string
-  Decoder                   api.EntityDecoder
+  Decoder                   EntityDecoder
 }
 
 type ApiUtil struct {
@@ -21,8 +20,8 @@ type ApiUtil struct {
 
 func NewApiUtil(serverURL string) ApiUtil {
   return ApiUtil{
-    EntityEndpoint{"projects", serverURL, api.ProjectDecoder{}},
-    EntityEndpoint{"users", serverURL, api.ProjectDecoder{}},
+    EntityEndpoint{"projects", serverURL, ProjectDecoder{}},
+    EntityEndpoint{"users", serverURL, ProjectDecoder{}},
   }
 }
 
