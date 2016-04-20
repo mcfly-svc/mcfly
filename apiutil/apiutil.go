@@ -9,7 +9,7 @@ import (
 )
 
 type EntityEndpoint struct {
-  EndpointName              string
+  Name                      string
   ServerURL                 string
   Decoder                   api.EntityDecoder
 }
@@ -27,7 +27,7 @@ func NewApiUtil(serverURL string) ApiUtil {
 }
 
 func (self *EntityEndpoint) EndpointUrl() string {
-  return fmt.Sprintf("%s/api/0/%s", self.ServerURL, self.EndpointName)
+  return fmt.Sprintf("%s/api/0/%s", self.ServerURL, self.Name)
 }
 
 func (self *EntityEndpoint) EntityUrl(id int64) string {

@@ -52,7 +52,7 @@ func (handlers *Handlers) ProjectGet(w http.ResponseWriter, req *http.Request) {
     project, err := handlers.db.GetProjectById(id)
     if err != nil {
         log.Println(err)
-        writeErrorResponse(w, fmt.Sprintf("Failed to get project with id=%d", id))
+        writeErrorResponse(w, fmt.Sprintf("Failed to get projects where id=%d", id))
         return
     }
 
