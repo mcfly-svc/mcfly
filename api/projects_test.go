@@ -8,7 +8,7 @@ var tests EndpointTests
 
 func init() {
   tests = EndpointTests{
-    autil.Projects,
+    apiClient.Projects,
     `{"service": "github", "username": "mikec", "name": "example-1"}`,
     `{"service": "github", "username": "mikec", "name": "example-2"}`,
   }

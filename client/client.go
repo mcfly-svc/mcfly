@@ -1,4 +1,4 @@
-package apiutil
+package client
 
 import (
   "io"
@@ -13,13 +13,13 @@ type EntityEndpoint struct {
   Decoder                   EntityDecoder
 }
 
-type ApiUtil struct {
+type Client struct {
   Projects      EntityEndpoint
   Users         EntityEndpoint
 }
 
-func NewApiUtil(serverURL string) ApiUtil {
-  return ApiUtil{
+func NewClient(serverURL string) Client {
+  return Client{
     EntityEndpoint{"projects", serverURL, ProjectDecoder{}},
     EntityEndpoint{"users", serverURL, ProjectDecoder{}},
   }

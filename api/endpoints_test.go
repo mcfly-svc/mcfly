@@ -3,7 +3,7 @@ package api_test
 import (
 	"github.com/mikec/marsupi-api/api"
 	"github.com/mikec/marsupi-api/testutil"
-	"github.com/mikec/marsupi-api/apiutil"
+	"github.com/mikec/marsupi-api/client"
 
   "github.com/stretchr/testify/assert"
 
@@ -13,7 +13,7 @@ import (
 )
 
 type EndpointTests struct {
-	Endpoint 			apiutil.EntityEndpoint
+	Endpoint 			client.EntityEndpoint
 	Entity1				string
 	Entity2 			string
 }

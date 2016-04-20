@@ -2,7 +2,7 @@ package api_test
 
 import (
 	"github.com/mikec/marsupi-api/api"
-	"github.com/mikec/marsupi-api/apiutil"
+	"github.com/mikec/marsupi-api/client"
   "github.com/mikec/marsupi-api/logging"
 
 	"fmt"
@@ -18,7 +18,7 @@ import (
 var (
     server   				*httptest.Server
     reader   				io.Reader
-    autil						apiutil.ApiUtil
+    apiClient				client.Client
 )
 
 /*type MockLogger struct {}
@@ -31,7 +31,7 @@ func (m MockLogger) Handler(h http.Handler, s string) http.Handler {
 
 func init() {
     server = httptest.NewServer(api.NewRouter("postgres://localhost:5432/marsupi_test?sslmode=disable", logging.HttpRequestLogger{}))
-		autil = apiutil.NewApiUtil(server.URL)
+		apiClient = client.NewClient(server.URL)
 }
 
 func TestMain(m *testing.M) {
@@ -64,7 +64,7 @@ func runHelperScript(sh string) {
 
 type EndpointTester struct {
 	Test 				*testing.T
-	Endpoint 		apiutil.EntityEndpoint
+	Endpoint 		client.EntityEndpoint
 }
 
 func (self *EndpointTester) Create(JSON string) *http.Response {
