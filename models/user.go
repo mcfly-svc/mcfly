@@ -36,3 +36,12 @@ func (db *DB) GetUser(id int64) (*User, error) {
 	}
 	return user, nil
 }
+
+func (db *DB) GetUsers() (*[]User, error) {
+	users := &[]User{}
+	err := db.Select(users, `SELECT * FROM marsupi_user`)
+	if err != nil {
+		return nil, err
+	}
+	return users, nil
+}

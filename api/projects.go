@@ -4,7 +4,6 @@ import (
     "net/http"
     "log"
     "fmt"
-    "encoding/json"
     "strconv"
 
     "github.com/gorilla/mux"
@@ -16,7 +15,7 @@ import (
 func (handlers *Handlers) ProjectsPost(w http.ResponseWriter, req *http.Request) {
     
     var p *models.Project
-    if err := decodeRequest(req, &p); err != nil {
+    if err := DecodeRequest(req, &p); err != nil {
         log.Println(err)
         writeErrorResponse(w, InvalidJsonApiErr)
         return
@@ -41,9 +40,7 @@ func (handlers *Handlers) ProjectsGet(w http.ResponseWriter, req *http.Request) 
         return
     }
 
-    if err := json.NewEncoder(w).Encode(projects); err != nil {
-        log.Fatal(err)
-    }
+    writeResponse(w, projects)
 }
 
 // curl -X GET http://localhost:8080/api/0/projects/1
@@ -59,9 +56,8 @@ func (handlers *Handlers) ProjectGet(w http.ResponseWriter, req *http.Request) {
         return
     }
 
-    if err := json.NewEncoder(w).Encode(project); err != nil {
-        log.Fatal(err)
-    }
+    writeResponse(w, project)
+
 }
 
 // curl -X DELETE http://localhost:8080/api/0/projects/1
@@ -82,4 +78,46 @@ func (handlers *Handlers) ProjectsDelete(w http.ResponseWriter, req *http.Reques
     }
 
     writeSuccessResponse(w)
+}
+
+type ProjectDecoder struct {}
+
+func (self ProjectDecoder) DecodeRequest(req *http.Request) (interface{}, error) {
+    var p models.Project
+    if err := DecodeRequest(req, &p); err != nil {
+        return nil, err
+    }
+    return p, nil
+}
+
+func (self ProjectDecoder) DecodeResponse(res *http.Response) (interface{}, error) {
+    var p models.Project
+    if err := DecodeResponse(res, &p); err != nil {
+        return nil, err
+    }
+    return p, nil
+}
+
+func (self ProjectDecoder) DecodeArrayRequest(req *http.Request) ([]interface{}, error) {
+    var projects []models.Project
+    if err := DecodeRequest(req, &projects); err != nil {
+        return nil, err
+    }
+    ret := make([]interface{}, len(projects))
+    for i, d := range projects {
+        ret[i] = d
+    }
+    return ret, nil
+}
+
+func (self ProjectDecoder) DecodeArrayResponse(res *http.Response) ([]interface{}, error) {
+    var projects []models.Project
+    if err := DecodeResponse(res, &projects); err != nil {
+        return nil, err
+    }
+    ret := make([]interface{}, len(projects))
+    for i, d := range projects {
+        ret[i] = d
+    }
+    return ret, nil
 }

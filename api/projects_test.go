@@ -1,6 +1,7 @@
 package api_test
 
 import (
+  "github.com/mikec/marsupi-api/models"
   "github.com/mikec/marsupi-api/api"
   "github.com/mikec/marsupi-api/testutil"
 
@@ -13,10 +14,8 @@ import (
 func TestCreateProject(t *testing.T) {
 	cleanupDB()
 
-	res, err := autil.CreateProject(`{"service": "github", "username": "mikec", "name": "example-project-1"}`)
-  if err != nil {
-    t.Error(err)
-  }
+  et := EndpointTester{t, autil.Projects}
+  res := et.Create(`{"service": "github", "username": "mikec", "name": "example-project-1"}`)
 
   rt := &testutil.ResponseTest{t, res}
   rt.ExpectHttpStatus(200)
@@ -26,54 +25,35 @@ func TestCreateProject(t *testing.T) {
 func TestGetProjects(t *testing.T) {
 	cleanupDB()
 
-	_, err := autil.CreateProject(`{"service": "github", "username": "mikec", "name": "example-project-1"}`)
-  if err != nil {
-    t.Error(err)
-  }
-
-  _, err = autil.CreateProject(`{"service": "github", "username": "mikec", "name": "example-project-2"}`)
-  if err != nil {
-    t.Error(err)
-  }
-
-	projects, _, err := autil.GetProjects()
-  if err != nil {
-    t.Error(err)
-  }
+  et := EndpointTester{t, autil.Projects}
+  et.Create(`{"service": "github", "username": "mikec", "name": "example-project-1"}`)
+  et.Create(`{"service": "github", "username": "mikec", "name": "example-project-2"}`)
+  projects := et.GetAll()
 
   assert.Len(t, projects, 2, "Wrong number of projects")
 }
+
 
 // create a project and get it by ID
 func TestGetProject(t *testing.T) {
   cleanupDB()
 
-  _, err := autil.CreateProject(`{"service": "github", "username": "mikec", "name": "example-project-1"}`)
-  if err != nil {
-    t.Error(err)
-  }
+  et := EndpointTester{t, autil.Projects}
+  et.Create(`{"service": "github", "username": "mikec", "name": "example-project-1"}`)
+  projects := et.GetAll()
+  p1 := projects[0].(models.Project)
+  p2 := et.Get(p1.ID)
 
-  projects, _, err := autil.GetProjects()
-  if err != nil {
-    t.Error(err)
-  }
-
-  project, _, err := autil.GetProject(projects[0].ID)
-  if err != nil {
-    t.Error(err)
-  }
-
-  assert.Equal(t, project, &projects[0])
+  assert.Equal(t, p2, p1)
 }
+
 
 // get a project that doesn't exist
 func TestGetProjectThatDoesNotExist(t *testing.T) {
   cleanupDB()
 
-  _, res, err := autil.GetProject(123)
-  if err != nil {
-    t.Error(err)
-  }
+  et := EndpointTester{t, autil.Projects}
+  res := et.GetRes(123)
 
   rt := &testutil.ResponseTest{t, res}
   rt.ExpectHttpStatus(400)
@@ -85,15 +65,9 @@ func TestGetProjectThatDoesNotExist(t *testing.T) {
 func TestCreateDuplicateProjects(t *testing.T) {
   cleanupDB()
 
-  _, err := autil.CreateProject(`{"service": "github", "username": "mikec", "name": "example-project-1"}`)
-  if err != nil {
-    t.Error(err)
-  }
-
-  res, err := autil.CreateProject(`{"service": "github", "username": "mikec", "name": "example-project-1"}`)
-  if err != nil {
-    t.Error(err)
-  }
+  et := EndpointTester{t, autil.Projects}
+  et.Create(`{"service": "github", "username": "mikec", "name": "example-project-1"}`)
+  res := et.Create(`{"service": "github", "username": "mikec", "name": "example-project-1"}`)
 
   rt := &testutil.ResponseTest{t, res}
   rt.ExpectHttpStatus(400)
@@ -103,43 +77,30 @@ func TestCreateDuplicateProjects(t *testing.T) {
 func TestCreateProjectInvalidJson(t *testing.T) {
 	cleanupDB()
 
-	res, err := autil.CreateProject(`{ "bad" }`)
-  if err != nil {
-    t.Error(err)
-  }
+  et := EndpointTester{t, autil.Projects}
+	res := et.Create(`{ "bad" }`)
 
   rt := &testutil.ResponseTest{t, res}
   rt.ExpectHttpStatus(400)
   rt.ExpectResponseBody(api.InvalidJsonApiErr)
 }
 
+
 // creating a project, then deleting it, should return 200 status and delete the project
 func TestDeleteProject(t *testing.T) {
   cleanupDB()
 
-  _, err := autil.CreateProject(`{"service": "github", "username": "mikec", "name": "example-project-1"}`)
-  if err != nil {
-    t.Error(err)
-  }
-
-  projects, _, err := autil.GetProjects()
-  if err != nil {
-    t.Error(err)
-  }
-
-  res, err := autil.DeleteProject(projects[0].ID)
-  if err != nil {
-    t.Error(err)
-  }
+  et := EndpointTester{t, autil.Projects}
+  et.Create(`{"service": "github", "username": "mikec", "name": "example-project-1"}`)
+  projects := et.GetAll()
+  p := projects[0].(models.Project)
+  res := et.Delete(p.ID)
 
   rt := &testutil.ResponseTest{t, res}
   rt.ExpectHttpStatus(200)
 
-  newProjects, _, err := autil.GetProjects()
-  if err != nil {
-    t.Error(err)
-  }
+  projects = et.GetAll()
 
-  assert.Len(t, newProjects, 0)
+  assert.Len(t, projects, 0)
 }
 

@@ -11,13 +11,13 @@ import (
 type CreateUserReq struct {
 	GitHubToken 				*string				`json:"github_token"`
 	// BitbucketToken 	*string				`json:"bitbucket_token"`
-	// ...
+	// DropboxToken			*string				`json:"dropbox_token"`
 }
 
 // curl -X POST http://localhost:8080/api/0/users -d '{"github_token":"xxxxxx"}'
 func (handlers *Handlers) UsersPost(w http.ResponseWriter, req *http.Request) {
 	var usrReq CreateUserReq
-	err := decodeRequest(req, &usrReq); if err != nil {
+	err := DecodeRequest(req, &usrReq); if err != nil {
 		log.Println(err)
     writeErrorResponse(w, InvalidJsonApiErr)
     return
@@ -54,3 +54,17 @@ func (handlers *Handlers) UsersPost(w http.ResponseWriter, req *http.Request) {
 
 	writeResponse(w, newUser)
 }
+
+// curl -X GET http://localhost:8080/api/0/users
+func (handlers *Handlers) UsersGet(w http.ResponseWriter, req *http.Request) {
+    users, err := handlers.db.GetUsers()
+    if err != nil {
+        log.Println(err)
+        writeErrorResponse(w, "Failed to get users")
+        return
+    }
+
+    writeResponse(w, users)
+}
+
+
