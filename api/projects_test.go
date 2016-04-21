@@ -14,10 +14,6 @@ func init() {
   }
 }
 
-func TestCreateProject(t *testing.T) { tests.RunCreateTest(t) }
-func TestGetProjects(t *testing.T) { tests.RunGetAllTest(t) }
-func TestGetProject(t *testing.T) { tests.RunGetTest(t) }
-func TestMissingProject(t *testing.T) { tests.RunMissingTest(t) }
-func TestDuplicateProjects(t *testing.T) { tests.RunDuplicateTest(t) }
-func TestCreateProjectWithInvalidJson(t *testing.T) { tests.RunCreateWithInvalidJsonTest(t) }
-func TestDeleteProject(t *testing.T) { tests.RunDeleteTest(t) }
+func TestEndpointOperations(t *testing.T) {
+	tests.RunAll(t)
+}

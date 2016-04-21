@@ -18,6 +18,16 @@ type EndpointTests struct {
 	Entity2 			string
 }
 
+func (self *EndpointTests) RunAll(t *testing.T) {
+  self.RunCreateTest(t)
+  self.RunGetAllTest(t)
+  self.RunGetTest(t)
+  self.RunMissingTest(t)
+  self.RunDuplicateTest(t)
+  self.RunCreateWithInvalidJsonTest(t)
+  self.RunDeleteTest(t)
+}
+
 // create an entity
 func (self *EndpointTests) RunCreateTest(t *testing.T) {
 	cleanupDB()
