@@ -12,28 +12,18 @@ import (
 	"testing"
 )
 
-type EndpointTestRunner struct {
+type Runner struct {
 	Endpoint 			client.EntityEndpoint
 	Entity1				string
 	Entity2 			string
 }
 
-func (self *EndpointTestRunner) RunAll(t *testing.T) {
-  self.RunCreateTest(t)
-  self.RunGetAllTest(t)
-  self.RunGetTest(t)
-  self.RunMissingTest(t)
-  self.RunDuplicateTest(t)
-  self.RunCreateWithInvalidJsonTest(t)
-  self.RunDeleteTest(t)
-}
-
 // create an entity
-func (self *EndpointTestRunner) RunCreateTest(t *testing.T) {
+func (self *Runner) RunCreateTest(t *testing.T) {
 	cleanupDB()
 
-  ec := EndpointTestClient{t, self.Endpoint}
-  e, res := ec.Create(self.Entity1)
+  c := Client{t, self.Endpoint}
+  e, res := c.Create(self.Entity1)
 
   rt := testutil.ResponseTest{t, res}
   rt.ExpectHttpStatus(200)
@@ -42,13 +32,13 @@ func (self *EndpointTestRunner) RunCreateTest(t *testing.T) {
 }
 
 // get all entities
-func (self *EndpointTestRunner) RunGetAllTest(t *testing.T) {
+func (self *Runner) RunGetAllTest(t *testing.T) {
 	cleanupDB()
 
-  ec := EndpointTestClient{t, self.Endpoint}
-  ec.Create(self.Entity1)
-  ec.Create(self.Entity2)
-  entities, res := ec.GetAll()
+  c := Client{t, self.Endpoint}
+  c.Create(self.Entity1)
+  c.Create(self.Entity2)
+  entities, res := c.GetAll()
 
   rt := testutil.ResponseTest{t, res}
   rt.ExpectHttpStatus(200)
@@ -57,13 +47,13 @@ func (self *EndpointTestRunner) RunGetAllTest(t *testing.T) {
 }
 
 // create an entity and get it by ID
-func (self *EndpointTestRunner) RunGetTest(t *testing.T) {
+func (self *Runner) RunGetTest(t *testing.T) {
   cleanupDB()
 
-  ec := EndpointTestClient{t, self.Endpoint}
-  ec.Create(self.Entity1)
-  entities, _ := ec.GetAll()
-  e, res := ec.Get(entities[0].ID)
+  c := Client{t, self.Endpoint}
+  c.Create(self.Entity1)
+  entities, _ := c.GetAll()
+  e, res := c.Get(entities[0].ID)
 
   rt := testutil.ResponseTest{t, res}
   rt.ExpectHttpStatus(200)
@@ -72,11 +62,11 @@ func (self *EndpointTestRunner) RunGetTest(t *testing.T) {
 }
 
 // get an entity that doesn't exist
-func (self *EndpointTestRunner) RunMissingTest(t *testing.T) {
+func (self *Runner) RunMissingTest(t *testing.T) {
   cleanupDB()
 
-  ec := EndpointTestClient{t, self.Endpoint}
-  _, res := ec.Get(123)
+  c := Client{t, self.Endpoint}
+  _, res := c.Get(123)
 
   rt := testutil.ResponseTest{t, res}
   rt.ExpectHttpStatus(400)
@@ -86,12 +76,12 @@ func (self *EndpointTestRunner) RunMissingTest(t *testing.T) {
 }
 
 // creating two duplicate entites should fail
-func (self *EndpointTestRunner) RunDuplicateTest(t *testing.T) {
+func (self *Runner) RunDuplicateTest(t *testing.T) {
   cleanupDB()
 
-  ec := EndpointTestClient{t, self.Endpoint}
-  ec.Create(self.Entity1)
-  _, res := ec.Create(self.Entity1)
+  c := Client{t, self.Endpoint}
+  c.Create(self.Entity1)
+  _, res := c.Create(self.Entity1)
 
   rt := testutil.ResponseTest{t, res}
   rt.ExpectHttpStatus(400)
@@ -101,11 +91,11 @@ func (self *EndpointTestRunner) RunDuplicateTest(t *testing.T) {
 }
 
 // creating an entity with invalid json should fail
-func (self *EndpointTestRunner) RunCreateWithInvalidJsonTest(t *testing.T) {
+func (self *Runner) RunCreateWithInvalidJsonTest(t *testing.T) {
 	cleanupDB()
 
-  ec := EndpointTestClient{t, self.Endpoint}
-	_, res := ec.Create(`{ "bad" }`)
+  c := Client{t, self.Endpoint}
+	_, res := c.Create(`{ "bad" }`)
 
   rt := testutil.ResponseTest{t, res}
   rt.ExpectHttpStatus(400)
@@ -113,18 +103,18 @@ func (self *EndpointTestRunner) RunCreateWithInvalidJsonTest(t *testing.T) {
 }
 
 // creating an entity, then deleting it, should return 200 status and delete the entity
-func (self *EndpointTestRunner) RunDeleteTest(t *testing.T) {
+func (self *Runner) RunDeleteTest(t *testing.T) {
   cleanupDB()
 
-  ec := EndpointTestClient{t, self.Endpoint}
-  ec.Create(self.Entity1)
-  entities, _ := ec.GetAll()
-  res := ec.Delete(entities[0].ID)
+  c := Client{t, self.Endpoint}
+  c.Create(self.Entity1)
+  entities, _ := c.GetAll()
+  res := c.Delete(entities[0].ID)
 
   rt := testutil.ResponseTest{t, res}
   rt.ExpectHttpStatus(200)
 
-  entities, _ = ec.GetAll()
+  entities, _ = c.GetAll()
 
   assert.Len(t, entities, 0)
 }

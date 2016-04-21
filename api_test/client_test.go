@@ -14,7 +14,7 @@ type Entity struct {
   ID    int64   `json:"id"`
 }
 
-type EndpointTestClient struct {
+type Client struct {
 	Test 				*testing.T
 	Endpoint 		client.EntityEndpoint
 }
@@ -25,7 +25,7 @@ type bodyReader struct {
 
 func (m bodyReader) Close() error { return nil } 
 
-func (self *EndpointTestClient) Create(JSON string) (Entity, *http.Response) {
+func (self *Client) Create(JSON string) (Entity, *http.Response) {
 	res, err := self.Endpoint.Create(JSON)
   if err != nil {
     self.Test.Error(err)
@@ -37,7 +37,7 @@ func (self *EndpointTestClient) Create(JSON string) (Entity, *http.Response) {
   return e, res
 }
 
-func (self *EndpointTestClient) GetAll() ([]Entity, *http.Response) {
+func (self *Client) GetAll() ([]Entity, *http.Response) {
   res, err := self.Endpoint.GetAll()
   if err != nil {
     self.Test.Error(err)
@@ -49,7 +49,7 @@ func (self *EndpointTestClient) GetAll() ([]Entity, *http.Response) {
   return entities, res
 }
 
-func (self *EndpointTestClient) Get(ID int64) (Entity, *http.Response) {
+func (self *Client) Get(ID int64) (Entity, *http.Response) {
 	res, err := self.Endpoint.Get(ID)
   if err != nil {
     self.Test.Error(err)
@@ -61,7 +61,7 @@ func (self *EndpointTestClient) Get(ID int64) (Entity, *http.Response) {
   return e, res
 }
 
-func (self *EndpointTestClient) Delete(ID int64) *http.Response {
+func (self *Client) Delete(ID int64) *http.Response {
 	res, err := self.Endpoint.Delete(ID)
 	if err != nil {
 		self.Test.Error(err)
