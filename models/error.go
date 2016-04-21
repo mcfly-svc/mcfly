@@ -8,6 +8,7 @@ type QueryExecError struct {
 	OperationName 	string
 	Query 					string
 	DbError 				error
+	Name 						string
 }
 
 func (e QueryExecError) Error() string {

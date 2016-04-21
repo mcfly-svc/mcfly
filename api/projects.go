@@ -22,9 +22,14 @@ func (handlers *Handlers) ProjectsPost(w http.ResponseWriter, req *http.Request)
         return
     }
     
-    if saveErr := handlers.db.SaveProject(p); saveErr != nil {
-        log.Println(saveErr)
-        r.RespondWithError("Failed to save projects")
+    if err := handlers.db.SaveProject(p); err != nil {
+        qErr := err.(*models.QueryExecError)
+        switch qErr.Name {
+        case "unique_violation":
+            r.RespondWithError("Project already exists")
+        default:
+            r.RespondWithError("Failed to save projects")
+        }
         return
     }
 

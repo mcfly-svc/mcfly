@@ -16,7 +16,7 @@ func (db *DB) SaveUser(u *User) (*User, error) {
 
 	err := r.Scan(&uid)
 	if err != nil {
-		return nil, &QueryExecError{"SaveUser", q, err}
+		return nil, &QueryExecError{"SaveUser", q, err, ""}
 	}
 
 	newUser, err := db.GetUser(uid)

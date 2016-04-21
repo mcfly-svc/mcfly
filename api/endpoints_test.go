@@ -4,6 +4,7 @@ import (
 	"github.com/mikec/marsupi-api/api"
 	"github.com/mikec/marsupi-api/testutil"
 	"github.com/mikec/marsupi-api/client"
+  "github.com/mikec/marsupi-api/util"
 
   "github.com/stretchr/testify/assert"
 
@@ -90,6 +91,9 @@ func (self *EndpointTests) RunDuplicateTest(t *testing.T) {
 
   rt := &testutil.ResponseTest{t, res}
   rt.ExpectHttpStatus(400)
+  rt.ExpectResponseBody(api.ApiError{
+    fmt.Sprintf("%s already exists", util.Capitalize(self.Endpoint.SingularName)),
+  })
 }
 
 // creating an entity with invalid json should fail

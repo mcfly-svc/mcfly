@@ -1,5 +1,9 @@
 package models
 
+import (
+	"github.com/lib/pq"
+)
+
 type Project struct {
   ID            int64     `db:"id"        json:"id"`
   Name          string    `db:"name"      json:"name"`
@@ -11,7 +15,11 @@ func (db *DB) SaveProject(p *Project) error {
 	q := `INSERT INTO project(name,username,service) VALUES($1,$2,$3)`
 	_, err := db.Exec(q, p.Name, p.Username, p.Service)
 	if err != nil {
-		return &QueryExecError{"SaveProject", q, err}
+		err, ok := err.(*pq.Error)
+		if !ok {
+			panic(err)
+		}
+		return &QueryExecError{"SaveProject", q, err, err.Code.Name()}
 	}
 	return nil
 }
@@ -29,7 +37,7 @@ func (db *DB) DeleteProject(id int64) error {
 	q := `DELETE FROM project WHERE id=$1`
 	_, err := db.Exec(q, id)
 	if err != nil {
-		return &QueryExecError{"DeleteProject", q, err}
+		return &QueryExecError{"DeleteProject", q, err, ""}
 	}
 	return nil
 }
