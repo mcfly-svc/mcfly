@@ -13,13 +13,13 @@ import (
 	"testing"
 )
 
-type EndpointTests struct {
+type EndpointTestRunner struct {
 	Endpoint 			client.EntityEndpoint
 	Entity1				string
 	Entity2 			string
 }
 
-func (self *EndpointTests) RunAll(t *testing.T) {
+func (self *EndpointTestRunner) RunAll(t *testing.T) {
   self.RunCreateTest(t)
   self.RunGetAllTest(t)
   self.RunGetTest(t)
@@ -30,48 +30,48 @@ func (self *EndpointTests) RunAll(t *testing.T) {
 }
 
 // create an entity
-func (self *EndpointTests) RunCreateTest(t *testing.T) {
+func (self *EndpointTestRunner) RunCreateTest(t *testing.T) {
 	cleanupDB()
 
-  et := EndpointTester{t, self.Endpoint}
-  res := et.Create(self.Entity1)
+  ec := EndpointTestClient{t, self.Endpoint}
+  res := ec.Create(self.Entity1)
 
   rt := &testutil.ResponseTest{t, res}
   rt.ExpectHttpStatus(200)
 }
 
 // get all entities
-func (self *EndpointTests) RunGetAllTest(t *testing.T) {
+func (self *EndpointTestRunner) RunGetAllTest(t *testing.T) {
 	cleanupDB()
 
-  et := EndpointTester{t, self.Endpoint}
-  et.Create(self.Entity1)
-  et.Create(self.Entity2)
-  entities := et.GetAll()
+  ec := EndpointTestClient{t, self.Endpoint}
+  ec.Create(self.Entity1)
+  ec.Create(self.Entity2)
+  entities := ec.GetAll()
 
   assert.Len(t, entities, 2, fmt.Sprintf("Wrong number of %s", self.Endpoint.Name))
 }
 
 // create an entity and get it by ID
-func (self *EndpointTests) RunGetTest(t *testing.T) {
+func (self *EndpointTestRunner) RunGetTest(t *testing.T) {
   cleanupDB()
 
-  et := EndpointTester{t, self.Endpoint}
-  et.Create(self.Entity1)
-  entities := et.GetAll()
+  ec := EndpointTestClient{t, self.Endpoint}
+  ec.Create(self.Entity1)
+  entities := ec.GetAll()
   id1 := reflect.ValueOf(entities[0]).FieldByName("ID").Interface().(int64)
-  e := et.Get(id1)
+  e := ec.Get(id1)
   id2 := reflect.ValueOf(e).FieldByName("ID").Interface().(int64)
 
   assert.Equal(t, id2, id1)
 }
 
 // get an entity that doesn't exist
-func (self *EndpointTests) RunMissingTest(t *testing.T) {
+func (self *EndpointTestRunner) RunMissingTest(t *testing.T) {
   cleanupDB()
 
-  et := EndpointTester{t, self.Endpoint}
-  res := et.GetRes(123)
+  ec := EndpointTestClient{t, self.Endpoint}
+  res := ec.GetRes(123)
 
   rt := &testutil.ResponseTest{t, res}
   rt.ExpectHttpStatus(400)
@@ -82,12 +82,12 @@ func (self *EndpointTests) RunMissingTest(t *testing.T) {
 }
 
 // creating two duplicate entites should fail
-func (self *EndpointTests) RunDuplicateTest(t *testing.T) {
+func (self *EndpointTestRunner) RunDuplicateTest(t *testing.T) {
   cleanupDB()
 
-  et := EndpointTester{t, self.Endpoint}
-  et.Create(self.Entity1)
-  res := et.Create(self.Entity1)
+  ec := EndpointTestClient{t, self.Endpoint}
+  ec.Create(self.Entity1)
+  res := ec.Create(self.Entity1)
 
   rt := &testutil.ResponseTest{t, res}
   rt.ExpectHttpStatus(400)
@@ -97,11 +97,11 @@ func (self *EndpointTests) RunDuplicateTest(t *testing.T) {
 }
 
 // creating an entity with invalid json should fail
-func (self *EndpointTests) RunCreateWithInvalidJsonTest(t *testing.T) {
+func (self *EndpointTestRunner) RunCreateWithInvalidJsonTest(t *testing.T) {
 	cleanupDB()
 
-  et := EndpointTester{t, self.Endpoint}
-	res := et.Create(`{ "bad" }`)
+  ec := EndpointTestClient{t, self.Endpoint}
+	res := ec.Create(`{ "bad" }`)
 
   rt := &testutil.ResponseTest{t, res}
   rt.ExpectHttpStatus(400)
@@ -109,19 +109,19 @@ func (self *EndpointTests) RunCreateWithInvalidJsonTest(t *testing.T) {
 }
 
 // creating an entity, then deleting it, should return 200 status and delete the entity
-func (self *EndpointTests) RunDeleteTest(t *testing.T) {
+func (self *EndpointTestRunner) RunDeleteTest(t *testing.T) {
   cleanupDB()
 
-  et := EndpointTester{t, self.Endpoint}
-  et.Create(self.Entity1)
-  entities := et.GetAll()
+  ec := EndpointTestClient{t, self.Endpoint}
+  ec.Create(self.Entity1)
+  entities := ec.GetAll()
   id1 := reflect.ValueOf(entities[0]).FieldByName("ID").Interface().(int64)
-  res := et.Delete(id1)
+  res := ec.Delete(id1)
 
   rt := &testutil.ResponseTest{t, res}
   rt.ExpectHttpStatus(200)
 
-  entities = et.GetAll()
+  entities = ec.GetAll()
 
   assert.Len(t, entities, 0)
 }

@@ -4,10 +4,10 @@ import (
 	"testing"
 )
 
-var tests EndpointTests
+var testRunner EndpointTestRunner
 
 func init() {
-  tests = EndpointTests{
+  testRunner = EndpointTestRunner{
     apiClient.Projects,
     `{"service": "github", "username": "mikec", "name": "example-1"}`,
     `{"service": "github", "username": "mikec", "name": "example-2"}`,
@@ -15,5 +15,5 @@ func init() {
 }
 
 func TestEndpointOperations(t *testing.T) {
-	tests.RunAll(t)
+	testRunner.RunAll(t)
 }
