@@ -1,7 +1,9 @@
 package api_test
 
 import (
+  "bytes"
   "net/http"
+  "io/ioutil"
   "testing"
   "encoding/json"
   "github.com/mikec/marsupi-api/client"
@@ -16,12 +18,24 @@ type EndpointTestClient struct {
 	Endpoint 		client.EntityEndpoint
 }
 
-func (self *EndpointTestClient) Create(JSON string) *http.Response {
+type bodyReader struct {
+    *bytes.Buffer
+}
+
+func (m bodyReader) Close() error { return nil } 
+
+func (self *EndpointTestClient) Create(JSON string) (Entity, *http.Response) {
 	res, err := self.Endpoint.Create(JSON)
   if err != nil {
     self.Test.Error(err)
   }
-  return res
+
+  var e Entity
+  if err := decodeEntityResponse(res, &e); err != nil {
+    self.Test.Error(err)
+  }
+
+  return e, res
 }
 
 func (self *EndpointTestClient) GetAllEntities() []Entity {
@@ -59,4 +73,20 @@ func (self *EndpointTestClient) Delete(ID int64) *http.Response {
 		self.Test.Error(err)
 	}
 	return res
+}
+
+func decodeEntityResponse(res *http.Response, entity *Entity) error {
+  buf, err := ioutil.ReadAll(res.Body)
+  if err != nil {
+    return err
+  }
+  body := bodyReader{bytes.NewBuffer(buf)}
+
+  if err := json.NewDecoder(body).Decode(entity); err != nil {
+    return err
+  }
+
+  res.Body = bodyReader{bytes.NewBuffer(buf)}
+
+  return nil
 }

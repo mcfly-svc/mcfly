@@ -9,7 +9,6 @@ import (
   "github.com/stretchr/testify/assert"
 
   "fmt"
-  //"reflect"
 	"testing"
 )
 
@@ -34,10 +33,12 @@ func (self *EndpointTestRunner) RunCreateTest(t *testing.T) {
 	cleanupDB()
 
   ec := EndpointTestClient{t, self.Endpoint}
-  res := ec.Create(self.Entity1)
+  e, res := ec.Create(self.Entity1)
 
   rt := &testutil.ResponseTest{t, res}
   rt.ExpectHttpStatus(200)
+
+  assert.Equal(t, e.ID > 0, true, fmt.Sprintf("Create %s did not return an ID", self.Endpoint.Name))
 }
 
 // get all entities
@@ -85,7 +86,7 @@ func (self *EndpointTestRunner) RunDuplicateTest(t *testing.T) {
 
   ec := EndpointTestClient{t, self.Endpoint}
   ec.Create(self.Entity1)
-  res := ec.Create(self.Entity1)
+  _, res := ec.Create(self.Entity1)
 
   rt := &testutil.ResponseTest{t, res}
   rt.ExpectHttpStatus(400)
@@ -99,7 +100,7 @@ func (self *EndpointTestRunner) RunCreateWithInvalidJsonTest(t *testing.T) {
 	cleanupDB()
 
   ec := EndpointTestClient{t, self.Endpoint}
-	res := ec.Create(`{ "bad" }`)
+	_, res := ec.Create(`{ "bad" }`)
 
   rt := &testutil.ResponseTest{t, res}
   rt.ExpectHttpStatus(400)

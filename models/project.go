@@ -12,15 +12,20 @@ type Project struct {
 }
 
 func (db *DB) SaveProject(p *Project) error {
-	q := `INSERT INTO project(name,username,service) VALUES($1,$2,$3)`
-	_, err := db.Exec(q, p.Name, p.Username, p.Service)
-	if err != nil {
+	q := `INSERT INTO project(name,username,service) VALUES($1,$2,$3) RETURNING id`
+	r := db.QueryRow(q, p.Name, p.Username, p.Service)
+
+	var id int64
+	if err := r.Scan(&id); err != nil {
 		err, ok := err.(*pq.Error)
 		if !ok {
 			panic(err)
 		}
 		return &QueryExecError{"SaveProject", q, err, err.Code.Name()}
 	}
+
+	p.ID = id
+
 	return nil
 }
 

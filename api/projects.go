@@ -15,14 +15,14 @@ import (
 func (handlers *Handlers) ProjectsPost(w http.ResponseWriter, req *http.Request) {
     r := Responder{w}
     
-    var p *models.Project
+    var p models.Project
     if err := DecodeRequest(req, &p); err != nil {
         log.Println(err)
         r.RespondWithError(InvalidJsonApiErr)
         return
     }
     
-    if err := handlers.db.SaveProject(p); err != nil {
+    if err := handlers.db.SaveProject(&p); err != nil {
         qErr := err.(*models.QueryExecError)
         switch qErr.Name {
         case "unique_violation":
@@ -33,7 +33,7 @@ func (handlers *Handlers) ProjectsPost(w http.ResponseWriter, req *http.Request)
         return
     }
 
-    r.RespondWithSuccess()
+    r.Respond(p)
 }
 
 // curl -X GET http://localhost:8080/api/0/projects
