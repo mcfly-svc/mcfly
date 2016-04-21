@@ -3,6 +3,7 @@ package api_test
 import (
   "bytes"
   "net/http"
+  "io"
   "io/ioutil"
   "testing"
   "encoding/json"
@@ -29,42 +30,35 @@ func (self *EndpointTestClient) Create(JSON string) (Entity, *http.Response) {
   if err != nil {
     self.Test.Error(err)
   }
-
   var e Entity
   if err := decodeEntityResponse(res, &e); err != nil {
     self.Test.Error(err)
   }
-
   return e, res
 }
 
-func (self *EndpointTestClient) GetAllEntities() []Entity {
+func (self *EndpointTestClient) GetAll() ([]Entity, *http.Response) {
   res, err := self.Endpoint.GetAll()
   if err != nil {
     self.Test.Error(err)
   }
   var entities []Entity
-  if err := json.NewDecoder(res.Body).Decode(&entities); err != nil {
+  if err := decodeEntitiesResponse(res, &entities); err != nil {
     self.Test.Error(err)
   }
-  return entities
+  return entities, res
 }
 
-func (self *EndpointTestClient) Get(ID int64) *http.Response {
+func (self *EndpointTestClient) Get(ID int64) (Entity, *http.Response) {
 	res, err := self.Endpoint.Get(ID)
   if err != nil {
     self.Test.Error(err)
   }
-  return res
-}
-
-func (self *EndpointTestClient) GetEntity(ID int64) Entity {
-  res := self.Get(ID)
   var e Entity
-  if err := json.NewDecoder(res.Body).Decode(&e); err != nil {
+  if err := decodeEntityResponse(res, &e); err != nil {
     self.Test.Error(err)
   }
-  return e
+  return e, res
 }
 
 func (self *EndpointTestClient) Delete(ID int64) *http.Response {
@@ -75,18 +69,40 @@ func (self *EndpointTestClient) Delete(ID int64) *http.Response {
 	return res
 }
 
-func decodeEntityResponse(res *http.Response, entity *Entity) error {
-  buf, err := ioutil.ReadAll(res.Body)
+func decodeEntitiesResponse(res *http.Response, entities *[]Entity) error {
+  err := decodeBody(res, entities)
   if err != nil {
     return err
   }
-  body := bodyReader{bytes.NewBuffer(buf)}
+  return nil
+}
 
-  if err := json.NewDecoder(body).Decode(entity); err != nil {
+func decodeEntityResponse(res *http.Response, entity *Entity) error {
+  err := decodeBody(res, entity)
+  if err != nil {
     return err
   }
+  return nil
+}
 
+func decodeBody(res *http.Response, v interface{}) error {
+  body, err := readBody(res)
+  if err != nil {
+    return err
+  }
+  if err := json.NewDecoder(body).Decode(v); err != nil {
+    return err
+  }
+  return nil
+}
+
+func readBody(res *http.Response) (io.ReadCloser, error) {
+  buf, err := ioutil.ReadAll(res.Body)
+  if err != nil {
+    return nil, err
+  }
+  body := bodyReader{bytes.NewBuffer(buf)}
   res.Body = bodyReader{bytes.NewBuffer(buf)}
 
-  return nil
+  return body, nil
 }

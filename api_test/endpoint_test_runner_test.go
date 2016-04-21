@@ -35,7 +35,7 @@ func (self *EndpointTestRunner) RunCreateTest(t *testing.T) {
   ec := EndpointTestClient{t, self.Endpoint}
   e, res := ec.Create(self.Entity1)
 
-  rt := &testutil.ResponseTest{t, res}
+  rt := testutil.ResponseTest{t, res}
   rt.ExpectHttpStatus(200)
 
   assert.Equal(t, e.ID > 0, true, fmt.Sprintf("Create %s did not return an ID", self.Endpoint.Name))
@@ -48,7 +48,10 @@ func (self *EndpointTestRunner) RunGetAllTest(t *testing.T) {
   ec := EndpointTestClient{t, self.Endpoint}
   ec.Create(self.Entity1)
   ec.Create(self.Entity2)
-  entities := ec.GetAllEntities()
+  entities, res := ec.GetAll()
+
+  rt := testutil.ResponseTest{t, res}
+  rt.ExpectHttpStatus(200)
 
   assert.Len(t, entities, 2, fmt.Sprintf("Wrong number of %s", self.Endpoint.Name))
 }
@@ -59,8 +62,11 @@ func (self *EndpointTestRunner) RunGetTest(t *testing.T) {
 
   ec := EndpointTestClient{t, self.Endpoint}
   ec.Create(self.Entity1)
-  entities := ec.GetAllEntities()
-  e := ec.GetEntity(entities[0].ID)
+  entities, _ := ec.GetAll()
+  e, res := ec.Get(entities[0].ID)
+
+  rt := testutil.ResponseTest{t, res}
+  rt.ExpectHttpStatus(200)
 
   assert.Equal(t, e.ID, entities[0].ID)
 }
@@ -70,14 +76,13 @@ func (self *EndpointTestRunner) RunMissingTest(t *testing.T) {
   cleanupDB()
 
   ec := EndpointTestClient{t, self.Endpoint}
-  res := ec.Get(123)
+  _, res := ec.Get(123)
 
-  rt := &testutil.ResponseTest{t, res}
+  rt := testutil.ResponseTest{t, res}
   rt.ExpectHttpStatus(400)
   rt.ExpectResponseBody(api.ApiError{
   	fmt.Sprintf("Failed to get %s where id=123", self.Endpoint.Name),
   })
-
 }
 
 // creating two duplicate entites should fail
@@ -88,7 +93,7 @@ func (self *EndpointTestRunner) RunDuplicateTest(t *testing.T) {
   ec.Create(self.Entity1)
   _, res := ec.Create(self.Entity1)
 
-  rt := &testutil.ResponseTest{t, res}
+  rt := testutil.ResponseTest{t, res}
   rt.ExpectHttpStatus(400)
   rt.ExpectResponseBody(api.ApiError{
     fmt.Sprintf("%s already exists", util.Capitalize(self.Endpoint.SingularName)),
@@ -102,7 +107,7 @@ func (self *EndpointTestRunner) RunCreateWithInvalidJsonTest(t *testing.T) {
   ec := EndpointTestClient{t, self.Endpoint}
 	_, res := ec.Create(`{ "bad" }`)
 
-  rt := &testutil.ResponseTest{t, res}
+  rt := testutil.ResponseTest{t, res}
   rt.ExpectHttpStatus(400)
   rt.ExpectResponseBody(api.InvalidJsonApiErr)
 }
@@ -113,13 +118,13 @@ func (self *EndpointTestRunner) RunDeleteTest(t *testing.T) {
 
   ec := EndpointTestClient{t, self.Endpoint}
   ec.Create(self.Entity1)
-  entities := ec.GetAllEntities()
+  entities, _ := ec.GetAll()
   res := ec.Delete(entities[0].ID)
 
-  rt := &testutil.ResponseTest{t, res}
+  rt := testutil.ResponseTest{t, res}
   rt.ExpectHttpStatus(200)
 
-  entities = ec.GetAllEntities()
+  entities, _ = ec.GetAll()
 
   assert.Len(t, entities, 0)
 }
