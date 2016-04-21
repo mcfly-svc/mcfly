@@ -1,10 +1,10 @@
 package models
 
 type Project struct {
-	ID						int64			`db:"id" 				json:"id"`
-	Name					string		`db:"name" 			json:"name"`
-	Username			string		`db:"username" 	json:"username"`
-	Service				string		`db:"service" 	json:"service"`
+  ID            int64     `db:"id"        json:"id"`
+  Name          string    `db:"name"      json:"name"`
+  Username      string    `db:"username"  json:"username"`
+  Service       string    `db:"service"   json:"service"`
 }
 
 func (db *DB) SaveProject(p *Project) error {
@@ -16,9 +16,9 @@ func (db *DB) SaveProject(p *Project) error {
 	return nil
 }
 
-func (db *DB) GetProjects() (*[]Project, error) {
-	projects := &[]Project{}
-	err := db.Select(projects, `SELECT * FROM project`)
+func (db *DB) GetProjects() ([]Project, error) {
+	projects := []Project{}
+	err := db.Select(&projects, `SELECT * FROM project`)
 	if err != nil {
 		return nil, err
 	}

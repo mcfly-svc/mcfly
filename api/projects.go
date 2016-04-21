@@ -57,7 +57,6 @@ func (handlers *Handlers) ProjectGet(w http.ResponseWriter, req *http.Request) {
     }
 
     writeResponse(w, project)
-
 }
 
 // curl -X DELETE http://localhost:8080/api/0/projects/1

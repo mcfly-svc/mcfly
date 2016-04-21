@@ -5,6 +5,8 @@ import (
   "log"
 	"net/http"
 	"encoding/json"
+
+  //"github.com/mikec/marsupi-api/models"
 )
 
 type ApiResponse struct {
@@ -40,7 +42,9 @@ func writeSuccessResponse(w http.ResponseWriter) {
 func writeResponse(w http.ResponseWriter, v interface{}) {
   w.Header().Set("Content-Type", "application/json; charset=UTF-8")
   w.WriteHeader(http.StatusOK)
-  if err := json.NewEncoder(w).Encode(v); err != nil {
+  b, err := json.Marshal(v)
+  if err != nil {
     log.Fatal(err)
   }
+  w.Write(b)
 }
