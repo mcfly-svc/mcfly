@@ -9,7 +9,7 @@ import (
   "github.com/stretchr/testify/assert"
 
   "fmt"
-  "reflect"
+  //"reflect"
 	"testing"
 )
 
@@ -47,7 +47,7 @@ func (self *EndpointTestRunner) RunGetAllTest(t *testing.T) {
   ec := EndpointTestClient{t, self.Endpoint}
   ec.Create(self.Entity1)
   ec.Create(self.Entity2)
-  entities := ec.GetAll()
+  entities := ec.GetAllEntities()
 
   assert.Len(t, entities, 2, fmt.Sprintf("Wrong number of %s", self.Endpoint.Name))
 }
@@ -58,12 +58,10 @@ func (self *EndpointTestRunner) RunGetTest(t *testing.T) {
 
   ec := EndpointTestClient{t, self.Endpoint}
   ec.Create(self.Entity1)
-  entities := ec.GetAll()
-  id1 := reflect.ValueOf(entities[0]).FieldByName("ID").Interface().(int64)
-  e := ec.Get(id1)
-  id2 := reflect.ValueOf(e).FieldByName("ID").Interface().(int64)
+  entities := ec.GetAllEntities()
+  e := ec.GetEntity(entities[0].ID)
 
-  assert.Equal(t, id2, id1)
+  assert.Equal(t, e.ID, entities[0].ID)
 }
 
 // get an entity that doesn't exist
@@ -71,7 +69,7 @@ func (self *EndpointTestRunner) RunMissingTest(t *testing.T) {
   cleanupDB()
 
   ec := EndpointTestClient{t, self.Endpoint}
-  res := ec.GetRes(123)
+  res := ec.Get(123)
 
   rt := &testutil.ResponseTest{t, res}
   rt.ExpectHttpStatus(400)
@@ -114,14 +112,13 @@ func (self *EndpointTestRunner) RunDeleteTest(t *testing.T) {
 
   ec := EndpointTestClient{t, self.Endpoint}
   ec.Create(self.Entity1)
-  entities := ec.GetAll()
-  id1 := reflect.ValueOf(entities[0]).FieldByName("ID").Interface().(int64)
-  res := ec.Delete(id1)
+  entities := ec.GetAllEntities()
+  res := ec.Delete(entities[0].ID)
 
   rt := &testutil.ResponseTest{t, res}
   rt.ExpectHttpStatus(200)
 
-  entities = ec.GetAll()
+  entities = ec.GetAllEntities()
 
   assert.Len(t, entities, 0)
 }

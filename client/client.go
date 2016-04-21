@@ -11,7 +11,6 @@ type EntityEndpoint struct {
   Name                      string
   SingularName              string
   ServerURL                 string
-  Decoder                   EntityDecoder
 }
 
 type Client struct {
@@ -21,8 +20,8 @@ type Client struct {
 
 func NewClient(serverURL string) Client {
   return Client{
-    EntityEndpoint{"projects", "project", serverURL, ProjectDecoder{}},
-    EntityEndpoint{"users", "user", serverURL, ProjectDecoder{}},
+    EntityEndpoint{"projects", "project", serverURL},
+    EntityEndpoint{"users", "user", serverURL},
   }
 }
 

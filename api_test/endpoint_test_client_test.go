@@ -3,8 +3,13 @@ package api_test
 import (
   "net/http"
   "testing"
+  "encoding/json"
   "github.com/mikec/marsupi-api/client"
 )
+
+type Entity struct {
+  ID    int64   `json:"id"`
+}
 
 type EndpointTestClient struct {
 	Test 				*testing.T
@@ -19,19 +24,19 @@ func (self *EndpointTestClient) Create(JSON string) *http.Response {
   return res
 }
 
-func (self *EndpointTestClient) GetAll() []interface{} {
-	res, err := self.Endpoint.GetAll()
+func (self *EndpointTestClient) GetAllEntities() []Entity {
+  res, err := self.Endpoint.GetAll()
   if err != nil {
     self.Test.Error(err)
   }
-  entities, err := self.Endpoint.Decoder.DecodeArrayResponse(res)
-  if err != nil {
-  	self.Test.Error(err)
+  var entities []Entity
+  if err := json.NewDecoder(res.Body).Decode(&entities); err != nil {
+    self.Test.Error(err)
   }
   return entities
 }
 
-func (self *EndpointTestClient) GetRes(ID int64) *http.Response {
+func (self *EndpointTestClient) Get(ID int64) *http.Response {
 	res, err := self.Endpoint.Get(ID)
   if err != nil {
     self.Test.Error(err)
@@ -39,13 +44,13 @@ func (self *EndpointTestClient) GetRes(ID int64) *http.Response {
   return res
 }
 
-func (self *EndpointTestClient) Get(ID int64) interface{} {
-	res := self.GetRes(ID)
-  entity, err := self.Endpoint.Decoder.DecodeResponse(res)
-  if err != nil {
-  	self.Test.Error(err)
+func (self *EndpointTestClient) GetEntity(ID int64) Entity {
+  res := self.Get(ID)
+  var e Entity
+  if err := json.NewDecoder(res.Body).Decode(&e); err != nil {
+    self.Test.Error(err)
   }
-  return entity
+  return e
 }
 
 func (self *EndpointTestClient) Delete(ID int64) *http.Response {
