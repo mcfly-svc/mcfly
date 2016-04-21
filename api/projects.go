@@ -13,38 +13,42 @@ import (
 
 // curl -X POST http://localhost:8080/api/0/projects -d '{"service":"github", "username":"mikec", "name":"example-project"}'
 func (handlers *Handlers) ProjectsPost(w http.ResponseWriter, req *http.Request) {
+    r := Responder{w}
     
     var p *models.Project
     if err := DecodeRequest(req, &p); err != nil {
         log.Println(err)
-        writeErrorResponse(w, InvalidJsonApiErr)
+        r.RespondWithError(InvalidJsonApiErr)
         return
     }
     
     if saveErr := handlers.db.SaveProject(p); saveErr != nil {
         log.Println(saveErr)
-        writeErrorResponse(w, "Failed to save projects")
+        r.RespondWithError("Failed to save projects")
         return
     }
 
-    writeSuccessResponse(w)
+    r.RespondWithSuccess()
 }
 
 // curl -X GET http://localhost:8080/api/0/projects
 func (handlers *Handlers) ProjectsGet(w http.ResponseWriter, req *http.Request) {
+    r := Responder{w}
 
     projects, err := handlers.db.GetProjects()
     if err != nil {
         log.Println(err)
-        writeErrorResponse(w, "Failed to get projects")
+        r.RespondWithError("Failed to get projects")
         return
     }
 
-    writeResponse(w, projects)
+    r.Respond(projects)
 }
 
 // curl -X GET http://localhost:8080/api/0/projects/1
 func (handlers *Handlers) ProjectGet(w http.ResponseWriter, req *http.Request) {
+    r := Responder{w}
+
     vars := mux.Vars(req)
     project_id := vars["project_id"]
     id, err := strconv.ParseInt(project_id, 10, 64)
@@ -52,29 +56,32 @@ func (handlers *Handlers) ProjectGet(w http.ResponseWriter, req *http.Request) {
     project, err := handlers.db.GetProjectById(id)
     if err != nil {
         log.Println(err)
-        writeErrorResponse(w, fmt.Sprintf("Failed to get projects where id=%d", id))
+        r.RespondWithError(fmt.Sprintf("Failed to get projects where id=%d", id))
         return
     }
 
-    writeResponse(w, project)
+    r.Respond(project)
 }
 
 // curl -X DELETE http://localhost:8080/api/0/projects/1
 func (handlers *Handlers) ProjectsDelete(w http.ResponseWriter, req *http.Request) {
+    r := Responder{w}
+
     vars := mux.Vars(req)
     project_id := vars["project_id"]
     id, err := strconv.ParseInt(project_id, 10, 64)
+
     if err != nil {
         log.Println(err)
-        writeErrorResponse(w, fmt.Sprintf("%s is not a valid project ID", project_id))
+        r.RespondWithError(fmt.Sprintf("%s is not a valid project ID", project_id))
         return
     }
 
     if err := handlers.db.DeleteProject(id); err != nil {
         log.Println(err)
-        writeErrorResponse(w, "Failed to delete project")
+        r.RespondWithError("Failed to delete project")
         return
     }
 
-    writeSuccessResponse(w)
+    r.RespondWithSuccess()
 }

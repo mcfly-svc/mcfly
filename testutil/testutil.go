@@ -3,7 +3,6 @@ package testutil
 import (
   "github.com/stretchr/testify/assert"
 
-  "fmt"
   "encoding/json"
   "io/ioutil"
 	"testing"
@@ -37,7 +36,6 @@ func (rt *ResponseTest) ExpectResponseBody(expectedBody interface{}) {
 			}
 			expBodyStr = string(bodyBytes)
 	}
-	expBodyStr = fmt.Sprintf("%s\n", expBodyStr)
 
   assert.Equal(rt.Test, expBodyStr, actualBody)
 }
