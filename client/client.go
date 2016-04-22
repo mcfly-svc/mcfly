@@ -4,6 +4,7 @@ import (
   "github.com/mikec/marsupi-api/api"
   "github.com/mikec/marsupi-api/models"
 
+  "bytes"
   "io"
   "io/ioutil"
   "encoding/json"
@@ -45,57 +46,57 @@ func (self *EntityEndpoint) EntityUrl(id int64) string {
   return fmt.Sprintf("%s/%d", self.EndpointUrl(), id)
 }
 
-func (self *EntityEndpoint) Create(JSON string) (*ClientResponse, error) {
+func (self *EntityEndpoint) Create(JSON string) (*ClientResponse, *http.Response, error) {
   res, err := DoPost(self.EndpointUrl(), JSON)
   if err != nil {
-    return nil, err
+    return nil, nil, err
   }
 
   d, err := decodeResponse(res, self.ModelType)
   if err != nil {
-    return nil, err
+    return nil, res, err
   }
   cr := &ClientResponse{d, res.StatusCode}
 
-  return cr, nil
+  return cr, res, nil
 }
 
-func (self *EntityEndpoint) Delete(id int64) (*ClientResponse, error) {
+func (self *EntityEndpoint) Delete(id int64) (*ClientResponse, *http.Response, error) {
   res, err := DoDelete(self.EntityUrl(id))
   if err != nil {
-    return nil, err
+    return nil, nil, err
   }
 
   d, err := decodeResponse(res, reflect.TypeOf(api.ApiResponse{}))
   if err != nil {
-    return nil, err
+    return nil, res, err
   }
-  return &ClientResponse{d, res.StatusCode}, nil
+  return &ClientResponse{d, res.StatusCode}, res, nil
 }
 
-func (self *EntityEndpoint) GetAll() (*ClientResponse, error) {
+func (self *EntityEndpoint) GetAll() (*ClientResponse, *http.Response, error) {
   res, err := DoGet(self.EndpointUrl())
   if err != nil {
-    return nil, err
+    return nil, nil, err
   }
 
   d, err := decodeResponse(res, reflect.SliceOf(self.ModelType))
   if err != nil {
-    return nil, err
+    return nil, res, err
   }
-  return &ClientResponse{d, res.StatusCode}, nil
+  return &ClientResponse{d, res.StatusCode}, res, nil
 }
 
-func (self *EntityEndpoint) Get(id int64) (*ClientResponse, error) {
+func (self *EntityEndpoint) Get(id int64) (*ClientResponse, *http.Response, error) {
   res, err := DoGet(self.EntityUrl(id))
   if err != nil {
-    return nil, err
+    return nil, nil, err
   }
   d, err := decodeResponse(res, self.ModelType)
   if err != nil {
-    return nil, err
+    return nil, res, err
   }
-  return &ClientResponse{d, res.StatusCode}, nil
+  return &ClientResponse{d, res.StatusCode}, res, nil
 }
 
 func DoGet(url string) (*http.Response, error) {
@@ -129,11 +130,18 @@ func DoReq(method string, url string, JSON *string) (*http.Response, error) {
   return res, nil
 }
 
+type bodyReader struct {
+    *bytes.Buffer
+}
+
+func (m bodyReader) Close() error { return nil } 
+
 func decodeResponse(res *http.Response, t reflect.Type) (interface{}, error) {
   b, err := ioutil.ReadAll(res.Body)
   if err != nil {
     return nil, err
   }
+  res.Body = bodyReader{bytes.NewBuffer(b)}
   var v interface{}
   json.Unmarshal(b, &v)
   m, ok := v.(map[string]interface{})

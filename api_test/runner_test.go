@@ -23,7 +23,7 @@ func (self *Runner) RunCreateTest(t *testing.T) {
 	cleanupDB()
 
   c := Client{t, self.Endpoint}
-  res := c.Create(self.Entity1)
+  res, _ := c.Create(self.Entity1)
   d := dataResp{res}
   id := d.ID()
 
@@ -39,7 +39,7 @@ func (self *Runner) RunGetAllTest(t *testing.T) {
   c := Client{t, self.Endpoint}
   c.Create(self.Entity1)
   c.Create(self.Entity2)
-  res := c.GetAll()
+  res, _ := c.GetAll()
   d := dataArrayResp{res}
   n := d.Len()
 
@@ -52,12 +52,12 @@ func (self *Runner) RunGetTest(t *testing.T) {
   cleanupDB()
 
   c := Client{t, self.Endpoint}
-  res := c.Create(self.Entity1)
+  res, _ := c.Create(self.Entity1)
 
   d := dataResp{res}
   id1 := d.ID()
 
-  res = c.Get(id1)
+  res, _ = c.Get(id1)
   d = dataResp{res}
   id2 := d.ID()
 
@@ -73,7 +73,7 @@ func (self *Runner) RunMissingTest(t *testing.T) {
   cleanupDB()
 
   c := Client{t, self.Endpoint}
-  res := c.Get(123)
+  res, _ := c.Get(123)
 
   assertStatusCode(t, 400, res.StatusCode)
 
@@ -87,7 +87,7 @@ func (self *Runner) RunDuplicateTest(t *testing.T) {
 
   c := Client{t, self.Endpoint}
   c.Create(self.Entity1)
-  res := c.Create(self.Entity1)
+  res, _ := c.Create(self.Entity1)
 
   assertStatusCode(t, 400, res.StatusCode)
 
@@ -100,7 +100,7 @@ func (self *Runner) RunCreateWithInvalidJsonTest(t *testing.T) {
 	cleanupDB()
 
   c := Client{t, self.Endpoint}
-	res := c.Create(`{ "bad" }`)
+	res, _ := c.Create(`{ "bad" }`)
 
   assertStatusCode(t, 400, res.StatusCode)
   assert.Equal(t, api.InvalidJsonApiErr, res.Data)
@@ -111,15 +111,15 @@ func (self *Runner) RunDeleteTest(t *testing.T) {
   cleanupDB()
 
   c := Client{t, self.Endpoint}
-  res := c.Create(self.Entity1)
+  res, _ := c.Create(self.Entity1)
   d := dataResp{res}
   id := d.ID()
 
-  res = c.Delete(id)
+  res, _ = c.Delete(id)
 
   assertStatusCode(t, 200, res.StatusCode)
 
-  res = c.Get(id)
+  res, _ = c.Get(id)
 
   assertStatusCode(t, 400, res.StatusCode)
   apiErr := api.ApiError{fmt.Sprintf("Failed to get %s where id=%d", self.Endpoint.SingularName, id)}
@@ -131,7 +131,7 @@ func (self *Runner) RunInvalidGetTest(t *testing.T) {
   cleanupDB()
 
   c := Client{t, self.Endpoint}
-  res := c.Get(0)
+  res, _ := c.Get(0)
 
   assertStatusCode(t, 400, res.StatusCode)
 
