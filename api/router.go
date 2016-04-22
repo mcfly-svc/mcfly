@@ -11,19 +11,24 @@ import (
 
 type Handlers struct {
     db models.Datastore
+    github GitHubClient
 }
 
 type RequestLogger interface {
     Handler(http.Handler, string) http.Handler
 }
 
-func NewRouter(dbUrl string, logger RequestLogger) *mux.Router {
+type GitHubClient interface {
+    GetAuthenticatedUser(string) (*models.User, error)
+}
+
+func NewRouter(dbUrl string, logger RequestLogger, github GitHubClient) *mux.Router {
 
     db, err := models.NewDB(dbUrl)
     if err != nil {
         log.Panic(err)
     }
-    handlers := &Handlers{db}
+    handlers := &Handlers{db, github}
     log.Printf("Connected to postgres")
 
     router := mux.NewRouter().StrictSlash(true)

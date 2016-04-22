@@ -3,9 +3,6 @@ package api
 import (
     "net/http"
     "log"
-
-    "github.com/mikec/marsupi-api/models"
-    "github.com/mikec/marsupi-api/github"
 )
 
 type CreateUserReq struct {
@@ -32,22 +29,14 @@ func (handlers *Handlers) UsersPost(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	client := github.GetAuthClient(*usrReq.GitHubToken)
-
-  user, _, err := client.Users.Get("")
+  u, err := handlers.github.GetAuthenticatedUser(*usrReq.GitHubToken)
   if err != nil {
-  	log.Println(err)
-  	r.RespondWithError("Get user from GitHub failed")
-  	return
+    log.Println(err)
+    r.RespondWithError("github.GetAuthenticatedUser failed")
+    return
   }
 
-  mUser := &models.User{
-  	Name: *user.Name,
-  	GitHubUsername: *user.Login,
-  	GitHubToken: *usrReq.GitHubToken,
-  }
-
-  newUser, err := handlers.db.SaveUser(mUser)
+  newUser, err := handlers.db.SaveUser(u)
   if err != nil {
   	log.Println(err)
   	r.RespondWithError("Create new user failed")

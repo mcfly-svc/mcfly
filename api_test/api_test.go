@@ -2,6 +2,7 @@ package api_test
 
 import (
 	"github.com/mikec/marsupi-api/api"
+	"github.com/mikec/marsupi-api/models"
 	"github.com/mikec/marsupi-api/client"
 
 	"fmt"
@@ -28,8 +29,24 @@ func (m MockLogger) Handler(h http.Handler, s string) http.Handler {
 	})
 }
 
+type MockGitHubClient struct {}
+
+func (self MockGitHubClient) GetAuthenticatedUser(token string) (*models.User, error) {
+	return &models.User{
+		Name: "Jack Daniels",
+    GitHubUsername: "spiffytee",
+    GitHubToken: token,
+	}, nil
+}
+
 func init() {
-    server = httptest.NewServer(api.NewRouter("postgres://localhost:5432/marsupi_test?sslmode=disable", MockLogger{}))
+    server = httptest.NewServer(
+    	api.NewRouter(
+    		"postgres://localhost:5432/marsupi_test?sslmode=disable",
+    		MockLogger{},
+    		MockGitHubClient{},
+    	),
+    )
 		apiClient = client.NewClient(server.URL)
 }
 
