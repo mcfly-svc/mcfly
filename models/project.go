@@ -19,7 +19,7 @@ func (db *DB) SaveProject(p *Project) error {
 	if err := r.Scan(&id); err != nil {
 		err, ok := err.(*pq.Error)
 		if !ok {
-			panic(err)
+			return err
 		}
 		return &QueryExecError{"SaveProject", q, err, err.Code.Name()}
 	}

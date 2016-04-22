@@ -18,10 +18,10 @@ func AllRoutes(handlers *Handlers) Routes {
 
         // projects
         Route{
-            "ProjectsPost",
+            "ProjectPost",
             "POST",
             "/api/0/projects",
-            handlers.ProjectsPost,
+            handlers.ProjectPost,
         },
         Route{
             "ProjectsGet",
@@ -36,24 +36,30 @@ func AllRoutes(handlers *Handlers) Routes {
             handlers.ProjectGet,
         },
         Route{
-            "ProjectsDelete",
+            "ProjectDelete",
             "DELETE",
             "/api/0/projects/{project_id}",
-            handlers.ProjectsDelete,
+            handlers.ProjectDelete,
         },
 
         // users
         Route{
-            "UsersPost",
+            "UserPost",
             "POST",
             "/api/0/users",
-            handlers.UsersPost,
+            handlers.UserPost,
         },
         Route{
-            "UsersGet",
+            "UserGet",
             "GET",
-            "/api/0/users",
-            handlers.UsersGet,
+            "/api/0/users/{user_id}",
+            handlers.UserGet,
+        },
+        Route{
+            "UserDelete",
+            "DELETE",
+            "/api/0/users/{user_id}",
+            handlers.UserDelete,
         },
     }
 }

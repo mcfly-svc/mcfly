@@ -4,6 +4,7 @@ import (
 	"github.com/mikec/marsupi-api/api"
 	"github.com/mikec/marsupi-api/models"
 	"github.com/mikec/marsupi-api/client"
+	"github.com/mikec/marsupi-api/logging"
 
 	"fmt"
   "io"
@@ -43,7 +44,8 @@ func init() {
     server = httptest.NewServer(
     	api.NewRouter(
     		"postgres://localhost:5432/marsupi_test?sslmode=disable",
-    		MockLogger{},
+    		//MockLogger{},
+    		logging.HttpRequestLogger{},
     		MockGitHubClient{},
     	),
     )

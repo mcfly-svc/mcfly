@@ -17,10 +17,6 @@ type ApiResponse struct {
 	Status 				string				`json:"status"`
 }
 
-type ApiError struct {
-  Error         string        `json:"error"`
-}
-
 func (r *Responder) Respond(v interface{}) {
   r.WriteCommonHeaders()
   r.WriteSuccessHeaders()

@@ -11,8 +11,11 @@ type Datastore interface {
 	DeleteProject(int64) (error)
 	GetProjects() ([]Project, error)
 	GetProjectById(int64) (*Project, error)
-	SaveUser(*User) (*User, error)
+
+	SaveUser(*User) (error)
+	DeleteUser(int64) (error)
 	GetUsers() ([]User, error)
+	GetUserById(int64) (*User, error)
 }
 
 type DB struct {

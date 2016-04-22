@@ -27,8 +27,8 @@ func (self *Runner) RunCreateTest(t *testing.T) {
   d := dataResp{res}
   id := d.ID()
 
-  assertStatusCode(t, 200, res.StatusCode, self.Endpoint.Name)
-  assert.Equal(t, true, id > 0, fmt.Sprintf("Create %s did not return an ID", self.Endpoint.Name))
+  assertStatusCode(t, 200, res.StatusCode)
+  assert.Equal(t, true, id > 0, fmt.Sprintf("Create %s did not return an ID"))
 }
 
 
@@ -43,7 +43,7 @@ func (self *Runner) RunGetAllTest(t *testing.T) {
   d := dataArrayResp{res}
   n := d.Len()
 
-  assertStatusCode(t, 200, res.StatusCode, self.Endpoint.Name)
+  assertStatusCode(t, 200, res.StatusCode)
   assert.Equal(t, 2, n, fmt.Sprintf("GetAll %s returned wrong number of %s", self.Endpoint.Name, self.Endpoint.Name))
 }
 
@@ -53,6 +53,7 @@ func (self *Runner) RunGetTest(t *testing.T) {
 
   c := Client{t, self.Endpoint}
   res := c.Create(self.Entity1)
+
   d := dataResp{res}
   id1 := d.ID()
 
@@ -60,7 +61,9 @@ func (self *Runner) RunGetTest(t *testing.T) {
   d = dataResp{res}
   id2 := d.ID()
 
-  assertStatusCode(t, 200, res.StatusCode, self.Endpoint.Name)
+  fmt.Printf("GOT:%+v\n", res.Data)
+
+  assertStatusCode(t, 200, res.StatusCode)
   assert.Equal(t, id1, id2, fmt.Sprintf("Get %s failed, id value mismatched", self.Endpoint.SingularName))
 }
 
@@ -72,9 +75,9 @@ func (self *Runner) RunMissingTest(t *testing.T) {
   c := Client{t, self.Endpoint}
   res := c.Get(123)
 
-  assertStatusCode(t, 400, res.StatusCode, self.Endpoint.Name)
+  assertStatusCode(t, 400, res.StatusCode)
 
-  apiErr := api.ApiError{fmt.Sprintf("Failed to get %s where id=123", self.Endpoint.Name)}
+  apiErr := api.ApiError{fmt.Sprintf("Failed to get %s where id=123", self.Endpoint.SingularName)}
   assert.Equal(t, apiErr, res.Data)
 }
 
@@ -86,7 +89,7 @@ func (self *Runner) RunDuplicateTest(t *testing.T) {
   c.Create(self.Entity1)
   res := c.Create(self.Entity1)
 
-  assertStatusCode(t, 400, res.StatusCode, self.Endpoint.Name)
+  assertStatusCode(t, 400, res.StatusCode)
 
   apiErr := api.ApiError{fmt.Sprintf("%s already exists", util.Capitalize(self.Endpoint.SingularName))}
   assert.Equal(t, apiErr, res.Data)
@@ -99,7 +102,7 @@ func (self *Runner) RunCreateWithInvalidJsonTest(t *testing.T) {
   c := Client{t, self.Endpoint}
 	res := c.Create(`{ "bad" }`)
 
-  assertStatusCode(t, 400, res.StatusCode, self.Endpoint.Name)
+  assertStatusCode(t, 400, res.StatusCode)
   assert.Equal(t, api.InvalidJsonApiErr, res.Data)
 }
 
@@ -108,19 +111,33 @@ func (self *Runner) RunDeleteTest(t *testing.T) {
   cleanupDB()
 
   c := Client{t, self.Endpoint}
-  c.Create(self.Entity1)
-  res := c.GetAll()
-  d := dataArrayResp{res}
+  res := c.Create(self.Entity1)
+  d := dataResp{res}
+  id := d.ID()
 
-  res = c.Delete(d.FirstItemID())
+  res = c.Delete(id)
 
-  assertStatusCode(t, 200, res.StatusCode, self.Endpoint.Name)
+  assertStatusCode(t, 200, res.StatusCode)
 
-  res = c.GetAll()
-  d = dataArrayResp{res}
-  n := d.Len()
+  res = c.Get(id)
 
-  assert.Equal(t, 0, n, fmt.Sprintf("Expected 0 %s after Delete, but got %d", self.Endpoint.Name, n))
+  assertStatusCode(t, 400, res.StatusCode)
+  apiErr := api.ApiError{fmt.Sprintf("Failed to get %s where id=%d", self.Endpoint.SingularName, id)}
+  assert.Equal(t, apiErr, res.Data)
+}
+
+// try to get an entity using an invalid ID
+func (self *Runner) RunInvalidGetTest(t *testing.T) {
+  cleanupDB()
+
+  c := Client{t, self.Endpoint}
+  res := c.Get(0)
+
+  assertStatusCode(t, 400, res.StatusCode)
+
+  apiErr := &api.ApiError{}
+  apiErr.InvalidParam("ID", "0")
+  assert.Equal(t, *apiErr, res.Data)
 }
 
 
@@ -152,6 +169,6 @@ func elem(v interface{}) reflect.Value {
   return reflect.ValueOf(v).Elem()
 }
 
-func assertStatusCode(t *testing.T, actualCode int, expectCode int, endpointName string) {
-  assert.Equal(t, actualCode, expectCode, fmt.Sprintf("Create %s returned the wrong status code", endpointName))
+func assertStatusCode(t *testing.T, actualCode int, expectCode int) {
+  assert.Equal(t, actualCode, expectCode, "Wrong status code")
 }

@@ -12,7 +12,7 @@ import (
 )
 
 // curl -X POST http://localhost:8080/api/0/projects -d '{"service":"github", "username":"mikec", "name":"example-project"}'
-func (handlers *Handlers) ProjectsPost(w http.ResponseWriter, req *http.Request) {
+func (handlers *Handlers) ProjectPost(w http.ResponseWriter, req *http.Request) {
     r := Responder{w}
     
     var p models.Project
@@ -28,7 +28,7 @@ func (handlers *Handlers) ProjectsPost(w http.ResponseWriter, req *http.Request)
         case "unique_violation":
             r.RespondWithError("Project already exists")
         default:
-            r.RespondWithError("Failed to save projects")
+            r.RespondWithError("Failed to save project")
         }
         return
     }
@@ -58,10 +58,17 @@ func (handlers *Handlers) ProjectGet(w http.ResponseWriter, req *http.Request) {
     project_id := vars["project_id"]
     id, err := strconv.ParseInt(project_id, 10, 64)
 
+    if id == 0 || err != nil {
+        apiErr := &ApiError{}
+        apiErr.InvalidParam("ID", project_id)
+        r.RespondWithError(*apiErr)
+        return
+      }
+
     project, err := handlers.db.GetProjectById(id)
     if err != nil {
         log.Println(err)
-        r.RespondWithError(fmt.Sprintf("Failed to get projects where id=%d", id))
+        r.RespondWithError(fmt.Sprintf("Failed to get project where id=%d", id))
         return
     }
 
@@ -69,7 +76,7 @@ func (handlers *Handlers) ProjectGet(w http.ResponseWriter, req *http.Request) {
 }
 
 // curl -X DELETE http://localhost:8080/api/0/projects/1
-func (handlers *Handlers) ProjectsDelete(w http.ResponseWriter, req *http.Request) {
+func (handlers *Handlers) ProjectDelete(w http.ResponseWriter, req *http.Request) {
     r := Responder{w}
 
     vars := mux.Vars(req)

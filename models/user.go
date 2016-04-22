@@ -1,6 +1,8 @@
 package models
 
-import "fmt"
+import (
+	"github.com/lib/pq"
+)
 
 type User struct {
 	ID							int64			`db:"id" 									json:"id"`
@@ -9,32 +11,40 @@ type User struct {
 	GitHubUsername	string		`db:"github_username" 		json:"github_username"`
 }
 
-func (db *DB) SaveUser(u *User) (*User, error) {
-	var uid int64
+func (db *DB) SaveUser(u *User) error {
 	q := `INSERT INTO marsupi_user(name,github_token,github_username) VALUES($1,$2,$3) RETURNING id`
 	r := db.QueryRow(q, u.Name, u.GitHubToken, u.GitHubUsername)
 
-	err := r.Scan(&uid)
-	if err != nil {
-		return nil, &QueryExecError{"SaveUser", q, err, ""}
+	var id int64
+	if err := r.Scan(&id); err != nil {
+		err, ok := err.(*pq.Error)
+		if !ok {
+			return err
+		}
+		return &QueryExecError{"SaveUser", q, err, err.Code.Name()}
 	}
 
-	newUser, err := db.GetUser(uid)
-	if err != nil {
-		return nil, err
-	}
+	u.ID = id
 
-	return newUser, nil
+	return nil
 }
 
-func (db *DB) GetUser(id int64) (*User, error) {
+func (db *DB) GetUserById(id int64) (*User, error) {
 	user := &User{}
-	err := db.Get(user, `SELECT * FROM marsupi_user`)
+	err := db.Get(user, `SELECT * FROM marsupi_user WHERE id=$1`, id)
 	if err != nil {
-		fmt.Println("ERR", err)
 		return nil, err
 	}
 	return user, nil
+}
+
+func (db *DB) DeleteUser(id int64) error {
+	q := `DELETE FROM marsupi_user WHERE id=$1`
+	_, err := db.Exec(q, id)
+	if err != nil {
+		return &QueryExecError{"DeleteUser", q, err, ""}
+	}
+	return nil
 }
 
 func (db *DB) GetUsers() ([]User, error) {

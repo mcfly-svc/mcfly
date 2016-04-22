@@ -4,20 +4,21 @@ import (
 	"testing"
 )
 
-var runner Runner
+var projectsRunner Runner
 
 func init() {
-  runner = Runner{
+  projectsRunner = Runner{
     apiClient.Projects,
     `{"service": "github", "username": "mikec", "name": "example-1"}`,
     `{"service": "github", "username": "mikec", "name": "example-2"}`,
   }
 }
 
-func TestCreateProject(t *testing.T) { runner.RunCreateTest(t) }
-func TestGetAllProjects(t *testing.T) { runner.RunGetAllTest(t) }
-func TestGetProject(t *testing.T) { runner.RunGetTest(t) }
-func TestGetMissingProject(t *testing.T) { runner.RunMissingTest(t) }
-func TestCreateDuplicateProject(t *testing.T) { runner.RunDuplicateTest(t) }
-func TestCreateProjectWithInvalidJson(t *testing.T) { runner.RunCreateWithInvalidJsonTest(t) }
-func TestDeleteProject(t *testing.T) { runner.RunDeleteTest(t) }
+func TestCreateProject(t *testing.T) { projectsRunner.RunCreateTest(t) }
+func TestGetAllProjects(t *testing.T) { projectsRunner.RunGetAllTest(t) }
+func TestGetProject(t *testing.T) { projectsRunner.RunGetTest(t) }
+func TestGetMissingProject(t *testing.T) { projectsRunner.RunMissingTest(t) }
+func TestCreateDuplicateProject(t *testing.T) { projectsRunner.RunDuplicateTest(t) }
+func TestCreateProjectWithInvalidJson(t *testing.T) { projectsRunner.RunCreateWithInvalidJsonTest(t) }
+func TestDeleteProject(t *testing.T) { projectsRunner.RunDeleteTest(t) }
+func TestGetProjectInvalidID(t *testing.T) { projectsRunner.RunInvalidGetTest(t) }
