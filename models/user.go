@@ -5,10 +5,10 @@ import (
 )
 
 type User struct {
-	ID							int64			`db:"id" 									json:"id"`
-	Name						string		`db:"name" 								json:"name"`
-	GitHubToken			string		`db:"github_token" 				json:"github_token"`
-	GitHubUsername	string		`db:"github_username" 		json:"github_username"`
+	ID							int64			`db:"id" json:"id"`
+	Name						string		`db:"name" json:"name"`
+	GitHubToken			string		`db:"github_token" json:"github_token"`
+	GitHubUsername	string		`db:"github_username" json:"github_username"`
 }
 
 func (db *DB) SaveUser(u *User) error {
@@ -35,6 +35,7 @@ func (db *DB) GetUserById(id int64) (*User, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return user, nil
 }
 

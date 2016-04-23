@@ -10,6 +10,9 @@ import (
   "fmt"
 	"testing"
   "reflect"
+  "net/http"
+  "io/ioutil"
+  "encoding/json"
 )
 
 type Runner struct {
@@ -57,16 +60,15 @@ func (self *Runner) RunGetTest(t *testing.T) {
   d := dataResp{res}
   id1 := d.ID()
 
-  res, _ = c.Get(id1)
+  res, httpRes := c.Get(id1)
   d = dataResp{res}
   id2 := d.ID()
 
-  fmt.Printf("GOT:%+v\n", res.Data)
-
   assertStatusCode(t, 200, res.StatusCode)
   assert.Equal(t, id1, id2, fmt.Sprintf("Get %s failed, id value mismatched", self.Endpoint.SingularName))
-}
 
+  assertJsonEncoded(t, httpRes, "id")
+}
 
 // get an entity that doesn't exist
 func (self *Runner) RunMissingTest(t *testing.T) {
@@ -141,6 +143,7 @@ func (self *Runner) RunInvalidGetTest(t *testing.T) {
 }
 
 
+
 type dataResp struct {
   *client.ClientResponse
 }
@@ -169,6 +172,33 @@ func elem(v interface{}) reflect.Value {
   return reflect.ValueOf(v).Elem()
 }
 
+
+
+func assertJsonEncoded(t *testing.T, res *http.Response, fieldName string) {
+  var d interface{}
+  b, err := dataFromRes(res, &d)
+  if err != nil {
+    panic(err)
+  }
+  dm := d.(map[string]interface{})
+  assert.NotNil(t, dm[fieldName], fmt.Sprintf("%s not properly encoded. Missing `%s` property.", string(b), fieldName))
+}
+
 func assertStatusCode(t *testing.T, actualCode int, expectCode int) {
   assert.Equal(t, actualCode, expectCode, "Wrong status code")
+}
+
+
+
+
+func dataFromRes(res *http.Response, v *interface{}) ([]byte, error) {
+  b, err := ioutil.ReadAll(res.Body)
+  if err != nil {
+    return nil, err
+  }
+  err = json.Unmarshal(b, v)
+  if err != nil {
+    return nil, err
+  }
+  return b, nil
 }

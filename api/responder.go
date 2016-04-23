@@ -67,5 +67,6 @@ func (r *Responder) WriteErrorData(v interface{}) {
   if err != nil {
     log.Fatal(err)
   }
+
   r.Write(b)
 }
