@@ -29,6 +29,21 @@ func (db *DB) SaveUser(u *User) error {
 	return nil
 }
 
+func (db *DB) GetUserByGitHubToken(token string) (*User, error) {
+	user := &User{}
+	q := `SELECT * FROM marsupi_user WHERE github_token=$1`
+	err := db.Get(user, q, token)
+	if err != nil {
+		err, ok := err.(*pq.Error)
+		if !ok {
+			return nil, err
+		}
+		return nil, &QueryExecError{"GetUserByGitHubToken", q, err, err.Code.Name()}
+	}
+
+	return user, nil
+}
+
 func (db *DB) GetUserById(id int64) (*User, error) {
 	user := &User{}
 	err := db.Get(user, `SELECT * FROM marsupi_user WHERE id=$1`, id)

@@ -16,6 +16,20 @@ type Routes []Route
 func AllRoutes(handlers *Handlers) Routes {
     return Routes{
 
+        // auth
+        /*Route{
+            "OAuth",
+            "POST",
+            "/api/0/authorize",
+            handlers.Authorize,
+        },*/
+        Route{
+            "OAuth",
+            "POST",
+            "/api/0/login",
+            handlers.Login,
+        },
+
         // projects
         Route{
             "ProjectPost",

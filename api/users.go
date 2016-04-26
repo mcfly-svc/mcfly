@@ -2,13 +2,12 @@ package api
 
 import (
     "net/http"
-    "log"
-    "fmt"
     "strconv"
 
     "github.com/gorilla/mux"
 
     "github.com/mikec/marsupi-api/models"
+    "github.com/mikec/marsupi-api/logging"
 )
 
 type CreateUserReq struct {
@@ -17,28 +16,29 @@ type CreateUserReq struct {
 	// DropboxToken			*string				`json:"dropbox_token"`
 }
 
+// TODO: Get rid of this, replace with login endpoint
+//
 // curl -X POST http://localhost:8080/api/0/users -d '{"github_token":"xxxxxx"}'
 func (handlers *Handlers) UserPost(w http.ResponseWriter, req *http.Request) {
   r := Responder{w}
 
 	var usrReq CreateUserReq
 	err := DecodeRequest(req, &usrReq); if err != nil {
-		log.Println(err)
-    r.RespondWithError(InvalidJsonApiErr)
+		logging.LogInternalError("UserPost", err)
+    r.RespondWithError(NewInvalidJsonErr())
     return
 	}
 
 	if usrReq.GitHubToken == nil {
-		msg := "Missing github_token parameter"
-		log.Println(msg)
-		r.RespondWithError(msg)
+		r.RespondWithError(NewMissingParamErr("github_token"))
 		return
 	}
+  ghToken := *usrReq.GitHubToken
 
-  u, err := handlers.github.GetAuthenticatedUser(*usrReq.GitHubToken)
+  u, err := handlers.github.GetAuthenticatedUser(ghToken)
   if err != nil {
-    log.Println(err)
-    r.RespondWithError("github.GetAuthenticatedUser failed")
+    logging.LogInternalError("UserPost", err)
+    r.RespondWithError(NewInvalidGitHubTokenErr(ghToken))
     return
   }
 
@@ -46,9 +46,10 @@ func (handlers *Handlers) UserPost(w http.ResponseWriter, req *http.Request) {
     qErr := err.(*models.QueryExecError)
     switch qErr.Name {
     case "unique_violation":
-      r.RespondWithError("User already exists")
+      r.RespondWithError(NewDuplicateCreateErr("user"))
     default:
-      r.RespondWithError("Failed to save user")
+      logging.LogInternalError("UserPost", err)
+      r.RespondWithError(NewCreateFailedErr("user"))
     }
     return
   }
@@ -65,16 +66,14 @@ func (handlers *Handlers) UserGet(w http.ResponseWriter, req *http.Request) {
   id, err := strconv.ParseInt(user_id, 10, 64)
 
   if id == 0 || err != nil {
-    apiErr := &ApiError{}
-    apiErr.InvalidParam("ID", user_id)
-    r.RespondWithError(*apiErr)
+    r.RespondWithError(NewInvalidParamErr("ID", user_id))
     return
   }
   
   user, err := handlers.db.GetUserById(id)
   if err != nil {
-    log.Println(err)
-    r.RespondWithError(fmt.Sprintf("Failed to get user where id=%d", id))
+    logging.LogInternalError("UserGet", err)
+    r.RespondWithError(NewGetEntityErr("user", id))
     return
   }
 
@@ -90,14 +89,14 @@ func (handlers *Handlers) UserDelete(w http.ResponseWriter, req *http.Request) {
     id, err := strconv.ParseInt(user_id, 10, 64)
 
     if err != nil {
-        log.Println(err)
-        r.RespondWithError(fmt.Sprintf("%s is not a valid User ID", user_id))
+        logging.LogInternalError("UserDelete", err)
+        r.RespondWithError(NewInvalidParamErr("user_id", user_id))
         return
     }
 
     if err := handlers.db.DeleteUser(id); err != nil {
-        log.Println(err)
-        r.RespondWithError("Failed to delete User")
+        logging.LogInternalError("UserDelete", err)
+        r.RespondWithError(NewDeleteFailedErr("user"))
         return
     }
 

@@ -1,12 +1,11 @@
 package api
 
 import (
-  "fmt"
-  "log"
 	"net/http"
 	"encoding/json"
 
   //"github.com/mikec/marsupi-api/models"
+  "github.com/mikec/marsupi-api/logging"
 )
 
 type Responder struct {
@@ -23,10 +22,10 @@ func (r *Responder) Respond(v interface{}) {
   r.WriteResponseData(v)
 }
 
-func (r *Responder) RespondWithError(v interface{}) {
+func (r *Responder) RespondWithError(apiErr *ApiError) {
   r.WriteCommonHeaders()
   r.WriteErrorHeaders()
-  r.WriteErrorData(v)
+  r.WriteResponseData(apiErr)
 }
 
 func (r *Responder) RespondWithSuccess() {
@@ -48,25 +47,7 @@ func (r *Responder) WriteErrorHeaders() {
 func (r *Responder) WriteResponseData(v interface{}) {
   b, err := json.Marshal(v)
   if err != nil {
-    log.Fatal(err)
+    logging.LogFatal(err)
   }
-  r.Write(b)
-}
-
-func (r *Responder) WriteErrorData(v interface{}) {
-  switch err := v.(type) {
-  case string:
-    v = ApiError{err}
-  case ApiError:
-    v = err
-  default:
-    log.Fatal(fmt.Errorf("Unexpected type %T", v))
-  }
-
-  b, err := json.Marshal(v)
-  if err != nil {
-    log.Fatal(err)
-  }
-
   r.Write(b)
 }

@@ -12,6 +12,7 @@ type Datastore interface {
 	GetProjects() ([]Project, error)
 	GetProjectById(int64) (*Project, error)
 
+	GetUserByGitHubToken(string) (*User, error)
 	SaveUser(*User) (error)
 	DeleteUser(int64) (error)
 	GetUsers() ([]User, error)

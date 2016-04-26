@@ -2,13 +2,12 @@ package api
 
 import (
     "net/http"
-    "log"
-    "fmt"
     "strconv"
 
     "github.com/gorilla/mux"
 
     "github.com/mikec/marsupi-api/models"
+    "github.com/mikec/marsupi-api/logging"
 )
 
 // curl -X POST http://localhost:8080/api/0/projects -d '{"service":"github", "username":"mikec", "name":"example-project"}'
@@ -17,8 +16,8 @@ func (handlers *Handlers) ProjectPost(w http.ResponseWriter, req *http.Request) 
     
     var p models.Project
     if err := DecodeRequest(req, &p); err != nil {
-        log.Println(err)
-        r.RespondWithError(InvalidJsonApiErr)
+        logging.LogInternalError("ProjectPost", err)
+        r.RespondWithError(NewInvalidJsonErr())
         return
     }
     
@@ -26,9 +25,10 @@ func (handlers *Handlers) ProjectPost(w http.ResponseWriter, req *http.Request) 
         qErr := err.(*models.QueryExecError)
         switch qErr.Name {
         case "unique_violation":
-            r.RespondWithError("Project already exists")
+            r.RespondWithError(NewDuplicateCreateErr("project"))
         default:
-            r.RespondWithError("Failed to save project")
+            logging.LogInternalError("ProjectPost", err)
+            r.RespondWithError(NewCreateFailedErr("project"))
         }
         return
     }
@@ -42,8 +42,8 @@ func (handlers *Handlers) ProjectsGet(w http.ResponseWriter, req *http.Request) 
 
     projects, err := handlers.db.GetProjects()
     if err != nil {
-        log.Println(err)
-        r.RespondWithError("Failed to get projects")
+        logging.LogInternalError("ProjectsGet", err)
+        r.RespondWithError(NewGetEntitiesErr("projects"))
         return
     }
 
@@ -59,16 +59,14 @@ func (handlers *Handlers) ProjectGet(w http.ResponseWriter, req *http.Request) {
     id, err := strconv.ParseInt(project_id, 10, 64)
 
     if id == 0 || err != nil {
-        apiErr := &ApiError{}
-        apiErr.InvalidParam("ID", project_id)
-        r.RespondWithError(*apiErr)
+        r.RespondWithError(NewInvalidParamErr("ID", project_id))
         return
       }
 
     project, err := handlers.db.GetProjectById(id)
     if err != nil {
-        log.Println(err)
-        r.RespondWithError(fmt.Sprintf("Failed to get project where id=%d", id))
+        logging.LogInternalError("ProjectGet", err)
+        r.RespondWithError(NewGetEntityErr("project", id))
         return
     }
 
@@ -84,14 +82,14 @@ func (handlers *Handlers) ProjectDelete(w http.ResponseWriter, req *http.Request
     id, err := strconv.ParseInt(project_id, 10, 64)
 
     if err != nil {
-        log.Println(err)
-        r.RespondWithError(fmt.Sprintf("%s is not a valid project ID", project_id))
+        logging.LogInternalError("ProjectDelete", err)
+        r.RespondWithError(NewInvalidParamErr("project_id", project_id))
         return
     }
 
     if err := handlers.db.DeleteProject(id); err != nil {
-        log.Println(err)
-        r.RespondWithError("Failed to delete project")
+        logging.LogInternalError("ProjectDelete", err)
+        r.RespondWithError(NewDeleteFailedErr("project"))
         return
     }
 

@@ -14,40 +14,46 @@ import (
   "reflect"
 )
 
+type Client struct {
+  Context       *ClientContext
+  Projects      EntityEndpoint
+  Users         EntityEndpoint
+}
+
 type ClientResponse struct {
   Data            interface{}
   StatusCode      int
 }
 
-type EntityEndpoint struct {
-  Name                      string
-  SingularName              string
-  ServerURL                 string
-  ModelType                 reflect.Type
-}
-
-type Client struct {
-  Projects      EntityEndpoint
-  Users         EntityEndpoint
-}
-
 func NewClient(serverURL string) Client {
+  ctx := ClientContext{serverURL}
   return Client{
-    EntityEndpoint{"projects", "project", serverURL, reflect.TypeOf(models.Project{})},
-    EntityEndpoint{"users", "user", serverURL, reflect.TypeOf(models.User{})},
+    &ctx,
+    EntityEndpoint{"projects", "project", &ctx, reflect.TypeOf(models.Project{})},
+    EntityEndpoint{"users", "user", &ctx, reflect.TypeOf(models.User{})},
   }
 }
 
-func (self *EntityEndpoint) EndpointUrl() string {
-  return fmt.Sprintf("%s/api/0/%s", self.ServerURL, self.Name)
+func (self *Client) Login(token string) (*ClientResponse, *http.Response, error) {
+  endpoint := fmt.Sprintf("login?token=%s&grant_type=password", token)
+  res, err := self.Context.DoPost(endpoint, nil, nil)
+  if err != nil {
+    return nil, nil, err
+  }
+  return nil, res, nil
 }
 
-func (self *EntityEndpoint) EntityUrl(id int64) string {
-  return fmt.Sprintf("%s/%d", self.EndpointUrl(), id)
+
+
+type EntityEndpoint struct {
+  Name                      string
+  SingularName              string
+  Context                   *ClientContext
+  ModelType                 reflect.Type
 }
 
 func (self *EntityEndpoint) Create(JSON string) (*ClientResponse, *http.Response, error) {
-  res, err := DoPost(self.EndpointUrl(), JSON)
+  res, err := self.Context.DoPost(self.Name, &JSON, nil)
   if err != nil {
     return nil, nil, err
   }
@@ -62,7 +68,7 @@ func (self *EntityEndpoint) Create(JSON string) (*ClientResponse, *http.Response
 }
 
 func (self *EntityEndpoint) Delete(id int64) (*ClientResponse, *http.Response, error) {
-  res, err := DoDelete(self.EntityUrl(id))
+  res, err := self.Context.DoDelete(fmt.Sprintf("%s/%d", self.Name, id), nil)
   if err != nil {
     return nil, nil, err
   }
@@ -75,7 +81,7 @@ func (self *EntityEndpoint) Delete(id int64) (*ClientResponse, *http.Response, e
 }
 
 func (self *EntityEndpoint) GetAll() (*ClientResponse, *http.Response, error) {
-  res, err := DoGet(self.EndpointUrl())
+  res, err := self.Context.DoGet(self.Name, nil)
   if err != nil {
     return nil, nil, err
   }
@@ -88,7 +94,7 @@ func (self *EntityEndpoint) GetAll() (*ClientResponse, *http.Response, error) {
 }
 
 func (self *EntityEndpoint) Get(id int64) (*ClientResponse, *http.Response, error) {
-  res, err := DoGet(self.EntityUrl(id))
+  res, err := self.Context.DoGet(fmt.Sprintf("%s/%d", self.Name, id), nil)
   if err != nil {
     return nil, nil, err
   }
@@ -99,19 +105,43 @@ func (self *EntityEndpoint) Get(id int64) (*ClientResponse, *http.Response, erro
   return &ClientResponse{d, res.StatusCode}, res, nil
 }
 
-func DoGet(url string) (*http.Response, error) {
-  return DoReq("GET", url, nil)
+
+type RequestOptions struct {
+  UseBasicAuth      bool
 }
 
-func DoPost(url string, JSON string) (*http.Response, error) {
-  return DoReq("POST", url, &JSON)
+func NewRequestOptions() *RequestOptions {
+  return &RequestOptions{true}
 }
 
-func DoDelete(url string) (*http.Response, error) {
-  return DoReq("DELETE", url, nil)
+
+type ClientContext struct {
+  ServerURL string
 }
 
-func DoReq(method string, url string, JSON *string) (*http.Response, error) {
+func (self *ClientContext) EndpointUrl(endpointName string) string {
+  return fmt.Sprintf("%s/api/0/%s", self.ServerURL, endpointName)
+}
+
+func (self *ClientContext) DoGet(endpoint string, opts *RequestOptions) (*http.Response, error) {
+  return self.DoReq("GET", endpoint, nil, opts)
+}
+
+func (self *ClientContext) DoPost(endpoint string, JSON *string, opts *RequestOptions) (*http.Response, error) {
+  return self.DoReq("POST", endpoint, JSON, opts)
+}
+
+func (self *ClientContext) DoDelete(endpoint string, opts *RequestOptions) (*http.Response, error) {
+  return self.DoReq("DELETE", endpoint, nil, opts)
+}
+
+func (self *ClientContext) DoReq(method string, endpoint string, JSON *string, opts *RequestOptions) (*http.Response, error) {
+  if opts == nil {
+    opts = NewRequestOptions()
+  }
+
+  url := self.EndpointUrl(endpoint)
+
   var reader io.Reader
   if JSON != nil {
     reader = strings.NewReader(*JSON)
@@ -122,10 +152,17 @@ func DoReq(method string, url string, JSON *string) (*http.Response, error) {
     return nil, err
   }
 
+  if opts.UseBasicAuth {
+    req.SetBasicAuth("MCLOVIN", "abc")
+  }
+
+  fmt.Println("ERR:", err)
   res, err := http.DefaultClient.Do(req)
   if err != nil {
+    fmt.Println("IN")
     return nil, err
   }
+  fmt.Println("HERE2")
 
   return res, nil
 }
