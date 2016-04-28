@@ -1,194 +1,211 @@
 package client
 
 import (
-  "github.com/mikec/marsupi-api/api"
-  "github.com/mikec/marsupi-api/models"
+	"github.com/mikec/marsupi-api/api"
+	"github.com/mikec/marsupi-api/models"
 
-  "bytes"
-  "io"
-  "io/ioutil"
-  "encoding/json"
-	"net/http"
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"io"
+	"io/ioutil"
+	"net/http"
+	"reflect"
 	"strings"
-  "reflect"
 )
 
 type Client struct {
-  Context       *ClientContext
-  Projects      EntityEndpoint
-  Users         EntityEndpoint
+	Context  *ClientContext
+	Projects EntityEndpoint
+	Users    EntityEndpoint
 }
 
 type ClientResponse struct {
-  Data            interface{}
-  StatusCode      int
+	Data       interface{}
+	StatusCode int
 }
 
 func NewClient(serverURL string) Client {
-  ctx := ClientContext{serverURL}
-  return Client{
-    &ctx,
-    EntityEndpoint{"projects", "project", &ctx, reflect.TypeOf(models.Project{})},
-    EntityEndpoint{"users", "user", &ctx, reflect.TypeOf(models.User{})},
-  }
+	ctx := ClientContext{serverURL}
+	return Client{
+		&ctx,
+		EntityEndpoint{"projects", "project", &ctx, reflect.TypeOf(models.Project{})},
+		EntityEndpoint{"users", "user", &ctx, reflect.TypeOf(models.User{})},
+	}
 }
 
-func (self *Client) Login(token string) (*ClientResponse, *http.Response, error) {
-  endpoint := fmt.Sprintf("login?token=%s&grant_type=password", token)
-  res, err := self.Context.DoPost(endpoint, nil, nil)
-  if err != nil {
-    return nil, nil, err
-  }
-  return nil, res, nil
+func (self *Client) Login(token string, tokenType string) (*ClientResponse, *http.Response, error) {
+	json, err := json.Marshal(api.LoginReq{token, tokenType})
+	if err != nil {
+		return nil, nil, err
+	}
+	jsonStr := string(json)
+	res, err := self.Context.DoPost("login", &jsonStr, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var loginResp api.LoginResp
+	if err := decodeResponse(res, &loginResp); err != nil {
+		return nil, res, err
+	}
+
+	return &ClientResponse{loginResp, res.StatusCode}, res, nil
 }
-
-
 
 type EntityEndpoint struct {
-  Name                      string
-  SingularName              string
-  Context                   *ClientContext
-  ModelType                 reflect.Type
+	Name         string
+	SingularName string
+	Context      *ClientContext
+	ModelType    reflect.Type
 }
 
 func (self *EntityEndpoint) Create(JSON string) (*ClientResponse, *http.Response, error) {
-  res, err := self.Context.DoPost(self.Name, &JSON, nil)
-  if err != nil {
-    return nil, nil, err
-  }
+	res, err := self.Context.DoPost(self.Name, &JSON, nil)
+	if err != nil {
+		return nil, nil, err
+	}
 
-  d, err := decodeResponse(res, self.ModelType)
-  if err != nil {
-    return nil, res, err
-  }
-  cr := &ClientResponse{d, res.StatusCode}
+	d, err := decodeResponseFromType(res, self.ModelType)
+	if err != nil {
+		return nil, res, err
+	}
+	cr := &ClientResponse{d, res.StatusCode}
 
-  return cr, res, nil
+	return cr, res, nil
 }
 
 func (self *EntityEndpoint) Delete(id int64) (*ClientResponse, *http.Response, error) {
-  res, err := self.Context.DoDelete(fmt.Sprintf("%s/%d", self.Name, id), nil)
-  if err != nil {
-    return nil, nil, err
-  }
+	res, err := self.Context.DoDelete(fmt.Sprintf("%s/%d", self.Name, id), nil)
+	if err != nil {
+		return nil, nil, err
+	}
 
-  d, err := decodeResponse(res, reflect.TypeOf(api.ApiResponse{}))
-  if err != nil {
-    return nil, res, err
-  }
-  return &ClientResponse{d, res.StatusCode}, res, nil
+	d, err := decodeResponseFromType(res, reflect.TypeOf(api.ApiResponse{}))
+	if err != nil {
+		return nil, res, err
+	}
+	return &ClientResponse{d, res.StatusCode}, res, nil
 }
 
 func (self *EntityEndpoint) GetAll() (*ClientResponse, *http.Response, error) {
-  res, err := self.Context.DoGet(self.Name, nil)
-  if err != nil {
-    return nil, nil, err
-  }
+	res, err := self.Context.DoGet(self.Name, nil)
+	if err != nil {
+		return nil, nil, err
+	}
 
-  d, err := decodeResponse(res, reflect.SliceOf(self.ModelType))
-  if err != nil {
-    return nil, res, err
-  }
-  return &ClientResponse{d, res.StatusCode}, res, nil
+	d, err := decodeResponseFromType(res, reflect.SliceOf(self.ModelType))
+	if err != nil {
+		return nil, res, err
+	}
+	return &ClientResponse{d, res.StatusCode}, res, nil
 }
 
 func (self *EntityEndpoint) Get(id int64) (*ClientResponse, *http.Response, error) {
-  res, err := self.Context.DoGet(fmt.Sprintf("%s/%d", self.Name, id), nil)
-  if err != nil {
-    return nil, nil, err
-  }
-  d, err := decodeResponse(res, self.ModelType)
-  if err != nil {
-    return nil, res, err
-  }
-  return &ClientResponse{d, res.StatusCode}, res, nil
+	res, err := self.Context.DoGet(fmt.Sprintf("%s/%d", self.Name, id), nil)
+	if err != nil {
+		return nil, nil, err
+	}
+	d, err := decodeResponseFromType(res, self.ModelType)
+	if err != nil {
+		return nil, res, err
+	}
+	return &ClientResponse{d, res.StatusCode}, res, nil
 }
 
-
 type RequestOptions struct {
-  UseBasicAuth      bool
+	UseBasicAuth bool
 }
 
 func NewRequestOptions() *RequestOptions {
-  return &RequestOptions{true}
+	return &RequestOptions{true}
 }
 
-
 type ClientContext struct {
-  ServerURL string
+	ServerURL string
 }
 
 func (self *ClientContext) EndpointUrl(endpointName string) string {
-  return fmt.Sprintf("%s/api/0/%s", self.ServerURL, endpointName)
+	return fmt.Sprintf("%s/api/0/%s", self.ServerURL, endpointName)
 }
 
 func (self *ClientContext) DoGet(endpoint string, opts *RequestOptions) (*http.Response, error) {
-  return self.DoReq("GET", endpoint, nil, opts)
+	return self.DoReq("GET", endpoint, nil, opts)
 }
 
 func (self *ClientContext) DoPost(endpoint string, JSON *string, opts *RequestOptions) (*http.Response, error) {
-  return self.DoReq("POST", endpoint, JSON, opts)
+	return self.DoReq("POST", endpoint, JSON, opts)
 }
 
 func (self *ClientContext) DoDelete(endpoint string, opts *RequestOptions) (*http.Response, error) {
-  return self.DoReq("DELETE", endpoint, nil, opts)
+	return self.DoReq("DELETE", endpoint, nil, opts)
 }
 
 func (self *ClientContext) DoReq(method string, endpoint string, JSON *string, opts *RequestOptions) (*http.Response, error) {
-  if opts == nil {
-    opts = NewRequestOptions()
-  }
+	if opts == nil {
+		opts = NewRequestOptions()
+	}
 
-  url := self.EndpointUrl(endpoint)
+	url := self.EndpointUrl(endpoint)
 
-  var reader io.Reader
-  if JSON != nil {
-    reader = strings.NewReader(*JSON)
-  }
+	var reader io.Reader
+	if JSON != nil {
+		reader = strings.NewReader(*JSON)
+	}
 
-  req, err := http.NewRequest(method, url, reader)
-  if err != nil {
-    return nil, err
-  }
+	req, err := http.NewRequest(method, url, reader)
+	if err != nil {
+		return nil, err
+	}
 
-  if opts.UseBasicAuth {
-    req.SetBasicAuth("MCLOVIN", "abc")
-  }
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
 
-  fmt.Println("ERR:", err)
-  res, err := http.DefaultClient.Do(req)
-  if err != nil {
-    fmt.Println("IN")
-    return nil, err
-  }
-  fmt.Println("HERE2")
-
-  return res, nil
+	return res, nil
 }
 
 type bodyReader struct {
-    *bytes.Buffer
+	*bytes.Buffer
 }
 
-func (m bodyReader) Close() error { return nil } 
+func (m bodyReader) Close() error { return nil }
 
-func decodeResponse(res *http.Response, t reflect.Type) (interface{}, error) {
-  b, err := ioutil.ReadAll(res.Body)
-  if err != nil {
-    return nil, err
-  }
-  res.Body = bodyReader{bytes.NewBuffer(b)}
-  var v interface{}
-  json.Unmarshal(b, &v)
-  m, ok := v.(map[string]interface{})
-  if ok && m["error"] != nil {
-    var apiErr api.ApiError
-    json.Unmarshal(b, &apiErr)
-    return apiErr, nil
-  } else {
-    m := reflect.New(t).Interface()
-    json.Unmarshal(b, m)
-    return m, nil
-  }
+func decodeResponse(res *http.Response, v interface{}) error {
+	b, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return err
+	}
+	res.Body = bodyReader{bytes.NewBuffer(b)}
+	if err := json.Unmarshal(b, &v); err != nil {
+		return err
+	}
+	return nil
+}
+
+func decodeResponseFromType(res *http.Response, t reflect.Type) (interface{}, error) {
+	b, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+	res.Body = bodyReader{bytes.NewBuffer(b)}
+	var v interface{}
+	if err := json.Unmarshal(b, &v); err != nil {
+		return nil, err
+	}
+	m, ok := v.(map[string]interface{})
+	if ok && m["error"] != nil {
+		var apiErr api.ApiError
+		if err := json.Unmarshal(b, &apiErr); err != nil {
+			return nil, err
+		}
+		return apiErr, nil
+	} else {
+		m := reflect.New(t).Interface()
+		if err := json.Unmarshal(b, m); err != nil {
+			return nil, err
+		}
+		return m, nil
+	}
 }

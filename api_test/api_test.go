@@ -2,27 +2,26 @@ package api_test
 
 import (
 	"github.com/mikec/marsupi-api/api"
-	"github.com/mikec/marsupi-api/models"
 	"github.com/mikec/marsupi-api/client"
+	"github.com/mikec/marsupi-api/db"
 	"github.com/mikec/marsupi-api/logging"
+	"github.com/mikec/marsupi-api/provider"
 
-	"fmt"
-  "io"
+	"io"
 	"log"
-	"os"
-	"os/exec"
-	"testing"
 	"net/http"
-  "net/http/httptest"
+	"net/http/httptest"
+	"os"
+	"testing"
 )
 
 var (
-    server   				*httptest.Server
-    reader   				io.Reader
-    apiClient				client.Client
+	server    *httptest.Server
+	reader    io.Reader
+	apiClient client.Client
 )
 
-type MockLogger struct {}
+type MockLogger struct{}
 
 func (m MockLogger) Handler(h http.Handler, s string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -30,26 +29,33 @@ func (m MockLogger) Handler(h http.Handler, s string) http.Handler {
 	})
 }
 
-type MockGitHubClient struct {}
+type MockAuthProvider struct{}
 
-func (self MockGitHubClient) GetAuthenticatedUser(token string) (*models.User, error) {
-	return &models.User{
-		Name: "Jack Daniels",
-    GitHubUsername: "spiffytee",
-    GitHubToken: token,
-	}, nil
+func (ap MockAuthProvider) Key() string {
+	return "jabroni.com"
+}
+
+// get data from the provider based on a provider auth token
+func (ap MockAuthProvider) GetTokenData(string) (*provider.TokenDataResponse, error) {
+	return &provider.TokenDataResponse{true, ap.Key(), "mikej", "Mike Jimmers"}, nil
 }
 
 func init() {
-    server = httptest.NewServer(
-    	api.NewRouter(
-    		"postgres://localhost:5432/marsupi_test?sslmode=disable",
-    		//MockLogger{},
-    		logging.HttpRequestLogger{},
-    		MockGitHubClient{},
-    	),
-    )
-		apiClient = client.NewClient(server.URL)
+
+	jabroni := MockAuthProvider{}
+
+	authProviders := make(map[string]provider.AuthProvider)
+	authProviders[jabroni.Key()] = &jabroni
+
+	server = httptest.NewServer(
+		api.NewRouter(
+			"postgres://localhost:5432/marsupi_test?sslmode=disable",
+			//MockLogger{},
+			logging.HttpRequestLogger{},
+			authProviders,
+		),
+	)
+	apiClient = client.NewClient(server.URL)
 }
 
 func TestMain(m *testing.M) {
@@ -65,17 +71,9 @@ func TestMain(m *testing.M) {
 }
 
 func recreateDB() {
-	runHelperScript("recreate.sh")
+	db.RunHelperScript("../db/helpers/recreate.sh")
 }
 
 func cleanupDB() {
-	runHelperScript("clean.sh")
-}
-
-func runHelperScript(sh string) {
-	out, err := exec.Command("/bin/sh", fmt.Sprintf("../db/helpers/%s", sh)).Output()
-	if err != nil {
-		log.Fatal(fmt.Sprintf("%s failed: ", sh), err)
-	}
-	fmt.Printf("%s", out)
+	db.RunHelperScript("../db/helpers/clean.sh")
 }

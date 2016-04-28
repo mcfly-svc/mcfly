@@ -4,10 +4,10 @@ import (
 	//"testing"
 )
 
-//var usersRunner Runner
+//var usersRunner EntityEndpointRunner
 
 func init() {
-  /*usersRunner = Runner{
+  /*usersRunner = EntityEndpointRunner{
     apiClient.Users,
     `{"github_token": "a1b2c3"}`,
     `{"github_token": "a1b2c3"}`,

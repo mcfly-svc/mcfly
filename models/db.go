@@ -1,22 +1,24 @@
 package models
 
-
 import (
-	_ "github.com/lib/pq"
+	"fmt"
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq"
+	"log"
 )
 
 type Datastore interface {
-	SaveProject(*Project) (error)
-	DeleteProject(int64) (error)
+	SaveProject(*Project) error
+	DeleteProject(int64) error
 	GetProjects() ([]Project, error)
 	GetProjectById(int64) (*Project, error)
 
-	GetUserByGitHubToken(string) (*User, error)
-	SaveUser(*User) (error)
-	DeleteUser(int64) (error)
-	GetUsers() ([]User, error)
-	GetUserById(int64) (*User, error)
+	SaveUser(*User) error
+	GetUserByProviderToken(ProviderAccessToken) (*User, error)
+	SetUserProviderToken(int64, ProviderAccessToken) error
+	//DeleteUser(int64) error
+	//GetUsers() ([]User, error)
+	//GetUserById(int64) (*User, error)
 }
 
 type DB struct {
@@ -29,4 +31,12 @@ func NewDB(dbName string) (*DB, error) {
 		return nil, err
 	}
 	return &DB{db}, nil
+}
+
+func handleQueryError(method string, query string, queryError error) *QueryExecError {
+	err, ok := queryError.(*pq.Error)
+	if !ok {
+		log.Fatal(fmt.Sprintf("handleQueryError failed: err `%s` is not a *pq.Error", err.Error()))
+	}
+	return &QueryExecError{method, query, err, err.Code.Name()}
 }

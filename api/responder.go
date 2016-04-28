@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"encoding/json"
 
-  //"github.com/mikec/marsupi-api/models"
   "github.com/mikec/marsupi-api/logging"
 )
 
@@ -26,6 +25,13 @@ func (r *Responder) RespondWithError(apiErr *ApiError) {
   r.WriteCommonHeaders()
   r.WriteErrorHeaders()
   r.WriteResponseData(apiErr)
+}
+
+func (r *Responder) RespondWithUnknownError(message string, err error) {
+  logging.LogInternalError(message, err)
+  r.WriteCommonHeaders()
+  r.WriteErrorHeaders()
+  r.WriteResponseData(NewUnknownErr())
 }
 
 func (r *Responder) RespondWithSuccess() {

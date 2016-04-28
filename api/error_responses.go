@@ -12,6 +12,10 @@ func NewApiErr(errorMessage string) *ApiError {
 	return &ApiError{errorMessage}
 }
 
+func NewUnknownErr() *ApiError {
+	return NewApiErr("Unknown server error. That's bad!")
+}
+
 func NewInvalidJsonErr() *ApiError {
 	return NewApiErr("Invalid JSON")
 }
@@ -46,4 +50,12 @@ func NewGetEntityErr(entityName string, ID int64) *ApiError {
 
 func NewDeleteFailedErr(entityName string) *ApiError {
 	return NewApiErr(fmt.Sprintf("Failed to delete %s", entityName))
+}
+
+func NewUnsupportedTokenTypeErr(tokenType string) *ApiError {
+	return NewApiErr(fmt.Sprintf("Unsupported token type %s", tokenType))
+}
+
+func NewInvalidTokenErr(tokenType string) *ApiError {
+	return NewApiErr(fmt.Sprintf("Invalid %s token", tokenType))
 }

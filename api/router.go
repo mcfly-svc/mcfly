@@ -3,18 +3,16 @@ package api
 import (
     "log"
     "net/http"
-    "math"
 
     "github.com/gorilla/mux"
-    "github.com/RangelReale/osin"
 
     "github.com/mikec/marsupi-api/models"
+    "github.com/mikec/marsupi-api/provider"
 )
 
 type Handlers struct {
     db models.Datastore
-    osinServer osin.Server
-    github GitHubClient
+    authProviders map[string]provider.AuthProvider
 }
 
 type RequestLogger interface {
@@ -25,26 +23,18 @@ type GitHubClient interface {
     GetAuthenticatedUser(string) (*models.User, error)
 }
 
-func NewRouter(dbUrl string, logger RequestLogger, github GitHubClient) *mux.Router {
+func NewRouter(
+    dbUrl string,
+    logger RequestLogger,
+    authProviders map[string]provider.AuthProvider,
+) *mux.Router {
 
     db, err := models.NewDB(dbUrl)
     if err != nil {
         log.Panic(err)
     }
 
-    store := &OAuthStorage{db}
-
-    config := osin.NewServerConfig()
-    config.AllowGetAccessRequest = true
-    config.AllowedAccessTypes = osin.AllowedAccessType{
-        osin.PASSWORD,
-    }
-    config.ErrorStatusCode = http.StatusBadRequest
-    config.AccessExpiration = math.MaxInt32 // never expire
-
-    osinServer := *osin.NewServer(config, store)
-
-    handlers := &Handlers{db, osinServer, github}
+    handlers := &Handlers{db, authProviders}
     log.Printf("Connected to postgres")
 
     router := mux.NewRouter().StrictSlash(true)

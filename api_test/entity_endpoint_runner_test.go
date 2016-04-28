@@ -14,14 +14,14 @@ import (
   "encoding/json"
 )
 
-type Runner struct {
+type EntityEndpointRunner struct {
 	Endpoint 			client.EntityEndpoint
 	Entity1				string
 	Entity2 			string
 }
 
 // create an entity
-func (self *Runner) RunCreateTest(t *testing.T) {
+func (self *EntityEndpointRunner) RunCreateTest(t *testing.T) {
 	cleanupDB()
 
   c := EndpointClient{t, self.Endpoint}
@@ -35,7 +35,7 @@ func (self *Runner) RunCreateTest(t *testing.T) {
 
 
 // get all entities
-func (self *Runner) RunGetAllTest(t *testing.T) {
+func (self *EntityEndpointRunner) RunGetAllTest(t *testing.T) {
 	cleanupDB()
 
   c := EndpointClient{t, self.Endpoint}
@@ -50,7 +50,7 @@ func (self *Runner) RunGetAllTest(t *testing.T) {
 }
 
 // create an entity and get it by ID
-func (self *Runner) RunGetTest(t *testing.T) {
+func (self *EntityEndpointRunner) RunGetTest(t *testing.T) {
   cleanupDB()
 
   c := EndpointClient{t, self.Endpoint}
@@ -70,7 +70,7 @@ func (self *Runner) RunGetTest(t *testing.T) {
 }
 
 // get an entity that doesn't exist
-func (self *Runner) RunMissingTest(t *testing.T) {
+func (self *EntityEndpointRunner) RunMissingTest(t *testing.T) {
   cleanupDB()
 
   c := EndpointClient{t, self.Endpoint}
@@ -81,7 +81,7 @@ func (self *Runner) RunMissingTest(t *testing.T) {
 }
 
 // creating two duplicate entites should fail
-func (self *Runner) RunDuplicateTest(t *testing.T) {
+func (self *EntityEndpointRunner) RunDuplicateTest(t *testing.T) {
   cleanupDB()
 
   c := EndpointClient{t, self.Endpoint}
@@ -93,7 +93,7 @@ func (self *Runner) RunDuplicateTest(t *testing.T) {
 }
 
 // creating an entity with invalid json should fail
-func (self *Runner) RunCreateWithInvalidJsonTest(t *testing.T) {
+func (self *EntityEndpointRunner) RunCreateWithInvalidJsonTest(t *testing.T) {
 	cleanupDB()
 
   c := EndpointClient{t, self.Endpoint}
@@ -104,7 +104,7 @@ func (self *Runner) RunCreateWithInvalidJsonTest(t *testing.T) {
 }
 
 // creating an entity, then deleting it, should return 200 status and delete the entity
-func (self *Runner) RunDeleteTest(t *testing.T) {
+func (self *EntityEndpointRunner) RunDeleteTest(t *testing.T) {
   cleanupDB()
 
   c := EndpointClient{t, self.Endpoint}
@@ -123,7 +123,7 @@ func (self *Runner) RunDeleteTest(t *testing.T) {
 }
 
 // try to get an entity using an invalid ID
-func (self *Runner) RunInvalidGetTest(t *testing.T) {
+func (self *EntityEndpointRunner) RunInvalidGetTest(t *testing.T) {
   cleanupDB()
 
   c := EndpointClient{t, self.Endpoint}

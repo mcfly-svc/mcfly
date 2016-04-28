@@ -1,73 +1,88 @@
 package api
 
 import (
-    "fmt"
-    "net/http"
-    "github.com/mikec/marsupi-api/models"
+	"crypto/rand"
+	"fmt"
+	"github.com/mikec/marsupi-api/models"
+	"gopkg.in/validator.v2"
+	"net/http"
 )
 
 type LoginReq struct {
-    GitHubToken                 *string             `json:"github_token"`
-    // BitbucketToken   *string             `json:"bitbucket_token"`
-    // DropboxToken         *string             `json:"dropbox_token"`
+	Token     string `json:"token" validate:"nonzero"`
+	TokenType string `json:"token_type" validate:"nonzero"`
+}
+
+type LoginResp struct {
+	AccessToken string `json:access_token`
 }
 
 // Access token endpoint
 func (handlers *Handlers) Login(w http.ResponseWriter, req *http.Request) {
 
-    r := Responder{w}
+	r := Responder{w}
 
-    osinResp := handlers.osinServer.NewResponse()
-    defer osinResp.Close()
+	var loginReq LoginReq
+	err := DecodeRequest(req, &loginReq)
+	if err != nil {
+		r.RespondWithError(NewInvalidJsonErr())
+		return
+	}
 
-    if ar := handlers.osinServer.HandleAccessRequest(osinResp, req); ar != nil {
+	if err := validator.Validate(loginReq); err != nil {
+		r.RespondWithError(&ApiError{fmt.Sprintf("VALIDATE ERR:%s", err.Error())})
+		return
+	}
 
-        var loginReq LoginReq
-        err := DecodeRequest(req, &loginReq); if err != nil {
-            fmt.Println(err)
-            r.RespondWithError(NewInvalidJsonErr())
-            return
-        }
-        ghToken := loginReq.GitHubToken
+	authProvider := handlers.authProviders[loginReq.TokenType]
+	if authProvider == nil {
+		r.RespondWithError(NewUnsupportedTokenTypeErr(loginReq.TokenType))
+		return
+	}
 
-        if ghToken == nil {
-            r.RespondWithError(NewMissingParamErr("github_token"))
-            return
-        }
+	td, err := authProvider.GetTokenData(loginReq.Token)
+	if err != nil {
+		r.RespondWithUnknownError("Login: authProvider.GetTokenData", err)
+		return
+	}
 
-        u, err := handlers.github.GetAuthenticatedUser(*ghToken)
-        if err != nil {
-            fmt.Println(err)
-            r.RespondWithError(NewInvalidGitHubTokenErr(*ghToken))
-            return
-        }
+	if !td.IsValid {
+		r.RespondWithError(NewInvalidTokenErr(loginReq.TokenType))
+		return
+	}
 
-        savedUser, err := handlers.db.GetUserByGitHubToken(u.GitHubToken)
-        if err != nil {
-            qErr := err.(*models.QueryExecError)
-            /*switch qErr.Name {
-                case 
-            }*/
-            fmt.Println("USER ERROR", qErr.Name)
-        }
+	pt := models.ProviderAccessToken{
+		td.Provider,
+		td.ProviderUsername,
+		loginReq.Token,
+	}
 
-        // SAVE USER, OR ADD TOKEN TO USER?? HERE OR IN oauth_storage??
-        // and why is TestGetUser failing?
-        ar.UserData = savedUser
+	var u *models.User
+	u, err = handlers.db.GetUserByProviderToken(pt)
+	if err != nil {
+		r.RespondWithUnknownError("Login: GetUserByProviderToken", err)
+		return
+	}
+	if u == nil { // if user doesn't exist
+		u = &models.User{
+			Name:        td.UserName,
+			AccessToken: generateAccessToken(),
+		}
+		if err = handlers.db.SaveUser(u); err != nil {
+			r.RespondWithUnknownError("Login: SaveUser", err)
+			return
+		}
+		if err = handlers.db.SetUserProviderToken(u.ID, pt); err != nil {
+			r.RespondWithUnknownError("Login: SetUserProviderToken", err)
+			return
+		}
+	}
 
-        ar.Authorized = true
-        handlers.osinServer.FinishAccessRequest(osinResp, req, ar)
-    }
+	r.Respond(&LoginResp{u.AccessToken})
+}
 
-    if osinResp.IsError {
-        if osinResp.InternalError != nil {
-            fmt.Println("osin error:", osinResp.InternalError)
-        }
-        r.RespondWithError(NewApiErr(osinResp.StatusText))
-        return
-    }
-
-    r.Respond(osinResp)
-
-    //osin.OutputJSON(osinResp, w, req)
+func generateAccessToken() string {
+	b := make([]byte, 32)
+	rand.Read(b)
+	return fmt.Sprintf("%x", b)
 }

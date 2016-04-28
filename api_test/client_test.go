@@ -1,19 +1,19 @@
 package api_test
 
 import (
-  "testing"
-  "net/http"
-  "github.com/mikec/marsupi-api/client"
+	"github.com/mikec/marsupi-api/client"
+	"net/http"
+	"testing"
 )
 
 type Client struct {
-	Test 				*testing.T
+	Test *testing.T
 }
 
-func (self *Client) Login(token string) (*client.ClientResponse, *http.Response) {
-	cr, res, err := apiClient.Login(token)
-  if err != nil {
-    self.Test.Error(err)
-  }
-  return cr, res
+func (self *Client) Login(token string, tokenType string) (*client.ClientResponse, *http.Response) {
+	cr, res, err := apiClient.Login(token, tokenType)
+	if err != nil {
+		self.Test.Error(err)
+	}
+	return cr, res
 }

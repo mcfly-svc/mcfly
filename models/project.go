@@ -3,20 +3,20 @@ package models
 import (
 	"github.com/lib/pq"
 
-	"fmt"
 	"encoding/json"
+	"fmt"
 )
 
 type Project struct {
-  ID            int64     `db:"id" json:"id"`
-  Name          string    `db:"name" json:"name"`
-  Username      string    `db:"username" json:"username"`
-  Service       string    `db:"service" json:"service"`
+	ID             int64  `db:"id" json:"id"`
+	Name           string `db:"name" json:"name"`
+	Username       string `db:"username" json:"username"`
+	SourceProvider string `db:"source_provider" json:"source_provider"`
 }
 
 func (db *DB) SaveProject(p *Project) error {
-	q := `INSERT INTO project(name,username,service) VALUES($1,$2,$3) RETURNING id`
-	r := db.QueryRow(q, p.Name, p.Username, p.Service)
+	q := `INSERT INTO project(name,username,source_provider) VALUES($1,$2,$3) RETURNING id`
+	r := db.QueryRow(q, p.Name, p.Username, p.SourceProvider)
 
 	var id int64
 	if err := r.Scan(&id); err != nil {
@@ -58,7 +58,7 @@ func (db *DB) GetProjectById(id int64) (*Project, error) {
 	}
 
 	b, _ := json.Marshal(project)
-	fmt.Println("PROJECT:",string(b))
+	fmt.Println("PROJECT:", string(b))
 
 	return project, nil
 }
