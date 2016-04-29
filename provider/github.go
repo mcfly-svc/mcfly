@@ -18,11 +18,11 @@ func (t *TokenSource) Token() (*oauth2.Token, error) {
 
 type GitHub struct{}
 
-func (self GitHub) Key() string {
+func (self *GitHub) Key() string {
 	return "github"
 }
 
-func (self GitHub) GetTokenData(token string) (*TokenDataResponse, error) {
+func (self *GitHub) GetTokenData(token string) (*TokenDataResponse, error) {
 	gh := newClient(token)
 
 	user, _, err := gh.Users.Get("")

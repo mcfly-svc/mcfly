@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/mikec/marsupi-api/db"
 	"log"
-	"os/exec"
 )
 
 func RunCommands(args []string) {

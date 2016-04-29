@@ -3,9 +3,10 @@ package api
 import (
 	"crypto/rand"
 	"fmt"
+	"net/http"
+
 	"github.com/mikec/marsupi-api/models"
 	"gopkg.in/validator.v2"
-	"net/http"
 )
 
 type LoginReq struct {
@@ -30,7 +31,14 @@ func (handlers *Handlers) Login(w http.ResponseWriter, req *http.Request) {
 	}
 
 	if err := validator.Validate(loginReq); err != nil {
-		r.RespondWithError(&ApiError{fmt.Sprintf("VALIDATE ERR:%s", err.Error())})
+		errs := err.(validator.ErrorMap)
+		var badParam string
+		if len(errs["Token"]) > 0 {
+			badParam = "token"
+		} else if len(errs["TokenType"]) > 0 {
+			badParam = "token_type"
+		}
+		r.RespondWithError(NewMissingParamErr(badParam))
 		return
 	}
 

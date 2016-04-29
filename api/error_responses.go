@@ -5,7 +5,7 @@ import (
 )
 
 type ApiError struct {
-  Error         string        `json:"error"`
+	Error string `json:"error"`
 }
 
 func NewApiErr(errorMessage string) *ApiError {
@@ -22,10 +22,6 @@ func NewInvalidJsonErr() *ApiError {
 
 func NewInvalidParamErr(name string, val string) *ApiError {
 	return NewApiErr(fmt.Sprintf("Invalid parameter %s=%s", name, val))
-}
-
-func NewInvalidGitHubTokenErr(token string) *ApiError {
-	return NewApiErr(fmt.Sprintf("Invalid GitHub token `%s`", token))
 }
 
 func NewMissingParamErr(param string) *ApiError {

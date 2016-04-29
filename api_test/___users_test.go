@@ -1,5 +1,6 @@
 package api_test
 
+/*
 import (
 	//"testing"
 )
@@ -7,12 +8,12 @@ import (
 //var usersRunner EntityEndpointRunner
 
 func init() {
-  /*usersRunner = EntityEndpointRunner{
+  usersRunner = EntityEndpointRunner{
     apiClient.Users,
     `{"github_token": "a1b2c3"}`,
     `{"github_token": "a1b2c3"}`,
-  }*/
-}
+  }
+}*/
 
 /*func TestCreateUser(t *testing.T) { usersRunner.RunCreateTest(t) }
 func TestGetUser(t *testing.T) { usersRunner.RunGetTest(t) }

@@ -31,12 +31,15 @@ func (m MockLogger) Handler(h http.Handler, s string) http.Handler {
 
 type MockAuthProvider struct{}
 
-func (ap MockAuthProvider) Key() string {
+func (ap *MockAuthProvider) Key() string {
 	return "jabroni.com"
 }
 
 // get data from the provider based on a provider auth token
-func (ap MockAuthProvider) GetTokenData(string) (*provider.TokenDataResponse, error) {
+func (ap *MockAuthProvider) GetTokenData(token string) (*provider.TokenDataResponse, error) {
+	if token == "badtoken" {
+		return &provider.TokenDataResponse{false, ap.Key(), "", ""}, nil
+	}
 	return &provider.TokenDataResponse{true, ap.Key(), "mikej", "Mike Jimmers"}, nil
 }
 

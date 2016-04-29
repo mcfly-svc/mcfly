@@ -1,6 +1,6 @@
 package api_test
 
-import (
+/*import (
 	"testing"
 )
 
@@ -14,7 +14,7 @@ func init() {
 	}
 }
 
-func TestCreateProject(t *testing.T)                { projectsRunner.RunCreateTest(t) }
+/func TestCreateProject(t *testing.T)                { projectsRunner.RunCreateTest(t) }
 func TestGetAllProjects(t *testing.T)               { projectsRunner.RunGetAllTest(t) }
 func TestGetProject(t *testing.T)                   { projectsRunner.RunGetTest(t) }
 func TestGetMissingProject(t *testing.T)            { projectsRunner.RunMissingTest(t) }
@@ -22,3 +22,4 @@ func TestCreateDuplicateProject(t *testing.T)       { projectsRunner.RunDuplicat
 func TestCreateProjectWithInvalidJson(t *testing.T) { projectsRunner.RunCreateWithInvalidJsonTest(t) }
 func TestDeleteProject(t *testing.T)                { projectsRunner.RunDeleteTest(t) }
 func TestGetProjectInvalidID(t *testing.T)          { projectsRunner.RunInvalidGetTest(t) }
+*/

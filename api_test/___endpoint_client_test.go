@@ -1,5 +1,6 @@
 package api_test
 
+/*
 import (
   "testing"
   "net/http"
@@ -42,3 +43,4 @@ func (self *EndpointClient) Delete(ID int64) (*client.ClientResponse, *http.Resp
 	}
 	return cr, res
 }
+*/

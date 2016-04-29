@@ -1,18 +1,41 @@
 package api_test
 
 import (
-	"fmt"
-	"io/ioutil"
 	"testing"
+
+	"github.com/mikec/marsupi-api/api"
 )
 
+func TestLoginInvalidJson(t *testing.T) {
+	RunPostInvalidJsonTest(t, "login")
+}
+
 func TestLoginNoToken(t *testing.T) {
-	res, err := apiClient.Context.DoPost("login", nil, nil)
+	RunMissingPostParamTest(t, "login", `{ "token_type":"jabroni.com" }`, "token")
+}
 
-	b, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		t.Error(err)
-	}
+func TestLoginNoTokenType(t *testing.T) {
+	RunMissingPostParamTest(t, "login", `{ "token":"abc123" }`, "token_type")
+}
 
-	fmt.Printf("LOGIN RESP:%+v\n", string(b))
+func TestLoginUnsupportedTokenType(t *testing.T) {
+	RunPostErrorTest(&ApiErrorTest{
+		t,
+		"login",
+		`{ "token":"abc123", "token_type":"junk-service" }`,
+		"an unsupported token type",
+		"an unsupported token type error",
+		api.NewUnsupportedTokenTypeErr("junk-service"),
+	})
+}
+
+func TestLoginInvalidToken(t *testing.T) {
+	RunPostErrorTest(&ApiErrorTest{
+		t,
+		"login",
+		`{ "token":"badtoken", "token_type":"jabroni.com" }`,
+		"an invalid token",
+		"an invalid token error",
+		api.NewInvalidTokenErr("jabroni.com"),
+	})
 }
