@@ -80,3 +80,7 @@ func recreateDB() {
 func cleanupDB() {
 	db.RunHelperScript("../db/helpers/clean.sh")
 }
+
+func seedDB() {
+	db.RunHelperScript("../db/helpers/clean.sh")
+}

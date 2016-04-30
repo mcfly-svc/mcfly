@@ -3,11 +3,18 @@ marsupi-api
 
 Data access layer for marsupi
 
+
 Setup
 =====
 
-createdb marsupi
-createdb marsupi_test
+go get -u github.com/jteeuwen/go-bindata/...
+
+
+Run API Server
+==============
+
+marsupi-api run
+
 
 Testing
 =======

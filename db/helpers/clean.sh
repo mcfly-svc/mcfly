@@ -1,13 +1,9 @@
 #!/bin/sh
 
-# delete all builds
-psql -d marsupi_test -c 'DELETE FROM build'
-
-# delete all user_project relationships
-psql -d marsupi_test -c 'DELETE FROM user_project'
-
-# delete all projects
-psql -d marsupi_test -c 'DELETE FROM project'
-
-# delete all users
-psql -d marsupi_test -c 'DELETE FROM marsupi_user'
+psql -d marsupi_test <<- EOF
+	DELETE FROM build;
+	DELETE FROM user_project;
+	DELETE FROM project;
+	DELETE FROM provider_access_token;
+	DELETE FROM marsupi_user;
+EOF
