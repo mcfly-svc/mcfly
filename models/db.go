@@ -2,9 +2,10 @@ package models
 
 import (
 	"fmt"
+	"log"
+
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
-	"log"
 )
 
 type Datastore interface {
@@ -14,8 +15,8 @@ type Datastore interface {
 	GetProjectById(int64) (*Project, error)
 
 	SaveUser(*User) error
-	GetUserByProviderToken(ProviderAccessToken) (*User, error)
-	SetUserProviderToken(int64, ProviderAccessToken) error
+	GetUserByProviderToken(*ProviderAccessToken) (*User, error)
+	SetUserProviderToken(int64, *ProviderAccessToken) error
 	//DeleteUser(int64) error
 	//GetUsers() ([]User, error)
 	//GetUserById(int64) (*User, error)

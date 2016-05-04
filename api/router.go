@@ -1,58 +1,58 @@
 package api
 
 import (
-    "log"
-    "net/http"
+	"log"
+	"net/http"
 
-    "github.com/gorilla/mux"
+	"github.com/gorilla/mux"
 
-    "github.com/mikec/marsupi-api/models"
-    "github.com/mikec/marsupi-api/provider"
+	"github.com/mikec/msplapi/models"
+	"github.com/mikec/msplapi/provider"
 )
 
 type Handlers struct {
-    db models.Datastore
-    authProviders map[string]provider.AuthProvider
+	db            models.Datastore
+	authProviders map[string]provider.AuthProvider
 }
 
 type RequestLogger interface {
-    Handler(http.Handler, string) http.Handler
+	Handler(http.Handler, string) http.Handler
 }
 
 type GitHubClient interface {
-    GetAuthenticatedUser(string) (*models.User, error)
+	GetAuthenticatedUser(string) (*models.User, error)
 }
 
 func NewRouter(
-    dbUrl string,
-    logger RequestLogger,
-    authProviders map[string]provider.AuthProvider,
+	dbUrl string,
+	logger RequestLogger,
+	authProviders map[string]provider.AuthProvider,
 ) *mux.Router {
 
-    db, err := models.NewDB(dbUrl)
-    if err != nil {
-        log.Panic(err)
-    }
+	db, err := models.NewDB(dbUrl)
+	if err != nil {
+		log.Panic(err)
+	}
 
-    handlers := &Handlers{db, authProviders}
-    log.Printf("Connected to postgres")
+	handlers := &Handlers{db, authProviders}
+	log.Printf("Connected to postgres")
 
-    router := mux.NewRouter().StrictSlash(true)
+	router := mux.NewRouter().StrictSlash(true)
 
-    routes := AllRoutes(handlers)
+	routes := AllRoutes(handlers)
 
-    for _, route := range routes {
+	for _, route := range routes {
 
-        var handler http.Handler
+		var handler http.Handler
 
-        handler = logger.Handler(route.HandlerFunc, route.Name)
+		handler = logger.Handler(route.HandlerFunc, route.Name)
 
-        router.
-            Methods(route.Method).
-            Path(route.Pattern).
-            Name(route.Name).
-            Handler(handler)
-    }
+		router.
+			Methods(route.Method).
+			Path(route.Pattern).
+			Name(route.Name).
+			Handler(handler)
+	}
 
-    return router
+	return router
 }

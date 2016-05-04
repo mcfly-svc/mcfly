@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/mikec/marsupi-api/api"
+	"github.com/mikec/msplapi/api"
 	. "github.com/smartystreets/goconvey/convey"
 )
 

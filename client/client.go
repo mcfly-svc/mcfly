@@ -1,8 +1,8 @@
 package client
 
 import (
-	"github.com/mikec/marsupi-api/api"
-	"github.com/mikec/marsupi-api/models"
+	"github.com/mikec/msplapi/api"
+	"github.com/mikec/msplapi/models"
 
 	"bytes"
 	"encoding/json"

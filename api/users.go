@@ -10,8 +10,8 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/mikec/marsupi-api/logging"
-	"github.com/mikec/marsupi-api/models"
+	"github.com/mikec/msplapi/logging"
+	"github.com/mikec/msplapi/models"
 )
 
 // TODO: Get rid of this, replace with login endpoint

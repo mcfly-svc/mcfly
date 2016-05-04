@@ -1,5 +1,12 @@
-all: build
+all: build test
 
 build:
-	go-bindata -o migrations.go db/migrations/
-	go build
+	go-bindata -pkg db -o db/assets.go db/migrations/
+	go install
+
+database:
+	msplapi create-db
+	msplapi seed-db
+
+test: database
+	go test ./...

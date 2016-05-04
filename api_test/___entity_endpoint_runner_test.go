@@ -6,8 +6,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/mikec/marsupi-api/api"
-	"github.com/mikec/marsupi-api/client"
+	"github.com/mikec/msplapi/api"
+	"github.com/mikec/msplapi/client"
 	"github.com/stretchr/testify/assert"
 )
 

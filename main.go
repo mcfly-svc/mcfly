@@ -1,29 +1,30 @@
 package main
 
 import (
-	"crypto/rand"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 
 	"github.com/chrismrivera/cmd"
-	"github.com/mikec/marsupi-api/api"
-	"github.com/mikec/marsupi-api/logging"
-	"github.com/mikec/marsupi-api/provider"
+	"github.com/mikec/msplapi/api"
+	"github.com/mikec/msplapi/db"
+	"github.com/mikec/msplapi/logging"
+	"github.com/mikec/msplapi/provider"
 
 	_ "github.com/mattes/migrate/driver/postgres"
-	"github.com/mattes/migrate/migrate"
 )
 
 var cmdr *cmd.App = cmd.NewApp()
-var pgDriver = "postgres://localhost:5432/marsupi_test?sslmode=disable"
+var dbUrl = "postgres://localhost:5432/marsupi_test?sslmode=disable"
 
 func main() {
 
-	cmdr.AddCommand(runCommand)
-	cmdr.AddCommand(migrateCommand)
+	cmdr.AddCommand(runServerCmd)
+	cmdr.AddCommand(dbMigrateCmd)
+	cmdr.AddCommand(dbCreateCmd)
+	cmdr.AddCommand(dbCleanCmd)
+	cmdr.AddCommand(dbSeedCmd)
 
 	cmdr.Description = "Marsupi CLI"
 	if err := cmdr.Run(os.Args); err != nil {
@@ -37,27 +38,55 @@ func main() {
 
 }
 
-var runCommand = cmd.NewCommand(
-	"run", "Server", "Runs the marsupi-api server",
+var runServerCmd = cmd.NewCommand(
+	"run", "Server", "Runs the msplapi server",
 	func(cmd *cmd.Command) {},
 	func(cmd *cmd.Command) error {
-		runServer()
+		RunServer()
 		return nil
 	},
 )
 
-var migrateCommand = cmd.NewCommand(
+var dbMigrateCmd = cmd.NewCommand(
 	"migrate", "Database", "Run migration scripts",
 	func(cmd *cmd.Command) {
-		cmd.AppendArg("direction", "up || down")
+		cmd.AppendArg("direction", "(up|down)")
 	},
 	func(cmd *cmd.Command) error {
-		runMigrate(cmd.Arg("direction"))
+		db.RunMigrate(dbUrl, cmd.Arg("direction"))
 		return nil
 	},
 )
 
-func runServer() {
+var dbCreateCmd = cmd.NewCommand(
+	"create-db", "Database", "Creates the database",
+	func(cmd *cmd.Command) {},
+	func(cmd *cmd.Command) error {
+		db.Create(dbUrl)
+		return nil
+	},
+)
+
+var dbCleanCmd = cmd.NewCommand(
+	"clean-db", "Database", "Removes all data from the database",
+	func(cmd *cmd.Command) {},
+	func(cmd *cmd.Command) error {
+		db.Clean(dbUrl)
+		return nil
+	},
+)
+
+var dbSeedCmd = cmd.NewCommand(
+	"seed-db", "Database", "Adds seed data to the database",
+	func(cmd *cmd.Command) {},
+	func(cmd *cmd.Command) error {
+		db.Seed(dbUrl)
+		return nil
+	},
+)
+
+// RunServer runs the HTTP server
+func RunServer() {
 	github := provider.GitHub{}
 	dropbox := provider.Dropbox{}
 
@@ -66,82 +95,10 @@ func runServer() {
 	authProviders[dropbox.Key()] = &dropbox
 
 	router := api.NewRouter(
-		pgDriver,
+		dbUrl,
 		logging.HttpRequestLogger{},
 		authProviders,
 	)
 
 	log.Fatal(http.ListenAndServe(":8081", router))
-}
-
-func runMigrate(direction string) {
-	var doMigrate func(string, string) ([]error, bool)
-	switch direction {
-	case "up":
-		doMigrate = migrate.UpSync
-	case "down":
-		doMigrate = migrate.DownSync
-	default:
-		return
-	}
-
-	tmpDir := fmt.Sprintf("tmp_%s", randString())
-
-	removeDir(tmpDir)
-	createDir(tmpDir)
-
-	assets, err := AssetDir("db/migrations")
-	check(err)
-
-	for _, asset := range assets {
-		d, err := Asset(fmt.Sprintf("db/migrations/%s", asset))
-		check(err)
-
-		newPath := fmt.Sprintf("./%s/%s", tmpDir, asset)
-		err = ioutil.WriteFile(newPath, d, 0777)
-		check(err)
-	}
-
-	errs, ok := doMigrate(pgDriver, fmt.Sprintf("./%s", tmpDir))
-	if !ok {
-		for _, err := range errs {
-			fmt.Println("runMigrate Error: ", err)
-		}
-	}
-
-	removeDir(tmpDir)
-}
-
-func removeDir(dir string) {
-	err := os.RemoveAll(dir)
-	check(err)
-}
-
-func createDir(dir string) {
-	err := os.Mkdir(dir, 0777)
-	check(err)
-}
-
-/*func checkPathError(err error, allowedMessage string) {
-	if err != nil {
-		pErr, ok := err.(*os.PathError)
-		if !ok {
-			panic(err)
-		}
-		if fmt.Sprint(pErr.Err) != allowedMessage {
-			panic(err)
-		}
-	}
-}*/
-
-func check(err error) {
-	if err != nil {
-		panic(err)
-	}
-}
-
-func randString() string {
-	b := make([]byte, 32)
-	rand.Read(b)
-	return fmt.Sprintf("%x", b)
 }

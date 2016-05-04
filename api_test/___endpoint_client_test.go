@@ -4,7 +4,7 @@ package api_test
 import (
   "testing"
   "net/http"
-  "github.com/mikec/marsupi-api/client"
+  "github.com/mikec/msplapi/client"
 )
 
 type EndpointClient struct {

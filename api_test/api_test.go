@@ -1,14 +1,13 @@
 package api_test
 
 import (
-	"github.com/mikec/marsupi-api/api"
-	"github.com/mikec/marsupi-api/client"
-	"github.com/mikec/marsupi-api/db"
-	"github.com/mikec/marsupi-api/logging"
-	"github.com/mikec/marsupi-api/provider"
+	"github.com/mikec/msplapi/api"
+	"github.com/mikec/msplapi/client"
+	"github.com/mikec/msplapi/db"
+	"github.com/mikec/msplapi/logging"
+	"github.com/mikec/msplapi/provider"
 
 	"io"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -19,6 +18,7 @@ var (
 	server    *httptest.Server
 	reader    io.Reader
 	apiClient client.Client
+	dbUrl     string
 )
 
 type MockLogger struct{}
@@ -47,12 +47,14 @@ func init() {
 
 	jabroni := MockAuthProvider{}
 
+	dbUrl = "postgres://localhost:5432/marsupi_test?sslmode=disable"
+
 	authProviders := make(map[string]provider.AuthProvider)
 	authProviders[jabroni.Key()] = &jabroni
 
 	server = httptest.NewServer(
 		api.NewRouter(
-			"postgres://localhost:5432/marsupi_test?sslmode=disable",
+			dbUrl,
 			//MockLogger{},
 			logging.HttpRequestLogger{},
 			authProviders,
@@ -62,25 +64,18 @@ func init() {
 }
 
 func TestMain(m *testing.M) {
-	log.Println("Recreating the database")
-	recreateDB()
 
 	ret := m.Run()
 
-	log.Println("Cleaning up the database")
-	cleanupDB()
+	// setup
 
 	os.Exit(ret)
 }
 
-func recreateDB() {
-	db.RunHelperScript("../db/helpers/recreate.sh")
-}
-
 func cleanupDB() {
-	db.RunHelperScript("../db/helpers/clean.sh")
+	db.Clean(dbUrl)
 }
 
 func seedDB() {
-	db.RunHelperScript("../db/helpers/clean.sh")
+	db.Seed(dbUrl)
 }

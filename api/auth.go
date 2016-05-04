@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/mikec/marsupi-api/models"
+	"github.com/mikec/msplapi/models"
 	"gopkg.in/validator.v2"
 )
 
@@ -59,7 +59,7 @@ func (handlers *Handlers) Login(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	pt := models.ProviderAccessToken{
+	pt := &models.ProviderAccessToken{
 		td.Provider,
 		td.ProviderUsername,
 		loginReq.Token,

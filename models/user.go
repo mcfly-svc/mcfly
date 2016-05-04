@@ -26,7 +26,7 @@ func (db *DB) SaveUser(u *User) error {
 	return nil
 }
 
-func (db *DB) SetUserProviderToken(userID int64, providerToken ProviderAccessToken) error {
+func (db *DB) SetUserProviderToken(userID int64, providerToken *ProviderAccessToken) error {
 	q := `INSERT INTO provider_access_token(user_id, provider, provider_username, access_token)
 				VALUES($1,$2,$3,$4)`
 	_, err := db.Exec(q, userID, providerToken.Provider, providerToken.ProviderUsername, providerToken.AccessToken)
@@ -36,7 +36,7 @@ func (db *DB) SetUserProviderToken(userID int64, providerToken ProviderAccessTok
 	return nil
 }
 
-func (db *DB) GetUserByProviderToken(providerToken ProviderAccessToken) (*User, error) {
+func (db *DB) GetUserByProviderToken(providerToken *ProviderAccessToken) (*User, error) {
 	user := &User{}
 	q := `SELECT * FROM marsupi_user 
 				INNER JOIN provider_access_token

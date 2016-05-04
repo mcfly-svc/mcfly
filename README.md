@@ -1,4 +1,4 @@
-marsupi-api
+msplapi
 -----------
 
 Data access layer for marsupi
@@ -13,7 +13,7 @@ go get -u github.com/jteeuwen/go-bindata/...
 Run API Server
 ==============
 
-marsupi-api run
+msplapi run
 
 
 Testing

@@ -3,7 +3,7 @@ package api_test
 import (
 	"testing"
 
-	"github.com/mikec/marsupi-api/api"
+	"github.com/mikec/msplapi/api"
 )
 
 func TestLoginInvalidJson(t *testing.T) {
