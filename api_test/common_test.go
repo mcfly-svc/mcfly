@@ -11,83 +11,74 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-type ApiErrorTest struct {
-	*testing.T
-	EndpointPath   string
-	JSON           string
-	Desc           string
-	Should         string
-	ExpectApiError *api.ApiError
+type EndpointTest struct {
+	JSON         string
+	Desc         string
+	Should       string
+	ExpectStatus int
+	ExpectBody   interface{}
 }
 
-func RunPostInvalidJsonTest(t *testing.T, endpointPath string) {
-	RunPostErrorTest(&ApiErrorTest{
-		t,
-		endpointPath,
+func InvalidJsonEndpointTest() *EndpointTest {
+	return &EndpointTest{
 		`{"jnk"}`,
 		"invalid JSON",
 		"Invalid JSON error",
+		400,
 		api.NewInvalidJsonErr(),
-	})
+	}
 }
 
-func RunMissingPostParamTest(t *testing.T, endpointPath string, json string, paramName string) {
-	RunPostErrorTest(&ApiErrorTest{
-		t,
-		endpointPath,
+func MissingParamEndpointTest(json string, paramName string) *EndpointTest {
+	return &EndpointTest{
 		json,
 		fmt.Sprintf("missing `%s` parameter", paramName),
-		fmt.Sprintf("missing `%s` parameter", paramName),
+		fmt.Sprintf("missing `%s` parameter error", paramName),
+		400,
 		api.NewMissingParamErr(paramName),
-	})
+	}
 }
 
-func RunPostErrorTest(at *ApiErrorTest) {
+func RunEndpointTests(t *testing.T, httpMethod string, endpointPath string, tests []*EndpointTest) {
+	for _, et := range tests {
+		Convey(fmt.Sprintf("%s to /%s endpoint %s", httpMethod, endpointPath, et.Desc), t, func() {
 
-	Convey(fmt.Sprintf("POST to /%s endpoint with %s", at.EndpointPath, at.Desc), at, func() {
+			var jsonData *string
+			if et.JSON == "" {
+				jsonData = nil
+			} else {
+				jsonData = &et.JSON
+			}
 
-		res, err := apiClient.Context.DoPost(at.EndpointPath, &at.JSON, nil)
-		if err != nil {
-			at.Error(err)
-		}
+			res, err := apiClient.Context.DoReq(httpMethod, endpointPath, jsonData, nil)
+			if err != nil {
+				t.Error(err)
+			}
 
-		Convey("Should respond with Status 400", func() {
-			So(res.StatusCode, ShouldEqual, 400)
+			Convey(fmt.Sprintf("Should respond with Status %d", et.ExpectStatus), func() {
+				So(res.StatusCode, ShouldEqual, et.ExpectStatus)
+			})
+
+			Convey(fmt.Sprintf("Should respond with %s", et.Should), func() {
+				So(resBody(t, res), ShouldEqual, marshalJson(t, et.ExpectBody))
+			})
+
 		})
-
-		Convey(fmt.Sprintf("Should respond with %s", at.Should), func() {
-			SoErrorRes(at.T, res, at.ExpectApiError)
-		})
-
-	})
-
+	}
 }
 
-func SoErrorRes(t *testing.T, res *http.Response, expectedApiError *api.ApiError) {
-	apiErr, err := errorFromRes(res)
+func resBody(t *testing.T, res *http.Response) string {
+	b, err := ioutil.ReadAll(res.Body)
 	if err != nil {
 		t.Error(err)
 	}
-	So(apiErr, ShouldResemble, expectedApiError)
+	return string(b)
 }
 
-func dataFromRes(res *http.Response, v interface{}) ([]byte, error) {
-	b, err := ioutil.ReadAll(res.Body)
+func marshalJson(t *testing.T, v interface{}) string {
+	b, err := json.Marshal(v)
 	if err != nil {
-		return nil, err
+		t.Error(err)
 	}
-	err = json.Unmarshal(b, v)
-	if err != nil {
-		return nil, err
-	}
-	return b, nil
-}
-
-func errorFromRes(res *http.Response) (*api.ApiError, error) {
-	apiErr := api.ApiError{}
-	_, err := dataFromRes(res, &apiErr)
-	if err != nil {
-		return nil, err
-	}
-	return &apiErr, nil
+	return string(b)
 }
