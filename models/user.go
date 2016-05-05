@@ -1,7 +1,5 @@
 package models
 
-import "fmt"
-
 type User struct {
 	ID          int64  `db:"id" json:"id"`
 	Name        string `db:"name" json:"name"`
@@ -44,7 +42,6 @@ func (db *DB) GetUserByProviderToken(providerToken *ProviderAccessToken) (*User,
 				AND provider_access_token.provider_username=$2
 				AND provider_access_token.access_token=$3`
 	err := db.Get(user, q, providerToken.Provider, providerToken.ProviderUsername, providerToken.AccessToken)
-	fmt.Println("ARGS:", providerToken.Provider, providerToken.ProviderUsername, providerToken.AccessToken)
 	if err != nil {
 		if err.NoRows {
 			return nil, nil

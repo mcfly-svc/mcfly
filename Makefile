@@ -10,3 +10,6 @@ database:
 
 test: database
 	go test ./...
+
+run: build
+	msplapi run

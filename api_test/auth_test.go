@@ -34,11 +34,22 @@ func TestLogin(t *testing.T) {
 		{
 			`{ "token":"mock_jabroni.com_token_123", "token_type":"jabroni.com"}`,
 			"a valid provider token owned by an existing user",
-			"expected user data",
+			"expected user data with the existing access token",
 			200,
 			map[string]interface{}{
 				"name":         "Matt Mockman",
 				"access_token": "mock_seeded_access_token_123",
+			},
+		},
+
+		{
+			`{ "token":"mock_jb_token_123", "token_type":"jabroni.com"}`,
+			"a valid provider token owned by a user that does not exist",
+			"expected user data with a newly generated access token",
+			200,
+			map[string]interface{}{
+				"name":         "Mike Jimmers",
+				"access_token": "mock_generated_access_token_123",
 			},
 		},
 	}
