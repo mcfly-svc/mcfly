@@ -12,6 +12,11 @@ type LoginReq struct {
 	TokenType string `json:"token_type" validate:"nonzero"`
 }
 
+type LoginResp struct {
+	Name        string `json:"name"`
+	AccessToken string `json:"access_token"`
+}
+
 // Access token endpoint
 func (handlers *Handlers) Login(w http.ResponseWriter, req *http.Request) {
 
@@ -80,5 +85,8 @@ func (handlers *Handlers) Login(w http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	r.Respond(u)
+	r.Respond(&LoginResp{
+		Name:        u.Name,
+		AccessToken: u.AccessToken,
+	})
 }
