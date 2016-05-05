@@ -27,17 +27,17 @@ func (self *GitHub) GetTokenData(token string) (*TokenDataResponse, error) {
 
 	user, _, err := gh.Users.Get("")
 	if err != nil {
-		return nil, err
+		ghErr, ok := err.(*github.ErrorResponse)
+		if !ok {
+			return nil, err
+		}
+		if ghErr.Message == "Bad credentials" {
+			return &TokenDataResponse{false, self.Key(), "", ""}, nil
+		}
+		return nil, ghErr
 	}
 
-	d := &TokenDataResponse{
-		true,
-		self.Key(),
-		*user.Login,
-		*user.Name,
-	}
-
-	return d, nil
+	return &TokenDataResponse{true, self.Key(), *user.Login, *user.Name}, nil
 }
 
 func newClient(token string) *github.Client {
