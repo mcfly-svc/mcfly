@@ -1,15 +1,12 @@
 package api
 
-import (
-	"net/http"
-	"strconv"
+import "net/http"
 
-	"github.com/gorilla/mux"
+func (handlers *Handlers) PostProject(w http.ResponseWriter, req *http.Request) {
 
-	"github.com/mikec/msplapi/logging"
-	"github.com/mikec/msplapi/models"
-)
+}
 
+/*
 // curl -X POST http://localhost:8080/api/0/projects -d '{"service":"github", "username":"mikec", "name":"example-project"}'
 func (handlers *Handlers) ProjectPost(w http.ResponseWriter, req *http.Request) {
 	r := Responder{w}
@@ -95,3 +92,4 @@ func (handlers *Handlers) ProjectDelete(w http.ResponseWriter, req *http.Request
 
 	r.RespondWithSuccess()
 }
+*/

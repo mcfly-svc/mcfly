@@ -17,14 +17,8 @@ func AllRoutes(handlers *Handlers) Routes {
 	return Routes{
 
 		// auth
-		/*Route{
-		    "OAuth",
-		    "POST",
-		    "/api/0/authorize",
-		    handlers.Authorize,
-		},*/
 		Route{
-			"OAuth",
+			"Auth",
 			"POST",
 			"/api/0/login",
 			handlers.Login,
@@ -32,6 +26,14 @@ func AllRoutes(handlers *Handlers) Routes {
 
 		// projects
 		Route{
+			"PostProject",
+			"POST",
+			"/api/0/projects",
+			handlers.PostProject,
+		},
+
+		// projects
+		/*Route{
 			"ProjectPost",
 			"POST",
 			"/api/0/projects",
@@ -55,7 +57,7 @@ func AllRoutes(handlers *Handlers) Routes {
 			"/api/0/projects/{project_id}",
 			handlers.ProjectDelete,
 		},
-
+		*/
 		// users
 		/*Route{
 		      "UserPost",

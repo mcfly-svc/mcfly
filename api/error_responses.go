@@ -48,7 +48,7 @@ func NewDeleteFailedErr(entityName string) *ApiError {
 	return NewApiErr(fmt.Sprintf("Failed to delete %s", entityName))
 }
 
-func NewUnsupportedTokenTypeErr(tokenType string) *ApiError {
+func NewUnsupportedProviderErr(tokenType string) *ApiError {
 	return NewApiErr(fmt.Sprintf("Unsupported token type %s", tokenType))
 }
 

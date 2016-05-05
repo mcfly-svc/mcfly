@@ -17,10 +17,10 @@ func TestLogin(t *testing.T) {
 
 		{
 			`{ "token":"abc123", "provider":"junk-service" }`,
-			"an unsupported token type",
-			"an unsupported token type error",
+			"an unsupported provider",
+			"an unsupported provider error",
 			400,
-			api.NewUnsupportedTokenTypeErr("junk-service"),
+			api.NewUnsupportedProviderErr("junk-service"),
 		},
 
 		{

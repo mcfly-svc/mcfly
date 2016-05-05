@@ -8,8 +8,8 @@ import (
 )
 
 type LoginReq struct {
-	Token     string `json:"token" validate:"nonzero"`
-	TokenType string `json:"provider" validate:"nonzero"`
+	Token    string `json:"token" validate:"nonzero"`
+	Provider string `json:"provider" validate:"nonzero"`
 }
 
 type LoginResp struct {
@@ -17,7 +17,7 @@ type LoginResp struct {
 	AccessToken string `json:"access_token"`
 }
 
-// Access token endpoint
+// Login with a provider access token
 func (handlers *Handlers) Login(w http.ResponseWriter, req *http.Request) {
 
 	r := Responder{w}
@@ -34,16 +34,16 @@ func (handlers *Handlers) Login(w http.ResponseWriter, req *http.Request) {
 		var badParam string
 		if len(errs["Token"]) > 0 {
 			badParam = "token"
-		} else if len(errs["TokenType"]) > 0 {
+		} else if len(errs["Provider"]) > 0 {
 			badParam = "provider"
 		}
 		r.RespondWithError(NewMissingParamErr(badParam))
 		return
 	}
 
-	authProvider := handlers.authProviders[loginReq.TokenType]
+	authProvider := handlers.authProviders[loginReq.Provider]
 	if authProvider == nil {
-		r.RespondWithError(NewUnsupportedTokenTypeErr(loginReq.TokenType))
+		r.RespondWithError(NewUnsupportedProviderErr(loginReq.Provider))
 		return
 	}
 
@@ -54,7 +54,7 @@ func (handlers *Handlers) Login(w http.ResponseWriter, req *http.Request) {
 	}
 
 	if !td.IsValid {
-		r.RespondWithError(NewInvalidTokenErr(loginReq.TokenType))
+		r.RespondWithError(NewInvalidTokenErr(loginReq.Provider))
 		return
 	}
 
