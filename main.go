@@ -88,7 +88,7 @@ var dbSeedCmd = cmd.NewCommand(
 
 // RunServer runs the HTTP server
 func RunServer() {
-	github := provider.GitHub{}
+	github := provider.GitHub{&provider.GoGitHubClient{}}
 	dropbox := provider.Dropbox{}
 
 	authProviders := make(map[string]provider.AuthProvider)
