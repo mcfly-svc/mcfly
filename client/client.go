@@ -45,12 +45,12 @@ func (self *Client) Login(token string, tokenType string) (*ClientResponse, *htt
 		return nil, nil, err
 	}
 
-	var loginResp api.LoginResp
-	if err := decodeResponse(res, &loginResp); err != nil {
+	var u models.User
+	if err := decodeResponse(res, &u); err != nil {
 		return nil, res, err
 	}
 
-	return &ClientResponse{loginResp, res.StatusCode}, res, nil
+	return &ClientResponse{u, res.StatusCode}, res, nil
 }
 
 type EntityEndpoint struct {

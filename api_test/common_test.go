@@ -42,6 +42,7 @@ func MissingParamEndpointTest(json string, paramName string) *EndpointTest {
 func RunEndpointTests(t *testing.T, httpMethod string, endpointPath string, tests []*EndpointTest) {
 	for _, et := range tests {
 		Convey(fmt.Sprintf("%s to /%s endpoint %s", httpMethod, endpointPath, et.Desc), t, func() {
+			resetDB()
 
 			var jsonData *string
 			if et.JSON == "" {
@@ -60,19 +61,49 @@ func RunEndpointTests(t *testing.T, httpMethod string, endpointPath string, test
 			})
 
 			Convey(fmt.Sprintf("Should respond with %s", et.Should), func() {
-				So(resBody(t, res), ShouldEqual, marshalJson(t, et.ExpectBody))
+				switch v := et.ExpectBody.(type) {
+				case map[string]interface{}:
+					soFieldsShouldEqual(t, res, v)
+				default:
+					soBodyShouldEqual(t, res, v)
+				}
 			})
 
 		})
 	}
 }
 
+func soFieldsShouldEqual(t *testing.T, res *http.Response, expectedFields map[string]interface{}) {
+	actualFields := resBodyMap(t, res)
+	for f, v := range expectedFields {
+		So(actualFields[f], ShouldEqual, v)
+	}
+}
+
+func soBodyShouldEqual(t *testing.T, res *http.Response, v interface{}) {
+	So(resBody(t, res), ShouldEqual, marshalJson(t, v))
+}
+
 func resBody(t *testing.T, res *http.Response) string {
+	return string(resBodyBytes(t, res))
+}
+
+func resBodyBytes(t *testing.T, res *http.Response) []byte {
 	b, err := ioutil.ReadAll(res.Body)
 	if err != nil {
 		t.Error(err)
 	}
-	return string(b)
+	return b
+}
+
+func resBodyMap(t *testing.T, res *http.Response) map[string]interface{} {
+	b := resBodyBytes(t, res)
+	var m map[string]interface{}
+	err := json.Unmarshal(b, &m)
+	if err != nil {
+		t.Error(err)
+	}
+	return m
 }
 
 func marshalJson(t *testing.T, v interface{}) string {

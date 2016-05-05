@@ -1,11 +1,9 @@
 package models
 
 import (
-	"fmt"
-	"log"
+	"database/sql"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/lib/pq"
 )
 
 type Datastore interface {
@@ -34,10 +32,26 @@ func NewDB(dbName string) (*DB, error) {
 	return &DB{db}, nil
 }
 
-func handleQueryError(method string, query string, queryError error) *QueryExecError {
-	err, ok := queryError.(*pq.Error)
-	if !ok {
-		log.Fatal(fmt.Sprintf("handleQueryError failed: err `%s` is not a *pq.Error", err.Error()))
+func (db *DB) Get(dest interface{}, query string, args ...interface{}) *QueryExecError {
+	err := db.DB.Get(dest, query, args...)
+	if err != nil {
+		return NewQueryError(query, err, args)
 	}
-	return &QueryExecError{method, query, err, err.Code.Name()}
+	return nil
+}
+
+func (db *DB) Exec(query string, args ...interface{}) (sql.Result, *QueryExecError) {
+	res, err := db.DB.Exec(query, args...)
+	if err != nil {
+		return res, NewQueryError(query, err, args)
+	}
+	return res, nil
+}
+
+func (db *DB) QueryRowScan(v interface{}, query string, args ...interface{}) *QueryExecError {
+	r := db.DB.QueryRow(query, args...)
+	if err := r.Scan(v); err != nil {
+		return NewQueryError(query, err, args)
+	}
+	return nil
 }

@@ -35,10 +35,16 @@ func (ap *MockAuthProvider) Key() string {
 	return "jabroni.com"
 }
 
+func generateMockToken() string {
+	return "mock_generated_access_token_123"
+}
+
 // get data from the provider based on a provider auth token
 func (ap *MockAuthProvider) GetTokenData(token string) (*provider.TokenDataResponse, error) {
 	if token == "badtoken" {
 		return &provider.TokenDataResponse{false, ap.Key(), "", ""}, nil
+	} else if token == "mock_jabroni.com_token_123" {
+		return &provider.TokenDataResponse{true, ap.Key(), "mattmocks", "Matt Mockman"}, nil
 	}
 	return &provider.TokenDataResponse{true, ap.Key(), "mikej", "Mike Jimmers"}, nil
 }
@@ -57,6 +63,7 @@ func init() {
 			dbUrl,
 			//MockLogger{},
 			logging.HttpRequestLogger{},
+			generateMockToken,
 			authProviders,
 		),
 	)
@@ -70,6 +77,11 @@ func TestMain(m *testing.M) {
 	// setup
 
 	os.Exit(ret)
+}
+
+func resetDB() {
+	cleanupDB()
+	seedDB()
 }
 
 func cleanupDB() {

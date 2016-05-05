@@ -19,7 +19,7 @@ func Seed(dbUrl string) {
 		addProviderValue(db.DB, val)
 	}
 
-	u := &models.User{Name: "Mock Johnson", AccessToken: "mock_access_token_123"}
+	u := &models.User{Name: "Matt Mockman", AccessToken: "mock_seeded_access_token_123"}
 	insertUser(db, u)
 
 	insertProviderAccessToken(db, u.ID, &models.ProviderAccessToken{
@@ -55,70 +55,3 @@ func insertProviderAccessToken(db *models.DB, uid int64, pt *models.ProviderAcce
 	err := db.SetUserProviderToken(uid, pt)
 	checkFatal(err)
 }
-
-/*func insertUser(
-	db *sqlx.DB,
-	name string,
-	accessToken string,
-) int64 {
-	fmt.Printf("INSERT user name=%s, access_token=%s\n", name, accessToken)
-	r := db.QueryRow(`INSERT INTO marsupi_user (name, access_token)
-							 VALUES ($1, $2)
-							 RETURNING id`, name, accessToken)
-	var id int64
-	if err := r.Scan(&id); err != nil {
-		log.Fatalln(err)
-	}
-	return id
-}
-
-func insertProviderAccessToken(
-	db *sqlx.DB,
-	provider string,
-	username string,
-	accessToken string,
-	userId int64,
-) {
-	fmt.Printf("INSERT provider_access_token provider=%s, access_token=%s\n", name, accessToken)
-	r := db.Exec(`INSERT INTO provider_access_token (provider, provider_username, access_token, user_id)
-								VALUES ($1, $2, $3, $4);`, name, accessToken)
-	var id int64
-	if err := r.Scan(&id); err != nil {
-		log.Fatalln(err)
-	}
-	return id
-}*/
-
-/*
-#!/bin/sh
-
-echo "cleaning the Database"
-msplapi db.clean
-
-echo "change supported providers to test values"
-psql -d marsupi_test <<- EOF
-	ALTER TYPE provider ADD VALUE 'jabroni.com';
-	ALTER TYPE provider ADD VALUE 'schlockbox';
-EOF
-
-echo "adding seed users"
-
-psql -d marsupi_test <<- EOF
-
-	INSERT INTO marsupi_user (name, access_token)
-	VALUES ('Matt Mockerson', 'mock_token_123')
-	RETURNING id;
-	\gset
-	\echo new user id=:id
-
-	INSERT INTO provider_access_token (provider, provider_username, access_token, user_id)
-	VALUES ('jabroni.com', 'mattmocks', 'mock_jabroni.com_token_123', :id);
-	\echo new provider_access_token 'mock_jabroni.com_token_123'
-
-	INSERT INTO provider_access_token (provider, provider_username, access_token, user_id)
-	VALUES ('schlockbox', 'mattmocks@gmail.com', 'mock_schlockbox_token_123', :id);
-	\echo new provider_access_token 'mock_schlockbox_token_123'
-
-EOF
-
-*/

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/rand"
 	"fmt"
 	"log"
 	"net/http"
@@ -97,8 +98,15 @@ func RunServer() {
 	router := api.NewRouter(
 		dbUrl,
 		logging.HttpRequestLogger{},
+		generateAccessToken,
 		authProviders,
 	)
 
 	log.Fatal(http.ListenAndServe(":8081", router))
+}
+
+func generateAccessToken() string {
+	b := make([]byte, 32)
+	rand.Read(b)
+	return fmt.Sprintf("%x", b)
 }

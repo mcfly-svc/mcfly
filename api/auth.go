@@ -1,8 +1,6 @@
 package api
 
 import (
-	"crypto/rand"
-	"fmt"
 	"net/http"
 
 	"github.com/mikec/msplapi/models"
@@ -12,10 +10,6 @@ import (
 type LoginReq struct {
 	Token     string `json:"token" validate:"nonzero"`
 	TokenType string `json:"token_type" validate:"nonzero"`
-}
-
-type LoginResp struct {
-	AccessToken string `json:access_token`
 }
 
 // Access token endpoint
@@ -74,7 +68,7 @@ func (handlers *Handlers) Login(w http.ResponseWriter, req *http.Request) {
 	if u == nil { // if user doesn't exist
 		u = &models.User{
 			Name:        td.UserName,
-			AccessToken: generateAccessToken(),
+			AccessToken: handlers.generateToken(),
 		}
 		if err = handlers.db.SaveUser(u); err != nil {
 			r.RespondWithUnknownError("Login: SaveUser", err)
@@ -86,11 +80,5 @@ func (handlers *Handlers) Login(w http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	r.Respond(&LoginResp{u.AccessToken})
-}
-
-func generateAccessToken() string {
-	b := make([]byte, 32)
-	rand.Read(b)
-	return fmt.Sprintf("%x", b)
+	r.Respond(u)
 }
