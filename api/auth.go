@@ -9,7 +9,7 @@ import (
 
 type LoginReq struct {
 	Token     string `json:"token" validate:"nonzero"`
-	TokenType string `json:"token_type" validate:"nonzero"`
+	TokenType string `json:"provider" validate:"nonzero"`
 }
 
 type LoginResp struct {
@@ -35,7 +35,7 @@ func (handlers *Handlers) Login(w http.ResponseWriter, req *http.Request) {
 		if len(errs["Token"]) > 0 {
 			badParam = "token"
 		} else if len(errs["TokenType"]) > 0 {
-			badParam = "token_type"
+			badParam = "provider"
 		}
 		r.RespondWithError(NewMissingParamErr(badParam))
 		return

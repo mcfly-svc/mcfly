@@ -34,8 +34,8 @@ func NewClient(serverURL string) Client {
 	}
 }
 
-func (self *Client) Login(token string, tokenType string) (*ClientResponse, *http.Response, error) {
-	json, err := json.Marshal(api.LoginReq{token, tokenType})
+func (self *Client) Login(token string, provider string) (*ClientResponse, *http.Response, error) {
+	json, err := json.Marshal(api.LoginReq{token, provider})
 	if err != nil {
 		return nil, nil, err
 	}

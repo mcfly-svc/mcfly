@@ -11,12 +11,12 @@ func TestLogin(t *testing.T) {
 	tests := []*EndpointTest{
 		InvalidJsonEndpointTest(),
 
-		MissingParamEndpointTest(`{ "token":"abc123" }`, "token_type"),
+		MissingParamEndpointTest(`{ "token":"abc123" }`, "provider"),
 
-		MissingParamEndpointTest(`{ "token_type":"jabroni.com" }`, "token"),
+		MissingParamEndpointTest(`{ "provider":"jabroni.com" }`, "token"),
 
 		{
-			`{ "token":"abc123", "token_type":"junk-service" }`,
+			`{ "token":"abc123", "provider":"junk-service" }`,
 			"an unsupported token type",
 			"an unsupported token type error",
 			400,
@@ -24,7 +24,7 @@ func TestLogin(t *testing.T) {
 		},
 
 		{
-			`{ "token":"badtoken", "token_type":"jabroni.com" }`,
+			`{ "token":"badtoken", "provider":"jabroni.com" }`,
 			"an invalid token",
 			"an invalid token error",
 			400,
@@ -32,7 +32,7 @@ func TestLogin(t *testing.T) {
 		},
 
 		{
-			`{ "token":"mock_jabroni.com_token_123", "token_type":"jabroni.com"}`,
+			`{ "token":"mock_jabroni.com_token_123", "provider":"jabroni.com"}`,
 			"a valid provider token owned by an existing user",
 			"expected user data with the existing access token",
 			200,
@@ -44,7 +44,7 @@ func TestLogin(t *testing.T) {
 		},
 
 		{
-			`{ "token":"mock_jb_token_123", "token_type":"jabroni.com"}`,
+			`{ "token":"mock_jb_token_123", "provider":"jabroni.com"}`,
 			"a valid provider token owned by a user that does not exist",
 			"expected user data with a newly generated access token",
 			200,
