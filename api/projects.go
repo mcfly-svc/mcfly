@@ -10,6 +10,11 @@ type PostProjectReq struct {
 func (handlers *Handlers) PostProject(w http.ResponseWriter, req *http.Request) {
 	r := &Responder{w, req}
 
+	user := r.ValidateAuthorization(handlers.db)
+	if user == nil {
+		return
+	}
+
 	var projectReqData PostProjectReq
 	decodeErr := r.DecodeRequest(&projectReqData)
 	if decodeErr != nil {
@@ -21,8 +26,9 @@ func (handlers *Handlers) PostProject(w http.ResponseWriter, req *http.Request) 
 		return
 	}
 
-	user := r.ValidateAuthorization(handlers.db)
-	if user == nil {
+	authProvider := handlers.authProviders[projectReqData.Provider]
+	if authProvider == nil {
+		r.RespondWithError(NewUnsupportedProviderErr(projectReqData.Provider))
 		return
 	}
 

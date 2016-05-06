@@ -8,18 +8,21 @@ import (
 
 func TestPostProject(t *testing.T) {
 
+	postAuthTest := &PostAuthTest{"mock_seeded_access_token_123"}
 	validJson := `{ "project_name":"jabroni.com/mockers/mock-project", "provider":"jabroni.com" }`
 
 	tests := []*EndpointTest{
-		InvalidJsonEndpointTest(),
+		postAuthTest.InvalidJsonEndpointTest(),
 
 		MissingAuthorizationHeaderEndpointTest(validJson),
 
 		InvalidAuthorizationTokenErrorTest(validJson),
 
-		MissingParamEndpointTest(`{ "project_name":"asdf" }`, "provider"),
+		postAuthTest.MissingParamEndpointTest(`{ "project_name":"asdf" }`, "provider"),
 
-		MissingParamEndpointTest(`{ "provider":"jabroni.com" }`, "project_name"),
+		postAuthTest.MissingParamEndpointTest(`{ "provider":"jabroni.com" }`, "project_name"),
+
+		postAuthTest.UnsupportedProviderTest(`{ "project_name":"asdf", "provider":"jnk" }`, "jnk"),
 
 		{
 			validJson,

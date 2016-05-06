@@ -8,23 +8,16 @@ import (
 
 func TestLogin(t *testing.T) {
 
+	postAuthTest := &PostAuthTest{"mock_seeded_access_token_123"}
+
 	tests := []*EndpointTest{
-		InvalidJsonEndpointTest(),
+		postAuthTest.InvalidJsonEndpointTest(),
 
-		MissingParamEndpointTest(`{ "token":"abc123" }`, "provider"),
+		postAuthTest.MissingParamEndpointTest(`{ "token":"abc123" }`, "provider"),
 
-		MissingParamEndpointTest(`{ "provider":"jabroni.com" }`, "token"),
+		postAuthTest.MissingParamEndpointTest(`{ "provider":"jabroni.com" }`, "token"),
 
-		UnsupportedProviderTest(`{ "token":"abc123", "provider":"junk-service" }`, "junk-service"),
-
-		/*{
-			`{ "token":"abc123", "provider":"junk-service" }`,
-			"an unsupported provider",
-			"an unsupported provider error",
-			400,
-			api.NewUnsupportedProviderErr("junk-service"),
-			"",
-		},*/
+		postAuthTest.UnsupportedProviderTest(`{ "token":"abc123", "provider":"junk-service" }`, "junk-service"),
 
 		{
 			`{ "token":"badtoken", "provider":"jabroni.com" }`,

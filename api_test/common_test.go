@@ -21,28 +21,6 @@ type EndpointTest struct {
 	AccessToken  string
 }
 
-func InvalidJsonEndpointTest() *EndpointTest {
-	return &EndpointTest{
-		`{"jnk"}`,
-		"invalid JSON",
-		"Invalid JSON error",
-		400,
-		api.NewInvalidJsonErr(),
-		"",
-	}
-}
-
-func MissingParamEndpointTest(json string, paramName string) *EndpointTest {
-	return &EndpointTest{
-		json,
-		fmt.Sprintf("missing `%s` parameter", paramName),
-		fmt.Sprintf("missing `%s` parameter error", paramName),
-		400,
-		api.NewMissingParamErr(paramName),
-		"",
-	}
-}
-
 func MissingAuthorizationHeaderEndpointTest(json string) *EndpointTest {
 	return &EndpointTest{
 		json,
@@ -50,17 +28,6 @@ func MissingAuthorizationHeaderEndpointTest(json string) *EndpointTest {
 		"an authorization header required error",
 		400,
 		api.NewAuthorizationHeaderRequiredErr(),
-		"",
-	}
-}
-
-func UnsupportedProviderTest(json string, badProvider string) *EndpointTest {
-	return &EndpointTest{
-		json,
-		"an unsupported provider",
-		"an unsupported provider error",
-		400,
-		api.NewUnsupportedProviderErr(badProvider),
 		"",
 	}
 }
@@ -73,6 +40,43 @@ func InvalidAuthorizationTokenErrorTest(json string) *EndpointTest {
 		400,
 		api.NewInvalidAuthTokenError("mock_invalid_access_token"),
 		"mock_invalid_access_token",
+	}
+}
+
+type PostAuthTest struct {
+	AccessToken string
+}
+
+func (t *PostAuthTest) MissingParamEndpointTest(json string, paramName string) *EndpointTest {
+	return &EndpointTest{
+		json,
+		fmt.Sprintf("missing `%s` parameter", paramName),
+		fmt.Sprintf("missing `%s` parameter error", paramName),
+		400,
+		api.NewMissingParamErr(paramName),
+		t.AccessToken,
+	}
+}
+
+func (t *PostAuthTest) InvalidJsonEndpointTest() *EndpointTest {
+	return &EndpointTest{
+		`{"jnk"}`,
+		"invalid JSON",
+		"Invalid JSON error",
+		400,
+		api.NewInvalidJsonErr(),
+		t.AccessToken,
+	}
+}
+
+func (t *PostAuthTest) UnsupportedProviderTest(json string, badProvider string) *EndpointTest {
+	return &EndpointTest{
+		json,
+		"an unsupported provider",
+		"an unsupported provider error",
+		400,
+		api.NewUnsupportedProviderErr(badProvider),
+		t.AccessToken,
 	}
 }
 
