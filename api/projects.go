@@ -1,6 +1,9 @@
 package api
 
-import "net/http"
+import (
+	"fmt"
+	"net/http"
+)
 
 type PostProjectReq struct {
 	Provider    string `json:"provider" validate:"nonzero"`
@@ -41,6 +44,8 @@ func (handlers *Handlers) PostProject(w http.ResponseWriter, req *http.Request) 
 		r.RespondWithError(NewProviderTokenNotFoundErr(projectReqData.Provider))
 		return
 	}
+
+	fmt.Println("PROVIDER TOKEN:", providerToken)
 
 	// TODO: call to provider to get project data
 

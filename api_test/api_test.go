@@ -17,7 +17,7 @@ import (
 var (
 	server    *httptest.Server
 	reader    io.Reader
-	apiClient client.Client
+	apiClient *client.Client
 	dbUrl     string
 )
 
@@ -67,7 +67,7 @@ func init() {
 			authProviders,
 		),
 	)
-	apiClient = client.NewClient(server.URL)
+	apiClient = client.NewClient(server.URL, "")
 }
 
 func TestMain(m *testing.M) {

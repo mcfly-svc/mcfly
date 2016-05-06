@@ -25,9 +25,9 @@ type ClientResponse struct {
 	StatusCode int
 }
 
-func NewClient(serverURL string) Client {
-	ctx := ClientContext{serverURL}
-	return Client{
+func NewClient(serverURL string, token string) *Client {
+	ctx := ClientContext{serverURL, token}
+	return &Client{
 		&ctx,
 		EntityEndpoint{"projects", "project", &ctx, reflect.TypeOf(models.Project{})},
 		EntityEndpoint{"users", "user", &ctx, reflect.TypeOf(models.User{})},
@@ -123,7 +123,8 @@ func NewRequestOptions() *RequestOptions {
 }
 
 type ClientContext struct {
-	ServerURL string
+	ServerURL   string
+	AccessToken string
 }
 
 func (self *ClientContext) EndpointUrl(endpointName string) string {
@@ -157,6 +158,10 @@ func (self *ClientContext) DoReq(method string, endpoint string, JSON *string, o
 	req, err := http.NewRequest(method, url, reader)
 	if err != nil {
 		return nil, err
+	}
+
+	if self.AccessToken != "" && opts.AuthHeader == nil {
+		opts.AuthHeader = &self.AccessToken
 	}
 
 	if opts.AuthHeader != nil {
