@@ -8,7 +8,7 @@ import (
 	"github.com/mikec/msplapi/models"
 )
 
-// Adds seed data to the database
+// Seed inserts seed data into the database. It runs Clean first to delete any existing data.
 func Seed(dbUrl string) {
 	Clean(dbUrl)
 
@@ -23,16 +23,19 @@ func Seed(dbUrl string) {
 	insertUser(db, u)
 
 	insertProviderAccessToken(db, u.ID, &models.ProviderAccessToken{
-		"jabroni.com",
-		"mattmocks",
-		"mock_jabroni.com_token_123",
+		Provider:         "jabroni.com",
+		ProviderUsername: "mattmocks",
+		AccessToken:      "mock_jabroni.com_token_123",
 	})
 
 	insertProviderAccessToken(db, u.ID, &models.ProviderAccessToken{
-		"schlockbox",
-		"mattmocks@gmail.com",
-		"mock_schlockbox_token_123",
+		Provider:         "schlockbox",
+		ProviderUsername: "mattmocks@gmail.com",
+		AccessToken:      "mock_schlockbox_token_123",
 	})
+
+	u2 := &models.User{Name: "Penelope Providerless", AccessToken: "mock_token_for_user_with_no_provider_tokens"}
+	insertUser(db, u2)
 
 }
 

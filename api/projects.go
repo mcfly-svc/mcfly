@@ -10,32 +10,39 @@ type PostProjectReq struct {
 func (handlers *Handlers) PostProject(w http.ResponseWriter, req *http.Request) {
 	r := &Responder{w, req}
 
-	var reqData PostProjectReq
-	decodeErr := r.DecodeRequest(&reqData)
+	var projectReqData PostProjectReq
+	decodeErr := r.DecodeRequest(&projectReqData)
 	if decodeErr != nil {
 		return
 	}
 
-	reqValid := r.ValidateRequestData(&reqData)
+	reqValid := r.ValidateRequestData(&projectReqData)
 	if !reqValid {
 		return
 	}
 
-	// TODO: get user from Authorization header
 	user := r.ValidateAuthorization(handlers.db)
 	if user == nil {
 		return
 	}
 
-	r.Respond(user)
-
-	// TODO: get token for reqData.Provider
+	providerToken, err := handlers.db.GetProviderTokenForUser(user, projectReqData.Provider)
+	if err != nil {
+		r.RespondWithServerError(err)
+		return
+	}
+	if providerToken == nil {
+		r.RespondWithError(NewProviderTokenNotFoundErr(projectReqData.Provider))
+		return
+	}
 
 	// TODO: call to provider to get project data
 
 	// TODO: save project data
 
 	// TODO: respond with SUCCESS
+
+	r.RespondWithSuccess()
 }
 
 /*

@@ -15,10 +15,8 @@ type Datastore interface {
 	SaveUser(*User) error
 	GetUserByAccessToken(string) (*User, error)
 	GetUserByProviderToken(*ProviderAccessToken) (*User, error)
+	GetProviderTokenForUser(*User, string) (*string, error)
 	SetUserProviderToken(int64, *ProviderAccessToken) error
-	//DeleteUser(int64) error
-	//GetUsers() ([]User, error)
-	//GetUserById(int64) (*User, error)
 }
 
 type DB struct {

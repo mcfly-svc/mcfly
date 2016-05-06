@@ -49,9 +49,9 @@ func (handlers *Handlers) Login(w http.ResponseWriter, req *http.Request) {
 	}
 
 	pt := &models.ProviderAccessToken{
-		td.Provider,
-		td.ProviderUsername,
-		loginReq.Token,
+		Provider:         td.Provider,
+		ProviderUsername: td.ProviderUsername,
+		AccessToken:      loginReq.Token,
 	}
 
 	var u *models.User

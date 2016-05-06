@@ -67,3 +67,7 @@ func NewAuthorizationHeaderRequiredErr() *ApiError {
 func NewInvalidAuthTokenError(token string) *ApiError {
 	return NewApiErr(fmt.Sprintf("Auth token %s is not valid", token))
 }
+
+func NewProviderTokenNotFoundErr(provider string) *ApiError {
+	return NewApiErr(fmt.Sprintf("%s token not found", provider))
+}

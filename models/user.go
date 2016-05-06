@@ -10,6 +10,7 @@ type ProviderAccessToken struct {
 	Provider         string `db:"provider" json:"provider"`
 	ProviderUsername string `db:"provider_username" json:"provider_username"`
 	AccessToken      string `db:"access_token" json:"access_token"`
+	UserID           int64  `db:"user_id" json:"user_id"`
 }
 
 func (db *DB) SaveUser(u *User) error {
@@ -37,7 +38,14 @@ func (db *DB) GetUserByAccessToken(accessToken string) (*User, error) {
 	user := &User{}
 	q := `SELECT * FROM marsupi_user WHERE access_token=$1`
 	err := db.Get(user, q, accessToken)
-	return checkUserNoRows(user, err)
+	if err != nil {
+		if err.NoRows {
+			return nil, nil
+		} else {
+			return nil, err
+		}
+	}
+	return user, nil
 }
 
 func (db *DB) GetUserByProviderToken(providerToken *ProviderAccessToken) (*User, error) {
@@ -49,10 +57,6 @@ func (db *DB) GetUserByProviderToken(providerToken *ProviderAccessToken) (*User,
 				AND provider_access_token.provider_username=$2
 				AND provider_access_token.access_token=$3`
 	err := db.Get(user, q, providerToken.Provider, providerToken.ProviderUsername, providerToken.AccessToken)
-	return checkUserNoRows(user, err)
-}
-
-func checkUserNoRows(user *User, err *QueryExecError) (*User, error) {
 	if err != nil {
 		if err.NoRows {
 			return nil, nil
@@ -61,4 +65,26 @@ func checkUserNoRows(user *User, err *QueryExecError) (*User, error) {
 		}
 	}
 	return user, nil
+}
+
+func (db *DB) GetProviderTokenForUser(user *User, provider string) (*string, error) {
+	var token *string
+	pt := &ProviderAccessToken{}
+	q := `SELECT provider_access_token.* FROM marsupi_user
+				INNER JOIN provider_access_token
+				ON marsupi_user.id = provider_access_token.user_id
+				WHERE provider_access_token.provider=$1
+				AND marsupi_user.id=$2`
+	err := db.Get(pt, q, provider, user.ID)
+	if err != nil {
+		if err.NoRows {
+			return nil, nil
+		} else {
+			return nil, err
+		}
+	}
+	if pt.AccessToken != "" {
+		token = &pt.AccessToken
+	}
+	return token, nil
 }
