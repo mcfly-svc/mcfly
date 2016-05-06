@@ -18,19 +18,16 @@ type LoginResp struct {
 
 // Login with a provider access token
 func (handlers *Handlers) Login(w http.ResponseWriter, req *http.Request) {
-
-	r := Responder{w}
+	r := &Responder{w, req}
 
 	var loginReq LoginReq
-	err := DecodeRequest(req, &loginReq)
-	if err != nil {
-		r.RespondWithError(NewInvalidJsonErr())
+	decodeErr := r.DecodeRequest(&loginReq)
+	if decodeErr != nil {
 		return
 	}
 
-	apiErr := ValidateRequestData(&loginReq)
-	if apiErr != nil {
-		r.RespondWithError(apiErr)
+	reqValid := r.ValidateRequestData(&loginReq)
+	if !reqValid {
 		return
 	}
 

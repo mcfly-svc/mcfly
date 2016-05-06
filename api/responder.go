@@ -9,6 +9,7 @@ import (
 
 type Responder struct {
 	http.ResponseWriter
+	Request *http.Request
 }
 
 type ApiResponse struct {

@@ -8,29 +8,22 @@ type PostProjectReq struct {
 }
 
 func (handlers *Handlers) PostProject(w http.ResponseWriter, req *http.Request) {
-	r := Responder{w}
+	r := &Responder{w, req}
 
 	var reqData PostProjectReq
-	err := DecodeRequest(req, &reqData)
-	if err != nil {
-		r.RespondWithError(NewInvalidJsonErr())
+	decodeErr := r.DecodeRequest(&reqData)
+	if decodeErr != nil {
 		return
 	}
 
-	apiErr := ValidateRequestData(&reqData)
-	if apiErr != nil {
-		r.RespondWithError(apiErr)
+	reqValid := r.ValidateRequestData(&reqData)
+	if !reqValid {
 		return
 	}
 
 	// TODO: get user from Authorization header
-	user, apiErr, err := ValidateAuthorization(handlers.db, req)
-	if err != nil {
-		r.RespondWithServerError(err)
-		return
-	}
-	if apiErr != nil {
-		r.RespondWithError(apiErr)
+	user := r.ValidateAuthorization(handlers.db)
+	if user == nil {
 		return
 	}
 
