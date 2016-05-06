@@ -6,8 +6,8 @@ import (
 )
 
 type PostProjectReq struct {
-	ProjectName string `json:"project_name" validate:"nonzero"`
-	Provider    string `json:"provider" validate:"nonzero"`
+	ProjectHandle string `json:"project_handle" validate:"nonzero"`
+	Provider      string `json:"provider" validate:"nonzero"`
 }
 
 func (handlers *Handlers) PostProject(w http.ResponseWriter, req *http.Request) {
@@ -44,6 +44,8 @@ func (handlers *Handlers) PostProject(w http.ResponseWriter, req *http.Request) 
 		r.RespondWithError(NewProviderTokenNotFoundErr(projectReqData.Provider))
 		return
 	}
+
+	//authProvider.GetProject
 
 	fmt.Println("PROVIDER TOKEN:", providerToken)
 
