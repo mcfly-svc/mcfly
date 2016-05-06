@@ -13,9 +13,9 @@ func TestPostProject(t *testing.T) {
 	tests := []*EndpointTest{
 		InvalidJsonEndpointTest(),
 
-		MissingAuthorizationHeaderEndpointTest(&validJson),
+		MissingAuthorizationHeaderEndpointTest(validJson),
 
-		InvalidAuthorizationTokenErrorTest(&validJson),
+		InvalidAuthorizationTokenErrorTest(validJson),
 
 		MissingParamEndpointTest(`{ "project_name":"asdf" }`, "provider"),
 

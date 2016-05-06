@@ -15,14 +15,16 @@ func TestLogin(t *testing.T) {
 
 		MissingParamEndpointTest(`{ "provider":"jabroni.com" }`, "token"),
 
-		{
+		UnsupportedProviderTest(`{ "token":"abc123", "provider":"junk-service" }`, "junk-service"),
+
+		/*{
 			`{ "token":"abc123", "provider":"junk-service" }`,
 			"an unsupported provider",
 			"an unsupported provider error",
 			400,
 			api.NewUnsupportedProviderErr("junk-service"),
 			"",
-		},
+		},*/
 
 		{
 			`{ "token":"badtoken", "provider":"jabroni.com" }`,

@@ -43,13 +43,9 @@ func MissingParamEndpointTest(json string, paramName string) *EndpointTest {
 	}
 }
 
-func MissingAuthorizationHeaderEndpointTest(jsonData *string) *EndpointTest {
-	jsonDataStr := `{}`
-	if jsonData != nil {
-		jsonDataStr = *jsonData
-	}
+func MissingAuthorizationHeaderEndpointTest(json string) *EndpointTest {
 	return &EndpointTest{
-		jsonDataStr,
+		json,
 		"nothing in the Authorization header",
 		"an authorization header required error",
 		400,
@@ -58,13 +54,20 @@ func MissingAuthorizationHeaderEndpointTest(jsonData *string) *EndpointTest {
 	}
 }
 
-func InvalidAuthorizationTokenErrorTest(jsonData *string) *EndpointTest {
-	jsonDataStr := `{}`
-	if jsonData != nil {
-		jsonDataStr = *jsonData
-	}
+func UnsupportedProviderTest(json string, badProvider string) *EndpointTest {
 	return &EndpointTest{
-		jsonDataStr,
+		json,
+		"an unsupported provider",
+		"an unsupported provider error",
+		400,
+		api.NewUnsupportedProviderErr(badProvider),
+		"",
+	}
+}
+
+func InvalidAuthorizationTokenErrorTest(json string) *EndpointTest {
+	return &EndpointTest{
+		json,
 		"an invalid access token",
 		"an invalid access token error",
 		400,
