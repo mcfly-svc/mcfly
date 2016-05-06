@@ -42,7 +42,7 @@ func (handlers *Handlers) Login(w http.ResponseWriter, req *http.Request) {
 
 	td, err := authProvider.GetTokenData(loginReq.Token)
 	if err != nil {
-		r.RespondWithUnknownError("Login: authProvider.GetTokenData", err)
+		r.RespondWithServerError(err)
 		return
 	}
 
@@ -60,7 +60,7 @@ func (handlers *Handlers) Login(w http.ResponseWriter, req *http.Request) {
 	var u *models.User
 	u, err = handlers.db.GetUserByProviderToken(pt)
 	if err != nil {
-		r.RespondWithUnknownError("Login: GetUserByProviderToken", err)
+		r.RespondWithServerError(err)
 		return
 	}
 	if u == nil { // if user doesn't exist
@@ -69,11 +69,11 @@ func (handlers *Handlers) Login(w http.ResponseWriter, req *http.Request) {
 			AccessToken: handlers.generateToken(),
 		}
 		if err = handlers.db.SaveUser(u); err != nil {
-			r.RespondWithUnknownError("Login: SaveUser", err)
+			r.RespondWithServerError(err)
 			return
 		}
 		if err = handlers.db.SetUserProviderToken(u.ID, pt); err != nil {
-			r.RespondWithUnknownError("Login: SetUserProviderToken", err)
+			r.RespondWithServerError(err)
 			return
 		}
 	}

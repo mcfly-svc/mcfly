@@ -12,7 +12,7 @@ func NewApiErr(errorMessage string) *ApiError {
 	return &ApiError{errorMessage}
 }
 
-func NewUnknownErr() *ApiError {
+func NewServerErr() *ApiError {
 	return NewApiErr("Unknown server error. That's bad!")
 }
 

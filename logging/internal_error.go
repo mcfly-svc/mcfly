@@ -1,13 +1,6 @@
 package logging
 
-import (
-    "log"
-)
-
-func LogInternalError(method string, err error) {
-	log.Printf("%s: %v", method, err)
-}
-
-func LogFatal(err error) {
-	log.Fatal(err)
+func Panic(err error) {
+	//TODO: log to Sentry or similar service. if we end up here, that's bad!
+	panic(err)
 }

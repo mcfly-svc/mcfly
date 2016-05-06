@@ -26,7 +26,7 @@ func (handlers *Handlers) PostProject(w http.ResponseWriter, req *http.Request) 
 	// TODO: get user from Authorization header
 	user, apiErr, err := ValidateAuthorization(handlers.db, req)
 	if err != nil {
-		r.RespondWithUnknownError("PostProject.ValidateAuthorization", err)
+		r.RespondWithServerError(err)
 		return
 	}
 	if apiErr != nil {
