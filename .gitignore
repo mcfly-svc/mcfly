@@ -1,2 +1,2 @@
 local_cfg
-db/migrations/assets.go
+db/assets.go
