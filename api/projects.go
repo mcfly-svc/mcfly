@@ -6,8 +6,8 @@ import (
 )
 
 type PostProjectReq struct {
-	Provider    string `json:"provider" validate:"nonzero"`
 	ProjectName string `json:"project_name" validate:"nonzero"`
+	Provider    string `json:"provider" validate:"nonzero"`
 }
 
 func (handlers *Handlers) PostProject(w http.ResponseWriter, req *http.Request) {
