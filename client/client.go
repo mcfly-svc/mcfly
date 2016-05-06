@@ -46,6 +46,25 @@ func (self *Client) Login(token string, provider string) (*ClientResponse, *http
 	return &ClientResponse{loginResp, res.StatusCode}, res, nil
 }
 
+func (self *Client) AddProject(projectName string, provider string) (*ClientResponse, *http.Response, error) {
+	json, err := json.Marshal(api.PostProjectReq{projectName, provider})
+	if err != nil {
+		return nil, nil, err
+	}
+	jsonStr := string(json)
+	res, err := self.DoPost("projects", &jsonStr, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var apiResp api.ApiResponse
+	if err := decodeResponse(res, &apiResp); err != nil {
+		return nil, res, err
+	}
+
+	return &ClientResponse{apiResp, res.StatusCode}, res, nil
+}
+
 func (self *Client) EndpointUrl(endpointName string) string {
 	return fmt.Sprintf("%s/api/0/%s", self.ServerURL, endpointName)
 }
