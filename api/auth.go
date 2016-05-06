@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"github.com/mikec/msplapi/models"
-	"gopkg.in/validator.v2"
 )
 
 type LoginReq struct {
@@ -29,15 +28,9 @@ func (handlers *Handlers) Login(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	if err := validator.Validate(loginReq); err != nil {
-		errs := err.(validator.ErrorMap)
-		var badParam string
-		if len(errs["Token"]) > 0 {
-			badParam = "token"
-		} else if len(errs["Provider"]) > 0 {
-			badParam = "provider"
-		}
-		r.RespondWithError(NewMissingParamErr(badParam))
+	apiErr := ValidateRequestData(&loginReq)
+	if apiErr != nil {
+		r.RespondWithError(apiErr)
 		return
 	}
 

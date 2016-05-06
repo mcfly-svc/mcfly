@@ -13,6 +13,7 @@ type Datastore interface {
 	GetProjectById(int64) (*Project, error)
 
 	SaveUser(*User) error
+	GetUserByAccessToken(string) (*User, error)
 	GetUserByProviderToken(*ProviderAccessToken) (*User, error)
 	SetUserProviderToken(int64, *ProviderAccessToken) error
 	//DeleteUser(int64) error

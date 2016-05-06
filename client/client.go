@@ -115,10 +115,11 @@ func (self *EntityEndpoint) Get(id int64) (*ClientResponse, *http.Response, erro
 
 type RequestOptions struct {
 	UseBasicAuth bool
+	AuthHeader   *string
 }
 
 func NewRequestOptions() *RequestOptions {
-	return &RequestOptions{true}
+	return &RequestOptions{true, nil}
 }
 
 type ClientContext struct {
@@ -156,6 +157,10 @@ func (self *ClientContext) DoReq(method string, endpoint string, JSON *string, o
 	req, err := http.NewRequest(method, url, reader)
 	if err != nil {
 		return nil, err
+	}
+
+	if opts.AuthHeader != nil {
+		req.Header.Add("Authorization", *opts.AuthHeader)
 	}
 
 	res, err := http.DefaultClient.Do(req)

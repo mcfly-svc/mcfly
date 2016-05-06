@@ -28,6 +28,10 @@ func NewMissingParamErr(param string) *ApiError {
 	return NewApiErr(fmt.Sprintf("Missing %s parameter", param))
 }
 
+func NewInvalidRequestParamsErr() *ApiError {
+	return NewApiErr("Invalid request parameters")
+}
+
 func NewDuplicateCreateErr(entityName string) *ApiError {
 	return NewApiErr(fmt.Sprintf("Could not create %s because it already exists", entityName))
 }
@@ -48,10 +52,18 @@ func NewDeleteFailedErr(entityName string) *ApiError {
 	return NewApiErr(fmt.Sprintf("Failed to delete %s", entityName))
 }
 
-func NewUnsupportedProviderErr(tokenType string) *ApiError {
-	return NewApiErr(fmt.Sprintf("Unsupported token type %s", tokenType))
+func NewUnsupportedProviderErr(provider string) *ApiError {
+	return NewApiErr(fmt.Sprintf("Unsupported provider %s", provider))
 }
 
-func NewInvalidTokenErr(tokenType string) *ApiError {
-	return NewApiErr(fmt.Sprintf("Invalid %s token", tokenType))
+func NewInvalidTokenErr(token string) *ApiError {
+	return NewApiErr(fmt.Sprintf("Invalid %s token", token))
+}
+
+func NewAuthorizationHeaderRequiredErr() *ApiError {
+	return NewApiErr("Authorization header required")
+}
+
+func NewInvalidAuthTokenError(token string) *ApiError {
+	return NewApiErr(fmt.Sprintf("Auth token %s is not valid", token))
 }

@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/mikec/msplapi/api"
+	"github.com/mikec/msplapi/client"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -17,6 +18,7 @@ type EndpointTest struct {
 	Should       string
 	ExpectStatus int
 	ExpectBody   interface{}
+	AccessToken  string
 }
 
 func InvalidJsonEndpointTest() *EndpointTest {
@@ -26,6 +28,7 @@ func InvalidJsonEndpointTest() *EndpointTest {
 		"Invalid JSON error",
 		400,
 		api.NewInvalidJsonErr(),
+		"",
 	}
 }
 
@@ -36,6 +39,37 @@ func MissingParamEndpointTest(json string, paramName string) *EndpointTest {
 		fmt.Sprintf("missing `%s` parameter error", paramName),
 		400,
 		api.NewMissingParamErr(paramName),
+		"",
+	}
+}
+
+func MissingAuthorizationHeaderEndpointTest(jsonData *string) *EndpointTest {
+	jsonDataStr := `{}`
+	if jsonData != nil {
+		jsonDataStr = *jsonData
+	}
+	return &EndpointTest{
+		jsonDataStr,
+		"nothing in the Authorization header",
+		"an authorization header required error",
+		400,
+		api.NewAuthorizationHeaderRequiredErr(),
+		"",
+	}
+}
+
+func InvalidAuthorizationTokenErrorTest(jsonData *string) *EndpointTest {
+	jsonDataStr := `{}`
+	if jsonData != nil {
+		jsonDataStr = *jsonData
+	}
+	return &EndpointTest{
+		jsonDataStr,
+		"an invalid access token",
+		"an invalid access token error",
+		400,
+		api.NewInvalidAuthTokenError("mock_invalid_access_token"),
+		"mock_invalid_access_token",
 	}
 }
 
@@ -51,7 +85,12 @@ func RunEndpointTests(t *testing.T, httpMethod string, endpointPath string, test
 				jsonData = &et.JSON
 			}
 
-			res, err := apiClient.Context.DoReq(httpMethod, endpointPath, jsonData, nil)
+			reqOpts := &client.RequestOptions{}
+			if et.AccessToken != "" {
+				reqOpts.AuthHeader = &et.AccessToken
+			}
+
+			res, err := apiClient.Context.DoReq(httpMethod, endpointPath, jsonData, reqOpts)
 			if err != nil {
 				t.Error(err)
 			}

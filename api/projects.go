@@ -2,8 +2,47 @@ package api
 
 import "net/http"
 
-func (handlers *Handlers) PostProject(w http.ResponseWriter, req *http.Request) {
+type PostProjectReq struct {
+	Provider    string `json:"provider" validate:"nonzero"`
+	ProjectName string `json:"project_name" validate:"nonzero"`
+}
 
+func (handlers *Handlers) PostProject(w http.ResponseWriter, req *http.Request) {
+	r := Responder{w}
+
+	var reqData PostProjectReq
+	err := DecodeRequest(req, &reqData)
+	if err != nil {
+		r.RespondWithError(NewInvalidJsonErr())
+		return
+	}
+
+	apiErr := ValidateRequestData(&reqData)
+	if apiErr != nil {
+		r.RespondWithError(apiErr)
+		return
+	}
+
+	// TODO: get user from Authorization header
+	user, apiErr, err := ValidateAuthorization(handlers.db, req)
+	if err != nil {
+		r.RespondWithUnknownError("PostProject.ValidateAuthorization", err)
+		return
+	}
+	if apiErr != nil {
+		r.RespondWithError(apiErr)
+		return
+	}
+
+	r.Respond(user)
+
+	// TODO: get token for reqData.Provider
+
+	// TODO: call to provider to get project data
+
+	// TODO: save project data
+
+	// TODO: respond with SUCCESS
 }
 
 /*

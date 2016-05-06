@@ -21,6 +21,7 @@ func TestLogin(t *testing.T) {
 			"an unsupported provider error",
 			400,
 			api.NewUnsupportedProviderErr("junk-service"),
+			"",
 		},
 
 		{
@@ -29,6 +30,7 @@ func TestLogin(t *testing.T) {
 			"an invalid token error",
 			400,
 			api.NewInvalidTokenErr("jabroni.com"),
+			"",
 		},
 
 		{
@@ -41,6 +43,7 @@ func TestLogin(t *testing.T) {
 				"name":         "Matt Mockman",
 				"access_token": "mock_seeded_access_token_123",
 			},*/
+			"",
 		},
 
 		{
@@ -53,6 +56,7 @@ func TestLogin(t *testing.T) {
 				"name":         "Mike Jimmers",
 				"access_token": "mock_generated_access_token_123",
 			},*/
+			"",
 		},
 	}
 
