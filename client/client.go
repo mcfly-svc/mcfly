@@ -2,7 +2,6 @@ package client
 
 import (
 	"github.com/mikec/msplapi/api"
-	"github.com/mikec/msplapi/models"
 
 	"bytes"
 	"encoding/json"
@@ -15,9 +14,8 @@ import (
 )
 
 type Client struct {
-	Context  *ClientContext
-	Projects EntityEndpoint
-	Users    EntityEndpoint
+	ServerURL   string
+	AccessToken string
 }
 
 type ClientResponse struct {
@@ -26,12 +24,7 @@ type ClientResponse struct {
 }
 
 func NewClient(serverURL string, token string) *Client {
-	ctx := ClientContext{serverURL, token}
-	return &Client{
-		&ctx,
-		EntityEndpoint{"projects", "project", &ctx, reflect.TypeOf(models.Project{})},
-		EntityEndpoint{"users", "user", &ctx, reflect.TypeOf(models.User{})},
-	}
+	return &Client{serverURL, token}
 }
 
 func (self *Client) Login(token string, provider string) (*ClientResponse, *http.Response, error) {
@@ -40,7 +33,7 @@ func (self *Client) Login(token string, provider string) (*ClientResponse, *http
 		return nil, nil, err
 	}
 	jsonStr := string(json)
-	res, err := self.Context.DoPost("login", &jsonStr, nil)
+	res, err := self.DoPost("login", &jsonStr, nil)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -53,97 +46,23 @@ func (self *Client) Login(token string, provider string) (*ClientResponse, *http
 	return &ClientResponse{loginResp, res.StatusCode}, res, nil
 }
 
-type EntityEndpoint struct {
-	Name         string
-	SingularName string
-	Context      *ClientContext
-	ModelType    reflect.Type
-}
-
-func (self *EntityEndpoint) Create(JSON string) (*ClientResponse, *http.Response, error) {
-	res, err := self.Context.DoPost(self.Name, &JSON, nil)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	d, err := decodeResponseFromType(res, self.ModelType)
-	if err != nil {
-		return nil, res, err
-	}
-	cr := &ClientResponse{d, res.StatusCode}
-
-	return cr, res, nil
-}
-
-func (self *EntityEndpoint) Delete(id int64) (*ClientResponse, *http.Response, error) {
-	res, err := self.Context.DoDelete(fmt.Sprintf("%s/%d", self.Name, id), nil)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	d, err := decodeResponseFromType(res, reflect.TypeOf(api.ApiResponse{}))
-	if err != nil {
-		return nil, res, err
-	}
-	return &ClientResponse{d, res.StatusCode}, res, nil
-}
-
-func (self *EntityEndpoint) GetAll() (*ClientResponse, *http.Response, error) {
-	res, err := self.Context.DoGet(self.Name, nil)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	d, err := decodeResponseFromType(res, reflect.SliceOf(self.ModelType))
-	if err != nil {
-		return nil, res, err
-	}
-	return &ClientResponse{d, res.StatusCode}, res, nil
-}
-
-func (self *EntityEndpoint) Get(id int64) (*ClientResponse, *http.Response, error) {
-	res, err := self.Context.DoGet(fmt.Sprintf("%s/%d", self.Name, id), nil)
-	if err != nil {
-		return nil, nil, err
-	}
-	d, err := decodeResponseFromType(res, self.ModelType)
-	if err != nil {
-		return nil, res, err
-	}
-	return &ClientResponse{d, res.StatusCode}, res, nil
-}
-
-type RequestOptions struct {
-	UseBasicAuth bool
-	AuthHeader   *string
-}
-
-func NewRequestOptions() *RequestOptions {
-	return &RequestOptions{true, nil}
-}
-
-type ClientContext struct {
-	ServerURL   string
-	AccessToken string
-}
-
-func (self *ClientContext) EndpointUrl(endpointName string) string {
+func (self *Client) EndpointUrl(endpointName string) string {
 	return fmt.Sprintf("%s/api/0/%s", self.ServerURL, endpointName)
 }
 
-func (self *ClientContext) DoGet(endpoint string, opts *RequestOptions) (*http.Response, error) {
+func (self *Client) DoGet(endpoint string, opts *RequestOptions) (*http.Response, error) {
 	return self.DoReq("GET", endpoint, nil, opts)
 }
 
-func (self *ClientContext) DoPost(endpoint string, JSON *string, opts *RequestOptions) (*http.Response, error) {
+func (self *Client) DoPost(endpoint string, JSON *string, opts *RequestOptions) (*http.Response, error) {
 	return self.DoReq("POST", endpoint, JSON, opts)
 }
 
-func (self *ClientContext) DoDelete(endpoint string, opts *RequestOptions) (*http.Response, error) {
+func (self *Client) DoDelete(endpoint string, opts *RequestOptions) (*http.Response, error) {
 	return self.DoReq("DELETE", endpoint, nil, opts)
 }
 
-func (self *ClientContext) DoReq(method string, endpoint string, JSON *string, opts *RequestOptions) (*http.Response, error) {
+func (self *Client) DoReq(method string, endpoint string, JSON *string, opts *RequestOptions) (*http.Response, error) {
 	if opts == nil {
 		opts = NewRequestOptions()
 	}
@@ -174,6 +93,15 @@ func (self *ClientContext) DoReq(method string, endpoint string, JSON *string, o
 	}
 
 	return res, nil
+}
+
+type RequestOptions struct {
+	UseBasicAuth bool
+	AuthHeader   *string
+}
+
+func NewRequestOptions() *RequestOptions {
+	return &RequestOptions{true, nil}
 }
 
 type bodyReader struct {

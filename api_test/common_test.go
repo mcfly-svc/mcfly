@@ -97,7 +97,7 @@ func RunEndpointTests(t *testing.T, httpMethod string, endpointPath string, test
 				reqOpts.AuthHeader = &et.AccessToken
 			}
 
-			res, err := apiClient.Context.DoReq(httpMethod, endpointPath, jsonData, reqOpts)
+			res, err := apiClient.DoReq(httpMethod, endpointPath, jsonData, reqOpts)
 			if err != nil {
 				t.Error(err)
 			}
