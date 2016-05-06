@@ -13,6 +13,7 @@ type ProviderAccessToken struct {
 	UserID           int64  `db:"user_id" json:"user_id"`
 }
 
+// SaveUser saves a user and returns the new user's ID
 func (db *DB) SaveUser(u *User) error {
 	var id int64
 	q := `INSERT INTO marsupi_user(name, access_token) VALUES($1, $2) RETURNING id`
@@ -24,6 +25,7 @@ func (db *DB) SaveUser(u *User) error {
 	return nil
 }
 
+// SetUserProviderToken sets a provider access token for a user
 func (db *DB) SetUserProviderToken(userID int64, providerToken *ProviderAccessToken) error {
 	q := `INSERT INTO provider_access_token(user_id, provider, provider_username, access_token)
 				VALUES($1,$2,$3,$4)`
@@ -34,6 +36,8 @@ func (db *DB) SetUserProviderToken(userID int64, providerToken *ProviderAccessTo
 	return nil
 }
 
+// GetUserByAccessToken gets a user by their Marsupi access token. It returns nil if the access token
+// does not exist
 func (db *DB) GetUserByAccessToken(accessToken string) (*User, error) {
 	user := &User{}
 	q := `SELECT * FROM marsupi_user WHERE access_token=$1`
@@ -48,6 +52,8 @@ func (db *DB) GetUserByAccessToken(accessToken string) (*User, error) {
 	return user, nil
 }
 
+// GetUserByProviderToken gets a user by one of their provider access tokens. It returns nil if the
+// provider access token does not exist
 func (db *DB) GetUserByProviderToken(providerToken *ProviderAccessToken) (*User, error) {
 	user := &User{}
 	q := `SELECT marsupi_user.* FROM marsupi_user 
@@ -67,6 +73,8 @@ func (db *DB) GetUserByProviderToken(providerToken *ProviderAccessToken) (*User,
 	return user, nil
 }
 
+// GetProviderTokenForUser gets a provider token for a given user and provider. It returns nil if
+// the user does not have a token for this provider
 func (db *DB) GetProviderTokenForUser(user *User, provider string) (*string, error) {
 	var token *string
 	pt := &ProviderAccessToken{}
