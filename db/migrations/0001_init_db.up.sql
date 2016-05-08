@@ -17,6 +17,7 @@ CREATE UNIQUE INDEX provideraccesstoken_user ON provider_access_token (provider,
 CREATE TABLE project (
 	id											serial PRIMARY KEY,
 	source_provider					provider,
+	source_url							text,
 	handle									text
 );
 

@@ -7,11 +7,10 @@ type TokenDataResponse struct {
 	UserName         string
 }
 
+// AuthProvider is a service used for authenticating to msplapi
 type AuthProvider interface {
+	Provider
 
-	// get key identifier for this provider
-	Key() string
-
-	// get data from the provider based on a provider auth token
+	// GetTokenData given an auth token returns associated data
 	GetTokenData(string) (*TokenDataResponse, error)
 }

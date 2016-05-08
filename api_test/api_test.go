@@ -29,9 +29,9 @@ func (m MockLogger) Handler(h http.Handler, s string) http.Handler {
 	})
 }
 
-type MockAuthProvider struct{}
+type MockProvider struct{}
 
-func (ap *MockAuthProvider) Key() string {
+func (ap *MockProvider) Key() string {
 	return "jabroni.com"
 }
 
@@ -40,23 +40,30 @@ func generateMockToken() string {
 }
 
 // get data from the provider based on a provider auth token
-func (ap *MockAuthProvider) GetTokenData(token string) (*provider.TokenDataResponse, error) {
+func (p *MockProvider) GetTokenData(token string) (*provider.TokenDataResponse, error) {
 	if token == "badtoken" {
-		return &provider.TokenDataResponse{false, ap.Key(), "", ""}, nil
+		return &provider.TokenDataResponse{false, p.Key(), "", ""}, nil
 	} else if token == "mock_jabroni.com_token_123" {
-		return &provider.TokenDataResponse{true, ap.Key(), "mattmocks", "Matt Mockman"}, nil
+		return &provider.TokenDataResponse{true, p.Key(), "mattmocks", "Matt Mockman"}, nil
 	}
-	return &provider.TokenDataResponse{true, ap.Key(), "mikej", "Mike Jimmers"}, nil
+	return &provider.TokenDataResponse{true, p.Key(), "mikej", "Mike Jimmers"}, nil
+}
+
+func (p *MockProvider) GetProjectData(token string, projectName string) (*provider.ProjectData, error) {
+	return &provider.ProjectData{}, nil
 }
 
 func init() {
 
-	jabroni := MockAuthProvider{}
+	jabroni := MockProvider{}
 
 	dbUrl = "postgres://localhost:5432/marsupi_test?sslmode=disable"
 
 	authProviders := make(map[string]provider.AuthProvider)
 	authProviders[jabroni.Key()] = &jabroni
+
+	sourceProviders := make(map[string]provider.SourceProvider)
+	sourceProviders[jabroni.Key()] = &jabroni
 
 	server = httptest.NewServer(
 		api.NewRouter(
@@ -65,6 +72,7 @@ func init() {
 			logging.HttpRequestLogger{},
 			generateMockToken,
 			authProviders,
+			sourceProviders,
 		),
 	)
 	apiClient = client.NewClient(server.URL, "")

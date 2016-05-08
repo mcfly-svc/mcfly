@@ -18,36 +18,41 @@ func (handlers *Handlers) PostProject(w http.ResponseWriter, req *http.Request) 
 		return
 	}
 
-	var projectReqData PostProjectReq
-	decodeErr := r.DecodeRequest(&projectReqData)
+	var reqData PostProjectReq
+	decodeErr := r.DecodeRequest(&reqData)
 	if decodeErr != nil {
 		return
 	}
 
-	reqValid := r.ValidateRequestData(&projectReqData)
+	reqValid := r.ValidateRequestData(&reqData)
 	if !reqValid {
 		return
 	}
 
-	authProvider := handlers.authProviders[projectReqData.Provider]
-	if authProvider == nil {
-		r.RespondWithError(NewUnsupportedProviderErr(projectReqData.Provider))
+	sourceProvider := handlers.sourceProviders[reqData.Provider]
+	if sourceProvider == nil {
+		// TODO: change these errors to provider type specific
+		r.RespondWithError(NewUnsupportedProviderErr(reqData.Provider))
 		return
 	}
 
-	providerToken, err := handlers.db.GetProviderTokenForUser(user, projectReqData.Provider)
+	providerToken, err := handlers.db.GetProviderTokenForUser(user, reqData.Provider)
 	if err != nil {
 		r.RespondWithServerError(err)
 		return
 	}
 	if providerToken == nil {
-		r.RespondWithError(NewProviderTokenNotFoundErr(projectReqData.Provider))
+		r.RespondWithError(NewProviderTokenNotFoundErr(reqData.Provider))
 		return
 	}
 
-	//authProvider.GetProject
+	projectData, err := sourceProvider.GetProjectData(*providerToken, reqData.ProjectHandle)
+	if err != nil {
+		r.RespondWithServerError(err)
+		return
+	}
 
-	fmt.Println("PROVIDER TOKEN:", providerToken)
+	fmt.Printf("PROJECT DATA:%+v\n", projectData)
 
 	// TODO: call to provider to get project data
 

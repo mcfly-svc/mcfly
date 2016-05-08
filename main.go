@@ -93,13 +93,17 @@ func RunServer() {
 
 	authProviders := make(map[string]provider.AuthProvider)
 	authProviders[github.Key()] = &github
-	authProviders[dropbox.Key()] = &dropbox
+
+	sourceProviders := make(map[string]provider.SourceProvider)
+	sourceProviders[github.Key()] = &github
+	sourceProviders[dropbox.Key()] = &dropbox
 
 	router := api.NewRouter(
 		dbUrl,
 		logging.HttpRequestLogger{},
 		generateAccessToken,
 		authProviders,
+		sourceProviders,
 	)
 
 	log.Fatal(http.ListenAndServe(":8081", router))

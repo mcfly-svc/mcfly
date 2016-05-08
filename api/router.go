@@ -11,9 +11,10 @@ import (
 )
 
 type Handlers struct {
-	db            models.Datastore
-	generateToken func() string
-	authProviders map[string]provider.AuthProvider
+	db              models.Datastore
+	generateToken   func() string
+	authProviders   map[string]provider.AuthProvider
+	sourceProviders map[string]provider.SourceProvider
 }
 
 type RequestLogger interface {
@@ -29,6 +30,7 @@ func NewRouter(
 	logger RequestLogger,
 	generateToken func() string,
 	authProviders map[string]provider.AuthProvider,
+	sourceProviders map[string]provider.SourceProvider,
 ) *mux.Router {
 
 	db, err := models.NewDB(dbUrl)
@@ -36,7 +38,7 @@ func NewRouter(
 		log.Panic(err)
 	}
 
-	handlers := &Handlers{db, generateToken, authProviders}
+	handlers := &Handlers{db, generateToken, authProviders, sourceProviders}
 	log.Printf("Connected to postgres")
 
 	router := mux.NewRouter().StrictSlash(true)

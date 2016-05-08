@@ -8,6 +8,10 @@ func (self *Dropbox) Key() string {
 	return "dropbox"
 }
 
-func (self *Dropbox) GetTokenData(token string) (*TokenDataResponse, error) {
-	return nil, fmt.Errorf("Dropbox.GetTokenData Not Implemented")
+func (self *Dropbox) GetTokenData(string) (*TokenDataResponse, error) {
+	return nil, fmt.Errorf("Not Implemented")
+}
+
+func (self *Dropbox) GetProjectData(token string, projectName string) (*ProjectData, error) {
+	return nil, fmt.Errorf("Not Implemented")
 }
