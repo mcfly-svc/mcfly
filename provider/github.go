@@ -80,8 +80,14 @@ func (self *GitHub) GetProjectData(token string, projectHandle string) (*Project
 		if !ok {
 			return nil, err
 		}
-		// TODO: for not found and bad creds errs, return GetProjectDataError
-		return nil, ghErr
+		switch ghErr.Message {
+		case "Not Found":
+			return nil, NewProjectDataNotFoundErr(projectHandle, self.Key())
+		case "Bad credentials":
+			return nil, NewProjectDataTokenInvalidErr(projectHandle, self.Key())
+		default:
+			return nil, ghErr
+		}
 	}
 	return &ProjectData{*repo.HTMLURL}, nil
 }

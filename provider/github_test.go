@@ -24,6 +24,12 @@ func (self *MockGitHubClient) GetRepo(
 	owner string,
 	repo string,
 ) (*github.Repository, *github.Response, error) {
+	if token == "mock_invalid_gh_token" {
+		return nil, nil, provider.NewProjectDataTokenInvalidErr("mock/project", "github")
+	}
+	if repo == "does_not_exist" {
+		return nil, nil, provider.NewProjectDataNotFoundErr("mock/does_not_exist", "github")
+	}
 	url := "http://github.com/mock/out"
 	return &github.Repository{HTMLURL: &url}, nil, nil
 }
@@ -70,6 +76,18 @@ func TestGetProjectData(t *testing.T) {
 			assert.Equal(t, "http://github.com/mock/out", p.Url)
 		}
 	}
+}
+
+func TestGetProjectDataInvalidTokenError(t *testing.T) {
+	_, err := gh.GetProjectData("mock_invalid_gh_token", "mock/project")
+	expectErrMsg := provider.NewProjectDataTokenInvalidErr("mock/project", "github").Error()
+	assert.Equal(t, expectErrMsg, err.Error())
+}
+
+func TestGetProjectDataNotFoundError(t *testing.T) {
+	_, err := gh.GetProjectData("abc", "mock/does_not_exist")
+	expectErrMsg := provider.NewProjectDataNotFoundErr("mock/does_not_exist", "github").Error()
+	assert.Equal(t, expectErrMsg, err.Error())
 }
 
 func strPtr(s string) *string { return &s }
