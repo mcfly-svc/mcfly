@@ -10,7 +10,7 @@ import (
 func TestPostProject(t *testing.T) {
 
 	postAuthTest := &PostAuthTest{"mock_seeded_access_token_123"}
-	validJson := `{ "project_handle":"jabroni.com/mockers/mock-project", "provider":"jabroni.com" }`
+	validJson := `{ "project_handle":"mock/project-x", "provider":"jabroni.com" }`
 
 	tests := []*EndpointTest{
 		postAuthTest.InvalidJsonEndpointTest(),
@@ -57,7 +57,7 @@ func TestPostProject(t *testing.T) {
 			"a request to save a valid project",
 			"success",
 			200,
-			api.ApiResponse{"success!"},
+			api.PostProjectResp{"mock/project-x", "https://jabroni.com/mock/project-x", "jabroni.com"},
 			"mock_seeded_access_token_123",
 		},
 	}

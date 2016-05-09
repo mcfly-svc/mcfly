@@ -12,6 +12,12 @@ type PostProjectReq struct {
 	Provider      string `json:"provider" validate:"nonzero"`
 }
 
+type PostProjectResp struct {
+	ProjectHandle string `json:"project_handle"`
+	ProjectUrl    string `json:"project_url"`
+	Provider      string `json:"provider"`
+}
+
 func (handlers *Handlers) PostProject(w http.ResponseWriter, req *http.Request) {
 	r := &Responder{w, req}
 
@@ -70,7 +76,11 @@ func (handlers *Handlers) PostProject(w http.ResponseWriter, req *http.Request) 
 		return
 	}
 
-	r.RespondWithSuccess()
+	r.Respond(&PostProjectResp{
+		project.Handle,
+		project.SourceUrl,
+		project.SourceProvider,
+	})
 }
 
 /*
