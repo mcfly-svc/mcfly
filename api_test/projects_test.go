@@ -45,8 +45,8 @@ func TestPostProject(t *testing.T) {
 
 		{
 			validJson,
-			"a request to save a project that does not exist on the provider",
-			"a project not found error",
+			"a request to save a project when the saved provider token is invalid",
+			"a token invalid error",
 			400,
 			api.NewApiErr(provider.NewProjectDataTokenInvalidErr("mock/project-x", "jabroni.com").Error()),
 			"mock_token_for_user_with_bad_jabroni.com_token",
