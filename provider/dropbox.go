@@ -12,6 +12,6 @@ func (self *Dropbox) GetTokenData(string) (*TokenDataResponse, error) {
 	return nil, fmt.Errorf("Not Implemented")
 }
 
-func (self *Dropbox) GetProjectData(token string, projectName string) (*ProjectData, error) {
+func (self *Dropbox) GetProjectData(token string, projectHandle string) (*ProjectData, error) {
 	return nil, fmt.Errorf("Not Implemented")
 }

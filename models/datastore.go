@@ -7,10 +7,10 @@ import (
 )
 
 type Datastore interface {
-	SaveProject(*Project) error
-	DeleteProject(int64) error
-	GetProjects() ([]Project, error)
-	GetProjectById(int64) (*Project, error)
+	SaveProject(*Project, *User) error
+	//DeleteProject(int64) error
+	//GetProjects() ([]Project, error)
+	//GetProjectById(int64) (*Project, error)
 
 	SaveUser(*User) error
 	GetUserByAccessToken(string) (*User, error)

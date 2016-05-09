@@ -1,4 +1,7 @@
-all: build test
+all: get build test
+
+get:
+	go get -u github.com/jteeuwen/go-bindata/...
 
 build:
 	go-bindata -pkg db -o db/assets.go db/migrations/

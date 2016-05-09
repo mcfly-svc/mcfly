@@ -56,6 +56,6 @@ func (self *GitHub) GetTokenData(token string) (*TokenDataResponse, error) {
 	return &TokenDataResponse{true, self.Key(), *user.Login, *user.Name}, nil
 }
 
-func (self *GitHub) GetProjectData(token string, projectName string) (*ProjectData, error) {
+func (self *GitHub) GetProjectData(token string, projectHandle string) (*ProjectData, error) {
 	return &ProjectData{"github.com....", "PROJ/NAME"}, nil
 }

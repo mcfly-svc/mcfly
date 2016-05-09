@@ -37,6 +37,18 @@ func Seed(dbUrl string) {
 	u2 := &models.User{Name: "Penelope Providerless", AccessToken: "mock_token_for_user_with_no_provider_tokens"}
 	insertUser(db, u2)
 
+	u3 := &models.User{
+		Name:        "Bethany Badprovidertoken",
+		AccessToken: "mock_token_for_user_with_bad_jabroni.com_token",
+	}
+	insertUser(db, u3)
+
+	insertProviderAccessToken(db, u3.ID, &models.ProviderAccessToken{
+		Provider:         "jabroni.com",
+		ProviderUsername: "bbadprovidertoken",
+		AccessToken:      "bad_saved_jabroni.com_token_123",
+	})
+
 }
 
 func addProviderValue(db *sqlx.DB, val string) {

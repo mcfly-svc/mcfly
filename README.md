@@ -7,26 +7,30 @@ Data access layer for marsupi
 Setup
 =====
 
-go get -u github.com/jteeuwen/go-bindata/...
+Run postgres SQL locally
+
+`make`
 
 
 Run API Server
 ==============
 
-msplapi run
+`msplapi run`
 
 
 Testing
 =======
 
-go test ./...
+The api_test package needs postgres to be running. Connection limit needs to be increased (set `max_connections = 1000` in `postgresql.conf`
+
+`make test`
 
 
-Migrations
-==========
+Database
+========
 
-go get -u github.com/mattes/migrate
-
-migrate -url postgres://localhost:5432/marsupi?sslmode=disable -path ./db/migrations create add_field_to_table
-migrate -url postgres://localhost:5432/marsupi?sslmode=disable -path ./db/migrations up
-migrate -url postgres://localhost:5432/marsupi_test?sslmode=disable -path ./db/migrations up
+`msplapi migrate up`
+`msplapi migrate down`
+`msplapi create-db`
+`msplapi clean-db`
+`msplapi seed-db`

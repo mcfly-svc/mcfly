@@ -2,22 +2,30 @@ package models
 
 type Project struct {
 	ID             int64  `db:"id" json:"id"`
-	Name           string `db:"name" json:"name"`
-	Username       string `db:"username" json:"username"`
+	Handle         string `db:"handle" json:"handle"`
+	SourceUrl      string `db:"source_url" json:"username"`
 	SourceProvider string `db:"source_provider" json:"source_provider"`
 }
 
-func (db *DB) SaveProject(p *Project) error {
+func (db *DB) SaveProject(p *Project, u *User) error {
 	var id int64
-	q := `INSERT INTO project(name,username,source_provider) VALUES($1,$2,$3) RETURNING id`
-	err := db.QueryRowScan(id, q, p.Name, p.Username, p.SourceProvider)
+	q := `INSERT INTO project(handle,source_url,source_provider) VALUES($1,$2,$3) RETURNING id`
+	tx := db.MustBegin()
+	r := tx.QueryRowx(q, p.Handle, p.SourceUrl, p.SourceProvider)
+	err := r.Scan(&id)
 	if err != nil {
 		return err
 	}
 	p.ID = id
+	tx.MustExec(`INSERT INTO user_project (user_id,project_id) VALUES($1,$2)`, u.ID, p.ID)
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
+/*
 func (db *DB) GetProjects() ([]Project, error) {
 	projects := []Project{}
 	err := db.Select(&projects, `SELECT * FROM project`)
@@ -44,3 +52,4 @@ func (db *DB) GetProjectById(id int64) (*Project, error) {
 	}
 	return project, nil
 }
+*/

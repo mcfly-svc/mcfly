@@ -1,8 +1,10 @@
 package api
 
 import (
-	"fmt"
 	"net/http"
+
+	"github.com/mikec/msplapi/models"
+	"github.com/mikec/msplapi/provider"
 )
 
 type PostProjectReq struct {
@@ -48,17 +50,25 @@ func (handlers *Handlers) PostProject(w http.ResponseWriter, req *http.Request) 
 
 	projectData, err := sourceProvider.GetProjectData(*providerToken, reqData.ProjectHandle)
 	if err != nil {
-		r.RespondWithServerError(err)
+		pErr, ok := err.(*provider.GetProjectDataError)
+		if !ok {
+			r.RespondWithServerError(err)
+			return
+		}
+		r.RespondWithError(NewApiErr(pErr.Error()))
 		return
 	}
 
-	fmt.Printf("PROJECT DATA:%+v\n", projectData)
-
-	// TODO: call to provider to get project data
-
-	// TODO: save project data
-
-	// TODO: respond with SUCCESS
+	project := models.Project{
+		Handle:         reqData.ProjectHandle,
+		SourceUrl:      projectData.Url,
+		SourceProvider: reqData.Provider,
+	}
+	err = handlers.db.SaveProject(&project, user)
+	if err != nil {
+		r.RespondWithServerError(err)
+		return
+	}
 
 	r.RespondWithSuccess()
 }

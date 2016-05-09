@@ -49,8 +49,14 @@ func (p *MockProvider) GetTokenData(token string) (*provider.TokenDataResponse, 
 	return &provider.TokenDataResponse{true, p.Key(), "mikej", "Mike Jimmers"}, nil
 }
 
-func (p *MockProvider) GetProjectData(token string, projectName string) (*provider.ProjectData, error) {
-	return &provider.ProjectData{}, nil
+func (p *MockProvider) GetProjectData(token string, projectHandle string) (*provider.ProjectData, error) {
+	if projectHandle == "bad_project_handle" {
+		return nil, provider.NewProjectDataNotFoundErr("mock/project-x", "jabroni.com")
+	}
+	if token == "bad_saved_jabroni.com_token_123" {
+		return nil, provider.NewProjectDataTokenInvalidErr("mock/project-x", "jabroni.com")
+	}
+	return &provider.ProjectData{"https://jabroni.com/mock/project-x", "mock/project-x"}, nil
 }
 
 func init() {
