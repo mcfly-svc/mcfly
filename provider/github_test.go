@@ -1,6 +1,7 @@
 package provider_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/google/go-github/github"
@@ -16,6 +17,15 @@ func (self *MockGitHubClient) GetCurrentUser(token string) (*github.User, *githu
 	} else {
 		return &github.User{Login: strPtr("@mjones"), Name: strPtr("Mock Jones")}, nil, nil
 	}
+}
+
+func (self *MockGitHubClient) GetRepo(
+	token string,
+	owner string,
+	repo string,
+) (*github.Repository, *github.Response, error) {
+	url := "http://github.com/mock/out"
+	return &github.Repository{HTMLURL: &url}, nil, nil
 }
 
 var gh provider.GitHub
@@ -35,6 +45,31 @@ func TestGetTokenDataValidToken(t *testing.T) {
 	assert.Equal(t, "github", td.Provider, "Token data response should include provider name")
 	assert.Equal(t, "@mjones", td.ProviderUsername, "Token data response should include provider username")
 	assert.Equal(t, "Mock Jones", td.UserName, "Token data response should include user's name")
+}
+
+func TestGetProjectData(t *testing.T) {
+
+	var tests = []struct {
+		Handle                    string
+		ExpectValidHandle         bool
+		ExpectProjectDataReturned bool
+	}{
+		{"has/oneslash", true, true},
+		{"noslash", false, false},
+		{"has/two/slashes", false, false},
+	}
+
+	for _, tst := range tests {
+		p, err := gh.GetProjectData("abc", tst.Handle)
+		if tst.ExpectValidHandle {
+			assert.Nil(t, err, fmt.Sprintf("Expected `%s` to be a valid project handle", tst.Handle))
+		} else {
+			assert.NotNil(t, err, fmt.Sprintf("Expected `%s` to be an invalid project handle", tst.Handle))
+		}
+		if tst.ExpectProjectDataReturned {
+			assert.Equal(t, "http://github.com/mock/out", p.Url)
+		}
+	}
 }
 
 func strPtr(s string) *string { return &s }

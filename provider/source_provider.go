@@ -3,8 +3,7 @@ package provider
 import "fmt"
 
 type ProjectData struct {
-	Url  string
-	Name string
+	Url string
 }
 
 // SourceProvider is a service that owns projects with source code,
@@ -28,6 +27,8 @@ func (e GetProjectDataError) Error() string {
 		return fmt.Sprintf("%s. %s project `%s` not found", msg, e.Provider, e.ProjectHandle)
 	} else if e.Name == "invalid_token" {
 		return fmt.Sprintf("%s. %s token is invalid", msg, e.Provider)
+	} else if e.Name == "invalid_handle" {
+		return fmt.Sprintf("%s. Invalid %s project handle `%s`", msg, e.Provider, e.ProjectHandle)
 	}
 	return msg
 }
@@ -38,4 +39,8 @@ func NewProjectDataNotFoundErr(projectHandle string, provider string) *GetProjec
 
 func NewProjectDataTokenInvalidErr(projectHandle string, provider string) *GetProjectDataError {
 	return &GetProjectDataError{"invalid_token", projectHandle, provider}
+}
+
+func NewProjectDataInvalidHandleErr(projectHandle string, provider string) *GetProjectDataError {
+	return &GetProjectDataError{"invalid_handle", projectHandle, provider}
 }

@@ -35,11 +35,20 @@ func TestPostProject(t *testing.T) {
 		},
 
 		{
-			`{ "project_handle":"bad_project_handle", "provider":"jabroni.com" }`,
+			`{ "project_handle":"project_handle_dne", "provider":"jabroni.com" }`,
 			"a request to save a project that does not exist on the provider",
 			"a project not found error",
 			400,
 			api.NewApiErr(provider.NewProjectDataNotFoundErr("mock/project-x", "jabroni.com").Error()),
+			"mock_seeded_access_token_123",
+		},
+
+		{
+			`{ "project_handle":"invalid_project_handle", "provider":"jabroni.com" }`,
+			"a request to save a project with an invalid project handle",
+			"a project handle invalid error",
+			400,
+			api.NewApiErr(provider.NewProjectDataInvalidHandleErr("invalid_project_handle", "jabroni.com").Error()),
 			"mock_seeded_access_token_123",
 		},
 

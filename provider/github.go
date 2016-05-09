@@ -1,12 +1,16 @@
 package provider
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/google/go-github/github"
 	"golang.org/x/oauth2"
 )
 
 type GitHubClient interface {
 	GetCurrentUser(string) (*github.User, *github.Response, error)
+	GetRepo(string, string, string) (*github.Repository, *github.Response, error)
 }
 
 type GoGitHubClient struct{}
@@ -14,6 +18,15 @@ type GoGitHubClient struct{}
 func (self *GoGitHubClient) GetCurrentUser(token string) (*github.User, *github.Response, error) {
 	gh := self.NewClient(token)
 	return gh.Users.Get("")
+}
+
+func (self *GoGitHubClient) GetRepo(
+	token string,
+	owner string,
+	repo string,
+) (*github.Repository, *github.Response, error) {
+	gh := self.NewClient(token)
+	return gh.Repositories.Get(owner, repo)
 }
 
 func (self *GoGitHubClient) NewClient(token string) *github.Client {
@@ -57,5 +70,31 @@ func (self *GitHub) GetTokenData(token string) (*TokenDataResponse, error) {
 }
 
 func (self *GitHub) GetProjectData(token string, projectHandle string) (*ProjectData, error) {
-	return &ProjectData{"github.com....", "PROJ/NAME"}, nil
+	ph, err := parseProjectHandle(projectHandle)
+	if err != nil {
+		return nil, NewProjectDataInvalidHandleErr(projectHandle, self.Key())
+	}
+	repo, _, err := self.GetRepo(token, ph.Owner, ph.Repo)
+	if err != nil {
+		ghErr, ok := err.(*github.ErrorResponse)
+		if !ok {
+			return nil, err
+		}
+		// TODO: for not found and bad creds errs, return GetProjectDataError
+		return nil, ghErr
+	}
+	return &ProjectData{*repo.HTMLURL}, nil
+}
+
+type ProjectHandle struct {
+	Owner string
+	Repo  string
+}
+
+func parseProjectHandle(projectHandle string) (*ProjectHandle, error) {
+	s := strings.Split(projectHandle, "/")
+	if len(s) != 2 {
+		return nil, fmt.Errorf("Invalid project handle `%s`", projectHandle)
+	}
+	return &ProjectHandle{s[0], s[1]}, nil
 }
