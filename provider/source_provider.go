@@ -3,7 +3,8 @@ package provider
 import "fmt"
 
 type ProjectData struct {
-	Url string
+	Url    string
+	Handle string
 }
 
 // SourceProvider is a service that owns projects with source code,

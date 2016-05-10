@@ -89,15 +89,15 @@ func (self *GitHub) GetProjectData(token string, projectHandle string) (*Project
 			return nil, ghErr
 		}
 	}
-	return &ProjectData{*repo.HTMLURL}, nil
+	return &ProjectData{*repo.HTMLURL, projectHandle}, nil
 }
 
 func (self *GitHub) GetProjects(token string) ([]ProjectData, error) {
 	// TMP
 	return []ProjectData{
-		{"http://jnk1"},
-		{"http://jnk2"},
-		{"http://jnk3"},
+		{"http://jnk1", "gh/jnk1"},
+		{"http://jnk2", "gh/jnk2"},
+		{"http://jnk3", "gh/jnk3"},
 	}, nil
 }
 
