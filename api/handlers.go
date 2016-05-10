@@ -24,10 +24,11 @@ type HandlerOptions struct {
 }
 
 type RequestContext struct {
-	CurrentUser    *models.User
-	RequestData    interface{}
-	SourceProvider *provider.SourceProvider
-	AuthProvider   *provider.AuthProvider
+	CurrentUser         *models.User
+	RequestData         interface{}
+	SourceProvider      *provider.SourceProvider
+	SourceProviderToken *string
+	AuthProvider        *provider.AuthProvider
 }
 
 type SourceProviderRequest interface {
@@ -76,6 +77,17 @@ func (handlers *Handlers) MakeHandlerFunc(opts HandlerOptions) func(http.Respons
 				return
 			}
 			ctx.SourceProvider = &sourceProvider
+
+			spToken, err := handlers.db.GetProviderTokenForUser(ctx.CurrentUser, sp)
+			if err != nil {
+				r.RespondWithServerError(err)
+				return
+			}
+			if spToken == nil {
+				r.RespondWithError(NewProviderTokenNotFoundErr(sp))
+				return
+			}
+			ctx.SourceProviderToken = spToken
 		}
 
 		if opts.UseAuthProvider {

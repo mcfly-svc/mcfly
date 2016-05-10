@@ -24,18 +24,8 @@ func (handlers *Handlers) PostProject(r *Responder, ctx *RequestContext) {
 
 	reqData := ctx.RequestData.(*PostProjectReq)
 
-	providerToken, err := handlers.db.GetProviderTokenForUser(ctx.CurrentUser, reqData.Provider)
-	if err != nil {
-		r.RespondWithServerError(err)
-		return
-	}
-	if providerToken == nil {
-		r.RespondWithError(NewProviderTokenNotFoundErr(reqData.Provider))
-		return
-	}
-
 	sourceProvider := *ctx.SourceProvider
-	projectData, err := sourceProvider.GetProjectData(*providerToken, reqData.ProjectHandle)
+	projectData, err := sourceProvider.GetProjectData(*ctx.SourceProviderToken, reqData.ProjectHandle)
 	if err != nil {
 		pErr, ok := err.(*provider.GetProjectDataError)
 		if !ok {
@@ -64,6 +54,16 @@ func (handlers *Handlers) PostProject(r *Responder, ctx *RequestContext) {
 		project.SourceProvider,
 	})
 }
+
+/*type GetProjectsResp []struct {
+	ProjectHandle string `json:"project_handle"`
+	ProjectUrl    string `json:"project_url"`
+}
+
+func (handlers *Handlers) GetProjects(r *Responder, ctx *RequestContext) {
+	sourceProvider := *ctx.SourceProvider
+	projectData, err := sourceProvider.GetProjects(*providerToken, reqData.ProjectHandle)
+}*/
 
 /*
 // curl -X POST http://localhost:8080/api/0/projects -d '{"service":"github", "username":"mikec", "name":"example-project"}'
