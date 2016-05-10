@@ -75,8 +75,7 @@ func (db *DB) GetUserByProviderToken(providerToken *ProviderAccessToken) (*User,
 
 // GetProviderTokenForUser gets a provider token for a given user and provider. It returns nil if
 // the user does not have a token for this provider
-func (db *DB) GetProviderTokenForUser(user *User, provider string) (*string, error) {
-	var token *string
+func (db *DB) GetProviderTokenForUser(user *User, provider string) (*ProviderAccessToken, error) {
 	pt := &ProviderAccessToken{}
 	q := `SELECT provider_access_token.* FROM marsupi_user
 				INNER JOIN provider_access_token
@@ -91,8 +90,5 @@ func (db *DB) GetProviderTokenForUser(user *User, provider string) (*string, err
 			return nil, err
 		}
 	}
-	if pt.AccessToken != "" {
-		token = &pt.AccessToken
-	}
-	return token, nil
+	return pt, nil
 }

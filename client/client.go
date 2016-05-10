@@ -2,6 +2,7 @@ package client
 
 import (
 	"github.com/mikec/msplapi/api"
+	"github.com/mikec/msplapi/provider"
 
 	"bytes"
 	"encoding/json"
@@ -63,6 +64,20 @@ func (self *Client) AddProject(projectHandle string, provider string) (*ClientRe
 	}
 
 	return &ClientResponse{apiResp, res.StatusCode}, res, nil
+}
+
+func (self *Client) GetProviderProjects(providerKey string) (*ClientResponse, *http.Response, error) {
+	res, err := self.DoGet(fmt.Sprintf("%s/projects", providerKey), nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var pData []provider.ProjectData
+	if err := decodeResponse(res, &pData); err != nil {
+		return nil, res, err
+	}
+
+	return &ClientResponse{pData, res.StatusCode}, res, nil
 }
 
 func (self *Client) EndpointUrl(endpointName string) string {

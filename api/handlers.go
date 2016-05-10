@@ -28,7 +28,7 @@ type RequestContext struct {
 	CurrentUser         *models.User
 	RequestData         interface{}
 	SourceProvider      *provider.SourceProvider
-	SourceProviderToken *string
+	SourceProviderToken *models.ProviderAccessToken
 	AuthProvider        *provider.AuthProvider
 }
 

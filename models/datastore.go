@@ -15,7 +15,7 @@ type Datastore interface {
 	SaveUser(*User) error
 	GetUserByAccessToken(string) (*User, error)
 	GetUserByProviderToken(*ProviderAccessToken) (*User, error)
-	GetProviderTokenForUser(*User, string) (*string, error)
+	GetProviderTokenForUser(*User, string) (*ProviderAccessToken, error)
 	SetUserProviderToken(int64, *ProviderAccessToken) error
 }
 

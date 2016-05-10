@@ -35,7 +35,7 @@ func (ap *MockProvider) Key() string {
 	return "jabroni.com"
 }
 
-func (self *MockProvider) GetProjects(token string) ([]provider.ProjectData, error) {
+func (self *MockProvider) GetProjects(token string, username string) ([]provider.ProjectData, error) {
 	return []provider.ProjectData{
 		{"http://jabroni.com/mock/project1", "mock/project1"},
 		{"http://jabroni.com/mock/project2", "mock/project2"},
@@ -65,7 +65,7 @@ func (p *MockProvider) GetProjectData(token string, projectHandle string) (*prov
 		return nil, provider.NewProjectDataInvalidHandleErr("invalid_project_handle", "jabroni.com")
 	}
 	if token == "bad_saved_jabroni.com_token_123" {
-		return nil, provider.NewProjectDataTokenInvalidErr("mock/project-x", "jabroni.com")
+		return nil, provider.NewProviderTokenInvalidErr("jabroni.com")
 	}
 	return &provider.ProjectData{"https://jabroni.com/mock/project-x", "mock/project-x"}, nil
 }

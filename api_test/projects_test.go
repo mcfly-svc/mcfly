@@ -57,7 +57,7 @@ func TestPostProject(t *testing.T) {
 			"a request to save a project when the saved provider token is invalid",
 			"a token invalid error",
 			400,
-			api.NewApiErr(provider.NewProjectDataTokenInvalidErr("mock/project-x", "jabroni.com").Error()),
+			api.NewApiErr(provider.NewProviderTokenInvalidErr("jabroni.com").Error()),
 			"mock_token_for_user_with_bad_jabroni.com_token",
 		},
 
