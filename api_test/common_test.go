@@ -43,11 +43,11 @@ func InvalidAuthorizationTokenErrorTest(json string) *EndpointTest {
 	}
 }
 
-type PostAuthTest struct {
+type AfterAuthTest struct {
 	AccessToken string
 }
 
-func (t *PostAuthTest) MissingParamEndpointTest(json string, paramName string) *EndpointTest {
+func (t *AfterAuthTest) MissingParamEndpointTest(json string, paramName string) *EndpointTest {
 	return &EndpointTest{
 		json,
 		fmt.Sprintf("missing `%s` parameter", paramName),
@@ -58,7 +58,7 @@ func (t *PostAuthTest) MissingParamEndpointTest(json string, paramName string) *
 	}
 }
 
-func (t *PostAuthTest) InvalidJsonEndpointTest() *EndpointTest {
+func (t *AfterAuthTest) InvalidJsonEndpointTest() *EndpointTest {
 	return &EndpointTest{
 		`{"jnk"}`,
 		"invalid JSON",
@@ -69,7 +69,7 @@ func (t *PostAuthTest) InvalidJsonEndpointTest() *EndpointTest {
 	}
 }
 
-func (t *PostAuthTest) UnsupportedProviderTest(json string, badProvider string) *EndpointTest {
+func (t *AfterAuthTest) UnsupportedProviderTest(json string, badProvider string) *EndpointTest {
 	return &EndpointTest{
 		json,
 		"an unsupported provider",

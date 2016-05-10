@@ -13,6 +13,9 @@ type SourceProvider interface {
 
 	// GetProjectData returns data for a project owned by a source provider
 	GetProjectData(string, string) (*ProjectData, error)
+
+	// GetProjects returns all projects owned by the authenticated user on the source provider
+	GetProjects(string) ([]ProjectData, error)
 }
 
 type GetProjectDataError struct {

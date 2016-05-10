@@ -8,16 +8,16 @@ import (
 
 func TestLogin(t *testing.T) {
 
-	postAuthTest := &PostAuthTest{"mock_seeded_access_token_123"}
+	afterAuthTest := &AfterAuthTest{"mock_seeded_access_token_123"}
 
 	tests := []*EndpointTest{
-		postAuthTest.InvalidJsonEndpointTest(),
+		afterAuthTest.InvalidJsonEndpointTest(),
 
-		postAuthTest.MissingParamEndpointTest(`{ "token":"abc123" }`, "provider"),
+		afterAuthTest.MissingParamEndpointTest(`{ "token":"abc123" }`, "provider"),
 
-		postAuthTest.MissingParamEndpointTest(`{ "provider":"jabroni.com" }`, "token"),
+		afterAuthTest.MissingParamEndpointTest(`{ "provider":"jabroni.com" }`, "token"),
 
-		postAuthTest.UnsupportedProviderTest(`{ "token":"abc123", "provider":"junk-service" }`, "junk-service"),
+		afterAuthTest.UnsupportedProviderTest(`{ "token":"abc123", "provider":"junk-service" }`, "junk-service"),
 
 		{
 			`{ "token":"badtoken", "provider":"jabroni.com" }`,

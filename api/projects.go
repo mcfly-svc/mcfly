@@ -55,15 +55,20 @@ func (handlers *Handlers) PostProject(r *Responder, ctx *RequestContext) {
 	})
 }
 
-/*type GetProjectsResp []struct {
+type GetProjectsResp []struct {
 	ProjectHandle string `json:"project_handle"`
 	ProjectUrl    string `json:"project_url"`
 }
 
 func (handlers *Handlers) GetProjects(r *Responder, ctx *RequestContext) {
 	sourceProvider := *ctx.SourceProvider
-	projectData, err := sourceProvider.GetProjects(*providerToken, reqData.ProjectHandle)
-}*/
+	projects, err := sourceProvider.GetProjects(*ctx.SourceProviderToken)
+	if err != nil {
+		r.RespondWithServerError(err)
+		return
+	}
+	r.Respond(projects)
+}
 
 /*
 // curl -X POST http://localhost:8080/api/0/projects -d '{"service":"github", "username":"mikec", "name":"example-project"}'

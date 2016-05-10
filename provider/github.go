@@ -92,6 +92,15 @@ func (self *GitHub) GetProjectData(token string, projectHandle string) (*Project
 	return &ProjectData{*repo.HTMLURL}, nil
 }
 
+func (self *GitHub) GetProjects(token string) ([]ProjectData, error) {
+	// TMP
+	return []ProjectData{
+		{"http://jnk1"},
+		{"http://jnk2"},
+		{"http://jnk3"},
+	}, nil
+}
+
 type ProjectHandle struct {
 	Owner string
 	Repo  string

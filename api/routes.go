@@ -41,6 +41,17 @@ func AllRoutes(handlers *Handlers) Routes {
 			}),
 		},
 
+		Route{
+			"GetProjects",
+			"GET",
+			"/api/0/{provider}/projects",
+			handlers.MakeHandlerFunc(HandlerOptions{
+				AuthRequired:      true,
+				UseSourceProvider: true,
+				After:             handlers.GetProjects,
+			}),
+		},
+
 		// projects
 		/*Route{
 			"ProjectPost",

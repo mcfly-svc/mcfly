@@ -9,21 +9,21 @@ import (
 
 func TestPostProject(t *testing.T) {
 
-	postAuthTest := &PostAuthTest{"mock_seeded_access_token_123"}
+	afterAuthTest := &AfterAuthTest{"mock_seeded_access_token_123"}
 	validJson := `{ "project_handle":"mock/project-x", "provider":"jabroni.com" }`
 
 	tests := []*EndpointTest{
-		postAuthTest.InvalidJsonEndpointTest(),
+		afterAuthTest.InvalidJsonEndpointTest(),
 
 		MissingAuthorizationHeaderEndpointTest(validJson),
 
 		InvalidAuthorizationTokenErrorTest(validJson),
 
-		postAuthTest.MissingParamEndpointTest(`{ "project_handle":"asdf" }`, "provider"),
+		afterAuthTest.MissingParamEndpointTest(`{ "project_handle":"asdf" }`, "provider"),
 
-		postAuthTest.MissingParamEndpointTest(`{ "provider":"jabroni.com" }`, "project_handle"),
+		afterAuthTest.MissingParamEndpointTest(`{ "provider":"jabroni.com" }`, "project_handle"),
 
-		postAuthTest.UnsupportedProviderTest(`{ "project_handle":"asdf", "provider":"jnk" }`, "jnk"),
+		afterAuthTest.UnsupportedProviderTest(`{ "project_handle":"asdf", "provider":"jnk" }`, "jnk"),
 
 		{
 			validJson,
@@ -73,4 +73,20 @@ func TestPostProject(t *testing.T) {
 
 	RunEndpointTests(t, "POST", "projects", tests)
 
+}
+
+func TestGetProviderProjects(t *testing.T) {
+	afterAuthTest := &AfterAuthTest{"mock_seeded_access_token_123"}
+
+	tests := []*EndpointTest{
+		MissingAuthorizationHeaderEndpointTest(""),
+
+		InvalidAuthorizationTokenErrorTest(""),
+	}
+	RunEndpointTests(t, "GET", "jabroni.com/projects", tests)
+
+	invalidProviderTests := []*EndpointTest{
+		afterAuthTest.UnsupportedProviderTest("", "jnk"),
+	}
+	RunEndpointTests(t, "GET", "jnk/projects", invalidProviderTests)
 }

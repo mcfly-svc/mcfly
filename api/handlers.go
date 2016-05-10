@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"reflect"
 
+	"github.com/gorilla/mux"
 	"github.com/mikec/msplapi/models"
 	"github.com/mikec/msplapi/provider"
 )
@@ -45,6 +46,8 @@ func (handlers *Handlers) MakeHandlerFunc(opts HandlerOptions) func(http.Respons
 	return func(w http.ResponseWriter, req *http.Request) {
 		ctx := &RequestContext{}
 
+		vars := mux.Vars(req)
+
 		r := &Responder{w, req}
 
 		if opts.AuthRequired {
@@ -69,7 +72,12 @@ func (handlers *Handlers) MakeHandlerFunc(opts HandlerOptions) func(http.Respons
 		}
 
 		if opts.UseSourceProvider {
-			sp := ctx.RequestData.(SourceProviderRequest).SourceProvider()
+			var sp string
+			if vars["provider"] != "" {
+				sp = vars["provider"]
+			} else {
+				sp = ctx.RequestData.(SourceProviderRequest).SourceProvider()
+			}
 			sourceProvider := handlers.sourceProviders[sp]
 			if sourceProvider == nil {
 				// TODO: change these errors to provider type specific

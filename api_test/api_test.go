@@ -35,6 +35,14 @@ func (ap *MockProvider) Key() string {
 	return "jabroni.com"
 }
 
+func (self *MockProvider) GetProjects(token string) ([]provider.ProjectData, error) {
+	return []provider.ProjectData{
+		{"http://jabroni.com/mock/project1"},
+		{"http://jabroni.com/mock/project2"},
+		{"http://jabroni.com/mock/project3"},
+	}, nil
+}
+
 func generateMockToken() string {
 	return "mock_generated_access_token_123"
 }
