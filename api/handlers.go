@@ -19,6 +19,7 @@ type HandlerOptions struct {
 	AuthRequired      bool
 	RequestData       interface{}
 	UseSourceProvider bool
+	UseAuthProvider   bool
 	After             func(*Responder, *RequestContext)
 }
 
@@ -26,10 +27,15 @@ type RequestContext struct {
 	CurrentUser    *models.User
 	RequestData    interface{}
 	SourceProvider *provider.SourceProvider
+	AuthProvider   *provider.AuthProvider
 }
 
 type SourceProviderRequest interface {
 	SourceProvider() string
+}
+
+type AuthProviderRequest interface {
+	AuthProvider() string
 }
 
 // MakeHandlerFunc returns a handler function based on options provided. It executes the
@@ -70,6 +76,17 @@ func (handlers *Handlers) MakeHandlerFunc(opts HandlerOptions) func(http.Respons
 				return
 			}
 			ctx.SourceProvider = &sourceProvider
+		}
+
+		if opts.UseAuthProvider {
+			ap := ctx.RequestData.(AuthProviderRequest).AuthProvider()
+			authProvider := handlers.authProviders[ap]
+			if authProvider == nil {
+				// TODO: change these errors to provider type specific
+				r.RespondWithError(NewUnsupportedProviderErr(ap))
+				return
+			}
+			ctx.AuthProvider = &authProvider
 		}
 
 		opts.After(r, ctx)

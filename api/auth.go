@@ -1,14 +1,14 @@
 package api
 
-import (
-	"net/http"
-
-	"github.com/mikec/msplapi/models"
-)
+import "github.com/mikec/msplapi/models"
 
 type LoginReq struct {
 	Token    string `json:"token" validate:"nonzero"`
 	Provider string `json:"provider" validate:"nonzero"`
+}
+
+func (lr *LoginReq) AuthProvider() string {
+	return lr.Provider
 }
 
 type LoginResp struct {
@@ -17,25 +17,10 @@ type LoginResp struct {
 }
 
 // Login with a provider access token
-func (handlers *Handlers) Login(w http.ResponseWriter, req *http.Request) {
-	r := &Responder{w, req}
+func (handlers *Handlers) Login(r *Responder, ctx *RequestContext) {
 
-	var loginReq LoginReq
-	decodeErr := r.DecodeRequest(&loginReq)
-	if decodeErr != nil {
-		return
-	}
-
-	reqValid := r.ValidateRequestData(&loginReq)
-	if !reqValid {
-		return
-	}
-
-	authProvider := handlers.authProviders[loginReq.Provider]
-	if authProvider == nil {
-		r.RespondWithError(NewUnsupportedProviderErr(loginReq.Provider))
-		return
-	}
+	loginReq := ctx.RequestData.(*LoginReq)
+	authProvider := *ctx.AuthProvider
 
 	td, err := authProvider.GetTokenData(loginReq.Token)
 	if err != nil {

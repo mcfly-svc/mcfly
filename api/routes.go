@@ -21,7 +21,11 @@ func AllRoutes(handlers *Handlers) Routes {
 			"Auth",
 			"POST",
 			"/api/0/login",
-			handlers.Login,
+			handlers.MakeHandlerFunc(HandlerOptions{
+				RequestData:     LoginReq{},
+				UseAuthProvider: true,
+				After:           handlers.Login,
+			}),
 		},
 
 		// projects

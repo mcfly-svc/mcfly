@@ -22,8 +22,7 @@ type PostProjectResp struct {
 
 func (handlers *Handlers) PostProject(r *Responder, ctx *RequestContext) {
 
-	var reqData PostProjectReq
-	reqData = *ctx.RequestData.(*PostProjectReq)
+	reqData := ctx.RequestData.(*PostProjectReq)
 
 	providerToken, err := handlers.db.GetProviderTokenForUser(ctx.CurrentUser, reqData.Provider)
 	if err != nil {
