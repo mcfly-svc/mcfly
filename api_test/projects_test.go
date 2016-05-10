@@ -80,7 +80,6 @@ func TestGetProviderProjects(t *testing.T) {
 
 	tests := []*EndpointTest{
 		MissingAuthorizationHeaderEndpointTest(""),
-
 		InvalidAuthorizationTokenErrorTest(""),
 	}
 	RunEndpointTests(t, "GET", "jabroni.com/projects", tests)
@@ -89,4 +88,12 @@ func TestGetProviderProjects(t *testing.T) {
 		afterAuthTest.UnsupportedProviderTest("", "jnk"),
 	}
 	RunEndpointTests(t, "GET", "jnk/projects", invalidProviderTests)
+}
+
+func TestGetProjects(t *testing.T) {
+	tests := []*EndpointTest{
+		MissingAuthorizationHeaderEndpointTest(""),
+		InvalidAuthorizationTokenErrorTest(""),
+	}
+	RunEndpointTests(t, "GET", "projects", tests)
 }

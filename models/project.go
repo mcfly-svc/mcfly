@@ -25,16 +25,20 @@ func (db *DB) SaveProject(p *Project, u *User) error {
 	return nil
 }
 
-/*
-func (db *DB) GetProjects() ([]Project, error) {
+func (db *DB) GetUserProjects(user *User) ([]Project, error) {
 	projects := []Project{}
-	err := db.Select(&projects, `SELECT * FROM project`)
+	err := db.Select(
+		&projects,
+		`SELECT project.* FROM project INNER JOIN user_project ON user_project.user_id=$1`,
+		user.ID,
+	)
 	if err != nil {
 		return nil, err
 	}
 	return projects, nil
 }
 
+/*
 func (db *DB) DeleteProject(id int64) error {
 	q := `DELETE FROM project WHERE id=$1`
 	_, err := db.Exec(q, id)

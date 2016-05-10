@@ -42,13 +42,23 @@ func AllRoutes(handlers *Handlers) Routes {
 		},
 
 		Route{
-			"GetProjects",
+			"GetProviderProjects",
 			"GET",
 			"/api/0/{provider}/projects",
 			handlers.MakeHandlerFunc(HandlerOptions{
 				AuthRequired:      true,
 				UseSourceProvider: true,
-				After:             handlers.GetProjects,
+				After:             handlers.GetProviderProjects,
+			}),
+		},
+
+		Route{
+			"GetProjects",
+			"GET",
+			"/api/0/projects",
+			handlers.MakeHandlerFunc(HandlerOptions{
+				AuthRequired: true,
+				After:        handlers.GetProjects,
 			}),
 		},
 

@@ -65,12 +65,21 @@ type GetProjectsResp []struct {
 	ProjectUrl    string `json:"project_url"`
 }
 
-func (handlers *Handlers) GetProjects(r *Responder, ctx *RequestContext) {
+func (handlers *Handlers) GetProviderProjects(r *Responder, ctx *RequestContext) {
 	sourceProvider := *ctx.SourceProvider
 	projects, err := sourceProvider.GetProjects(
 		ctx.SourceProviderToken.AccessToken,
 		ctx.SourceProviderToken.ProviderUsername,
 	)
+	if err != nil {
+		r.RespondWithServerError(err)
+		return
+	}
+	r.Respond(projects)
+}
+
+func (handlers *Handlers) GetProjects(r *Responder, ctx *RequestContext) {
+	projects, err := handlers.db.GetUserProjects(ctx.CurrentUser)
 	if err != nil {
 		r.RespondWithServerError(err)
 		return
