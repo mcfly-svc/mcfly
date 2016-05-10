@@ -42,22 +42,28 @@ func (r *Responder) ValidateRequestData(reqData interface{}) bool {
 		r.RespondWithServerError(fmt.Errorf("reqData argument to ValidateRequestData must be a pointer"))
 		return false
 	}
+
 	if err := validator.Validate(reqData); err != nil {
-		errs := err.(validator.ErrorMap)
-		var badParam *string
-		val := reflect.ValueOf(reqData).Elem()
-		for i := 0; i < val.NumField(); i++ {
-			f := val.Type().Field(i)
-			if len(errs[f.Name]) > 0 {
-				tagName := f.Tag.Get("json")
-				badParam = &tagName
-				break
+		switch v := err.(type) {
+		case validator.ErrorMap:
+			errs := v
+			var badParam *string
+			val := reflect.ValueOf(reqData).Elem()
+			for i := 0; i < val.NumField(); i++ {
+				f := val.Type().Field(i)
+				if len(errs[f.Name]) > 0 {
+					tagName := f.Tag.Get("json")
+					badParam = &tagName
+					break
+				}
 			}
-		}
-		if badParam != nil {
-			r.RespondWithError(NewMissingParamErr(*badParam))
-		} else {
-			r.RespondWithError(NewInvalidRequestParamsErr())
+			if badParam != nil {
+				r.RespondWithError(NewMissingParamErr(*badParam))
+			} else {
+				r.RespondWithError(NewInvalidRequestParamsErr())
+			}
+		default:
+			r.RespondWithServerError(v)
 		}
 		return false
 	}

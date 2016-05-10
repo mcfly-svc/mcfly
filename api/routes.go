@@ -29,7 +29,12 @@ func AllRoutes(handlers *Handlers) Routes {
 			"PostProject",
 			"POST",
 			"/api/0/projects",
-			handlers.PostProject,
+			handlers.MakeHandlerFunc(HandlerOptions{
+				AuthRequired:      true,
+				RequestData:       PostProjectReq{},
+				UseSourceProvider: true,
+				After:             handlers.PostProject,
+			}),
 		},
 
 		// projects

@@ -10,19 +10,8 @@ import (
 	"github.com/mikec/msplapi/provider"
 )
 
-type Handlers struct {
-	db              models.Datastore
-	generateToken   func() string
-	authProviders   map[string]provider.AuthProvider
-	sourceProviders map[string]provider.SourceProvider
-}
-
 type RequestLogger interface {
 	Handler(http.Handler, string) http.Handler
-}
-
-type GitHubClient interface {
-	GetAuthenticatedUser(string) (*models.User, error)
 }
 
 func NewRouter(

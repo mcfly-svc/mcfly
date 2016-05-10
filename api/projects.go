@@ -1,8 +1,6 @@
 package api
 
 import (
-	"net/http"
-
 	"github.com/mikec/msplapi/models"
 	"github.com/mikec/msplapi/provider"
 )
@@ -12,39 +10,22 @@ type PostProjectReq struct {
 	Provider      string `json:"provider" validate:"nonzero"`
 }
 
+func (pr *PostProjectReq) SourceProvider() string {
+	return pr.Provider
+}
+
 type PostProjectResp struct {
 	ProjectHandle string `json:"project_handle"`
 	ProjectUrl    string `json:"project_url"`
 	Provider      string `json:"provider"`
 }
 
-func (handlers *Handlers) PostProject(w http.ResponseWriter, req *http.Request) {
-	r := &Responder{w, req}
-
-	user := r.ValidateAuthorization(handlers.db)
-	if user == nil {
-		return
-	}
+func (handlers *Handlers) PostProject(r *Responder, ctx *RequestContext) {
 
 	var reqData PostProjectReq
-	decodeErr := r.DecodeRequest(&reqData)
-	if decodeErr != nil {
-		return
-	}
+	reqData = *ctx.RequestData.(*PostProjectReq)
 
-	reqValid := r.ValidateRequestData(&reqData)
-	if !reqValid {
-		return
-	}
-
-	sourceProvider := handlers.sourceProviders[reqData.Provider]
-	if sourceProvider == nil {
-		// TODO: change these errors to provider type specific
-		r.RespondWithError(NewUnsupportedProviderErr(reqData.Provider))
-		return
-	}
-
-	providerToken, err := handlers.db.GetProviderTokenForUser(user, reqData.Provider)
+	providerToken, err := handlers.db.GetProviderTokenForUser(ctx.CurrentUser, reqData.Provider)
 	if err != nil {
 		r.RespondWithServerError(err)
 		return
@@ -54,6 +35,7 @@ func (handlers *Handlers) PostProject(w http.ResponseWriter, req *http.Request) 
 		return
 	}
 
+	sourceProvider := *ctx.SourceProvider
 	projectData, err := sourceProvider.GetProjectData(*providerToken, reqData.ProjectHandle)
 	if err != nil {
 		pErr, ok := err.(*provider.GetProjectDataError)
@@ -70,7 +52,8 @@ func (handlers *Handlers) PostProject(w http.ResponseWriter, req *http.Request) 
 		SourceUrl:      projectData.Url,
 		SourceProvider: reqData.Provider,
 	}
-	err = handlers.db.SaveProject(&project, user)
+
+	err = handlers.db.SaveProject(&project, ctx.CurrentUser)
 	if err != nil {
 		r.RespondWithServerError(err)
 		return
