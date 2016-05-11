@@ -30,6 +30,6 @@ CREATE TABLE build (
 
 CREATE TABLE user_project (
 	user_id									integer REFERENCES marsupi_user(id),
-	project_id							integer REFERENCES project(id),
+	project_id							integer REFERENCES project(id) ON DELETE CASCADE,
 	PRIMARY KEY (user_id, project_id)
 );

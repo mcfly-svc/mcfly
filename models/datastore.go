@@ -9,6 +9,7 @@ import (
 type Datastore interface {
 	SaveProject(*Project, *User) error
 	GetUserProjects(*User) ([]Project, error)
+	DeleteUserProject(*User, string, string) error
 
 	SaveUser(*User) error
 	GetUserByAccessToken(string) (*User, error)

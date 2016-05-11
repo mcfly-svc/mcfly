@@ -44,7 +44,7 @@ func (self *Client) Login(token string, provider string) (*ClientResponse, *http
 }
 
 func (self *Client) AddProject(projectHandle string, provider string) (*ClientResponse, *http.Response, error) {
-	json, err := json.Marshal(api.PostProjectReq{projectHandle, provider})
+	json, err := json.Marshal(api.ProjectReq{projectHandle, provider})
 	if err != nil {
 		return nil, nil, err
 	}

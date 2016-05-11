@@ -41,6 +41,20 @@ func (db *DB) GetUserProjects(user *User) ([]Project, error) {
 	return projects, nil
 }
 
+func (db *DB) DeleteUserProject(user *User, provider string, handle string) error {
+	_, err := db.Exec(
+		`DELETE FROM user_project
+		 INNER JOIN project ON project.id=user_project.project_id
+		 WHERE project.source_provider=$1
+		 AND project.handle=$2
+		 AND user_project.user_id=$3`,
+		provider,
+		handle,
+		user.ID,
+	)
+	return err
+}
+
 /*
 func (db *DB) DeleteProject(id int64) error {
 	q := `DELETE FROM project WHERE id=$1`

@@ -5,12 +5,12 @@ import (
 	"github.com/mikec/msplapi/provider"
 )
 
-type PostProjectReq struct {
+type ProjectReq struct {
 	Handle   string `json:"handle" validate:"nonzero"`
 	Provider string `json:"provider" validate:"nonzero"`
 }
 
-func (pr *PostProjectReq) SourceProvider() string {
+func (pr *ProjectReq) SourceProvider() string {
 	return pr.Provider
 }
 
@@ -22,7 +22,7 @@ type ProjectResp struct {
 
 func (handlers *Handlers) PostProject(r *Responder, ctx *RequestContext) {
 
-	reqData := ctx.RequestData.(*PostProjectReq)
+	reqData := ctx.RequestData.(*ProjectReq)
 
 	sourceProvider := *ctx.SourceProvider
 	projectData, err := sourceProvider.GetProjectData(
@@ -87,4 +87,16 @@ func (handlers *Handlers) GetProjects(r *Responder, ctx *RequestContext) {
 		projectsResp[i] = ProjectResp{p.Handle, p.SourceUrl, p.SourceProvider}
 	}
 	r.Respond(projectsResp)
+}
+
+func (handlers *Handlers) DeleteProject(r *Responder, ctx *RequestContext) {
+	project := ctx.RequestData.(*ProjectReq)
+
+	err := handlers.db.DeleteUserProject(ctx.CurrentUser, project.Provider, project.Handle)
+	if err != nil {
+		r.RespondWithServerError(err)
+		return
+	}
+
+	r.RespondWithSuccess()
 }

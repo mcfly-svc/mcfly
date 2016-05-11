@@ -35,7 +35,7 @@ func AllRoutes(handlers *Handlers) Routes {
 			"/api/0/projects",
 			handlers.MakeHandlerFunc(HandlerOptions{
 				AuthRequired:      true,
-				RequestData:       PostProjectReq{},
+				RequestData:       ProjectReq{},
 				UseSourceProvider: true,
 				After:             handlers.PostProject,
 			}),
@@ -59,6 +59,17 @@ func AllRoutes(handlers *Handlers) Routes {
 			handlers.MakeHandlerFunc(HandlerOptions{
 				AuthRequired: true,
 				After:        handlers.GetProjects,
+			}),
+		},
+
+		Route{
+			"DeleteProject",
+			"DELETE",
+			"/api/0/project",
+			handlers.MakeHandlerFunc(HandlerOptions{
+				AuthRequired: true,
+				RequestData:  ProjectReq{},
+				After:        handlers.DeleteProject,
 			}),
 		},
 
