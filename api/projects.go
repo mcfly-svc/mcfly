@@ -6,18 +6,18 @@ import (
 )
 
 type PostProjectReq struct {
-	ProjectHandle string `json:"project_handle" validate:"nonzero"`
-	Provider      string `json:"provider" validate:"nonzero"`
+	Handle   string `json:"handle" validate:"nonzero"`
+	Provider string `json:"provider" validate:"nonzero"`
 }
 
 func (pr *PostProjectReq) SourceProvider() string {
 	return pr.Provider
 }
 
-type PostProjectResp struct {
-	ProjectHandle string `json:"project_handle"`
-	ProjectUrl    string `json:"project_url"`
-	Provider      string `json:"provider"`
+type ProjectResp struct {
+	Handle   string `json:"handle"`
+	Url      string `json:"url"`
+	Provider string `json:"provider"`
 }
 
 func (handlers *Handlers) PostProject(r *Responder, ctx *RequestContext) {
@@ -27,7 +27,7 @@ func (handlers *Handlers) PostProject(r *Responder, ctx *RequestContext) {
 	sourceProvider := *ctx.SourceProvider
 	projectData, err := sourceProvider.GetProjectData(
 		ctx.SourceProviderToken.AccessToken,
-		reqData.ProjectHandle,
+		reqData.Handle,
 	)
 	if err != nil {
 		switch v := err.(type) {
@@ -40,7 +40,7 @@ func (handlers *Handlers) PostProject(r *Responder, ctx *RequestContext) {
 	}
 
 	project := models.Project{
-		Handle:         reqData.ProjectHandle,
+		Handle:         reqData.Handle,
 		SourceUrl:      projectData.Url,
 		SourceProvider: reqData.Provider,
 	}
@@ -51,7 +51,7 @@ func (handlers *Handlers) PostProject(r *Responder, ctx *RequestContext) {
 		return
 	}
 
-	r.Respond(&PostProjectResp{
+	r.Respond(&ProjectResp{
 		project.Handle,
 		project.SourceUrl,
 		project.SourceProvider,

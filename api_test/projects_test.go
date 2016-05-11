@@ -10,7 +10,7 @@ import (
 func TestPostProject(t *testing.T) {
 
 	afterAuthTest := &AfterAuthTest{"mock_seeded_access_token_123"}
-	validJson := `{ "project_handle":"mock/project-x", "provider":"jabroni.com" }`
+	validJson := `{ "handle":"mock/project-x", "provider":"jabroni.com" }`
 
 	tests := []*EndpointTest{
 		afterAuthTest.InvalidJsonEndpointTest(),
@@ -19,11 +19,11 @@ func TestPostProject(t *testing.T) {
 
 		InvalidAuthorizationTokenErrorTest(validJson),
 
-		afterAuthTest.MissingParamEndpointTest(`{ "project_handle":"asdf" }`, "provider"),
+		afterAuthTest.MissingParamEndpointTest(`{ "handle":"asdf" }`, "provider"),
 
-		afterAuthTest.MissingParamEndpointTest(`{ "provider":"jabroni.com" }`, "project_handle"),
+		afterAuthTest.MissingParamEndpointTest(`{ "provider":"jabroni.com" }`, "handle"),
 
-		afterAuthTest.UnsupportedProviderTest(`{ "project_handle":"asdf", "provider":"jnk" }`, "jnk"),
+		afterAuthTest.UnsupportedProviderTest(`{ "handle":"asdf", "provider":"jnk" }`, "jnk"),
 
 		{
 			validJson,
@@ -35,7 +35,7 @@ func TestPostProject(t *testing.T) {
 		},
 
 		{
-			`{ "project_handle":"project_handle_dne", "provider":"jabroni.com" }`,
+			`{ "handle":"project_handle_dne", "provider":"jabroni.com" }`,
 			"a request to save a project that does not exist on the provider",
 			"a project not found error",
 			400,
@@ -44,7 +44,7 @@ func TestPostProject(t *testing.T) {
 		},
 
 		{
-			`{ "project_handle":"invalid_project_handle", "provider":"jabroni.com" }`,
+			`{ "handle":"invalid_project_handle", "provider":"jabroni.com" }`,
 			"a request to save a project with an invalid project handle",
 			"a project handle invalid error",
 			400,
@@ -66,7 +66,7 @@ func TestPostProject(t *testing.T) {
 			"a request to save a valid project",
 			"success",
 			200,
-			api.PostProjectResp{"mock/project-x", "https://jabroni.com/mock/project-x", "jabroni.com"},
+			api.ProjectResp{"mock/project-x", "https://jabroni.com/mock/project-x", "jabroni.com"},
 			"mock_seeded_access_token_123",
 		},
 	}
