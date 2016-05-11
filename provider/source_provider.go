@@ -1,8 +1,8 @@
 package provider
 
 type ProjectData struct {
-	Url    string
-	Handle string
+	Url    string `json:"url"`
+	Handle string `json:"handle"`
 }
 
 // SourceProvider is a service that owns projects with source code,

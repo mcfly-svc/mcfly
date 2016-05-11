@@ -58,11 +58,6 @@ func (handlers *Handlers) PostProject(r *Responder, ctx *RequestContext) {
 	})
 }
 
-type GetProjectsResp []struct {
-	ProjectHandle string `json:"project_handle"`
-	ProjectUrl    string `json:"project_url"`
-}
-
 func (handlers *Handlers) GetProviderProjects(r *Responder, ctx *RequestContext) {
 	sourceProvider := *ctx.SourceProvider
 	projects, err := sourceProvider.GetProjects(

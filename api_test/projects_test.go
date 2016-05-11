@@ -81,6 +81,18 @@ func TestGetProviderProjects(t *testing.T) {
 	tests := []*EndpointTest{
 		MissingAuthorizationHeaderEndpointTest(""),
 		InvalidAuthorizationTokenErrorTest(""),
+		{
+			"",
+			"a request to get provider projects",
+			"success",
+			200,
+			[]provider.ProjectData{
+				{"http://jabroni.com/mock/project1", "mock/project1"},
+				{"http://jabroni.com/mock/project2", "mock/project2"},
+				{"http://jabroni.com/mock/project3", "mock/project3"},
+			},
+			"mock_seeded_access_token_123",
+		},
 	}
 	RunEndpointTests(t, "GET", "jabroni.com/projects", tests)
 
