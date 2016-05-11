@@ -101,6 +101,7 @@ func RunEndpointTests(t *testing.T, httpMethod string, endpointPath string, test
 			if err != nil {
 				t.Error(err)
 			}
+			defer res.Body.Close()
 
 			Convey(fmt.Sprintf("Should respond with Status %d", et.ExpectStatus), func() {
 				So(res.StatusCode, ShouldEqual, et.ExpectStatus)

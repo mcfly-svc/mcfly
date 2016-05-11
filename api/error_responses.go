@@ -71,3 +71,7 @@ func NewInvalidAuthTokenError(token string) *ApiError {
 func NewProviderTokenNotFoundErr(provider string) *ApiError {
 	return NewApiErr(fmt.Sprintf("%s token not found", provider))
 }
+
+func NewNotFoundErr(entity string, handle string) *ApiError {
+	return NewApiErr(fmt.Sprintf("%s %s not found", entity, handle))
+}
