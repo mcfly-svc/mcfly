@@ -69,23 +69,3 @@ func (db *DB) DeleteUserProject(user *User, provider string, handle string) erro
 	}
 	return nil
 }
-
-/*
-func (db *DB) DeleteProject(id int64) error {
-	q := `DELETE FROM project WHERE id=$1`
-	_, err := db.Exec(q, id)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (db *DB) GetProjectById(id int64) (*Project, error) {
-	project := &Project{}
-	err := db.Get(project, `SELECT * FROM project WHERE id=$1`, id)
-	if err != nil {
-		return nil, err
-	}
-	return project, nil
-}
-*/
