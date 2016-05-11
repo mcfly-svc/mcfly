@@ -34,6 +34,24 @@ func Seed(dbUrl string) {
 		AccessToken:      "mock_schlockbox_token_123",
 	})
 
+	insertProject(db, u, &models.Project{
+		Handle:         "mattmocks/project-1",
+		SourceProvider: "jabroni.com",
+		SourceUrl:      "https://jabroni.com/mattmocks/project-1",
+	})
+
+	insertProject(db, u, &models.Project{
+		Handle:         "mattmocks/project-2",
+		SourceProvider: "jabroni.com",
+		SourceUrl:      "https://jabroni.com/mattmocks/project-2",
+	})
+
+	insertProject(db, u, &models.Project{
+		Handle:         "mattmocks/project-3",
+		SourceProvider: "jabroni.com",
+		SourceUrl:      "https://jabroni.com/mattmocks/project-3",
+	})
+
 	u2 := &models.User{Name: "Penelope Providerless", AccessToken: "mock_token_for_user_with_no_provider_tokens"}
 	insertUser(db, u2)
 
@@ -52,7 +70,7 @@ func Seed(dbUrl string) {
 }
 
 func addProviderValue(db *sqlx.DB, val string) {
-	fmt.Printf("Add provider value \"%s\"\n", val)
+	//fmt.Printf("Add provider value \"%s\"\n", val)
 	_, err := db.Exec(fmt.Sprintf("ALTER TYPE provider ADD VALUE '%s'", val))
 	if !isDbErr(err, "duplicate_object") {
 		checkFatal(err)
@@ -60,13 +78,19 @@ func addProviderValue(db *sqlx.DB, val string) {
 }
 
 func insertUser(db *models.DB, u *models.User) {
-	fmt.Printf("INSERT marsupi_user %+v\n", *u)
+	//fmt.Printf("INSERT marsupi_user %+v\n", *u)
 	err := db.SaveUser(u)
 	checkFatal(err)
 }
 
 func insertProviderAccessToken(db *models.DB, uid int64, pt *models.ProviderAccessToken) {
-	fmt.Printf("INSERT provider_access_token %+v for user %d\n", *pt, uid)
+	//fmt.Printf("INSERT provider_access_token %+v for user %d\n", *pt, uid)
 	err := db.SetUserProviderToken(uid, pt)
+	checkFatal(err)
+}
+
+func insertProject(db *models.DB, u *models.User, p *models.Project) {
+	//fmt.Printf("INSERT project %+v\n for user %d\n", *p, u.ID)
+	err := db.SaveProject(p, u)
 	checkFatal(err)
 }

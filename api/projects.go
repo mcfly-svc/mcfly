@@ -82,5 +82,9 @@ func (handlers *Handlers) GetProjects(r *Responder, ctx *RequestContext) {
 		r.RespondWithServerError(err)
 		return
 	}
-	r.Respond(projects)
+	projectsResp := make([]ProjectResp, len(projects))
+	for i, p := range projects {
+		projectsResp[i] = ProjectResp{p.Handle, p.SourceUrl, p.SourceProvider}
+	}
+	r.Respond(projectsResp)
 }

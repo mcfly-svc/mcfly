@@ -84,7 +84,7 @@ func TestGetProviderProjects(t *testing.T) {
 		{
 			"",
 			"a request to get provider projects",
-			"success",
+			"a list of projects from the provider",
 			200,
 			[]provider.ProjectData{
 				{"http://jabroni.com/mock/project1", "mock/project1"},
@@ -104,8 +104,20 @@ func TestGetProviderProjects(t *testing.T) {
 
 func TestGetProjects(t *testing.T) {
 	tests := []*EndpointTest{
-		MissingAuthorizationHeaderEndpointTest(""),
-		InvalidAuthorizationTokenErrorTest(""),
+		//MissingAuthorizationHeaderEndpointTest(""),
+		//InvalidAuthorizationTokenErrorTest(""),
+		{
+			"",
+			"a request to get projects added to mspl",
+			"a list of mspl projects",
+			200,
+			[]api.ProjectResp{
+				{"mattmocks/project-1", "https://jabroni.com/mattmocks/project-1", "jabroni.com"},
+				{"mattmocks/project-2", "https://jabroni.com/mattmocks/project-2", "jabroni.com"},
+				{"mattmocks/project-3", "https://jabroni.com/mattmocks/project-3", "jabroni.com"},
+			},
+			"mock_seeded_access_token_123",
+		},
 	}
 	RunEndpointTests(t, "GET", "projects", tests)
 }

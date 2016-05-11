@@ -29,7 +29,10 @@ func (db *DB) GetUserProjects(user *User) ([]Project, error) {
 	projects := []Project{}
 	err := db.Select(
 		&projects,
-		`SELECT project.* FROM project INNER JOIN user_project ON user_project.user_id=$1`,
+		`SELECT project.* FROM project
+		 INNER JOIN user_project 
+		 ON user_project.project_id=project.id 
+		 WHERE user_project.user_id=$1`,
 		user.ID,
 	)
 	if err != nil {
