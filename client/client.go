@@ -68,6 +68,16 @@ func (self *Client) GetProviderProjects(providerKey string) (*ClientResponse, *h
 	return decodeResponse(res, &pData)
 }
 
+func (self *Client) GetProjects() (*ClientResponse, *http.Response, error) {
+	res, err := self.DoGet("projects", nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var projects []api.ProjectResp
+	return decodeResponse(res, &projects)
+}
+
 func (self *Client) EndpointUrl(endpointName string) string {
 	return fmt.Sprintf("%s/api/0/%s", self.ServerURL, endpointName)
 }
