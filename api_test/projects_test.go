@@ -104,8 +104,8 @@ func TestGetProviderProjects(t *testing.T) {
 
 func TestGetProjects(t *testing.T) {
 	tests := []*EndpointTest{
-		//MissingAuthorizationHeaderEndpointTest(""),
-		//InvalidAuthorizationTokenErrorTest(""),
+		MissingAuthorizationHeaderEndpointTest(""),
+		InvalidAuthorizationTokenErrorTest(""),
 		{
 			"",
 			"a request to get projects added to mspl",
@@ -120,4 +120,26 @@ func TestGetProjects(t *testing.T) {
 		},
 	}
 	RunEndpointTests(t, "GET", "projects", tests)
+}
+
+func TestDeleteProject(t *testing.T) {
+	afterAuthTest := &AfterAuthTest{"mock_seeded_access_token_123"}
+	tests := []*EndpointTest{
+		MissingAuthorizationHeaderEndpointTest(""),
+		InvalidAuthorizationTokenErrorTest(""),
+		afterAuthTest.MissingParamEndpointTest(`{ "handle":"asdf" }`, "provider"),
+		afterAuthTest.MissingParamEndpointTest(`{ "provider":"jabroni.com" }`, "handle"),
+	}
+	RunEndpointTests(t, "DELETE", "projects", tests)
+
+	et := &EndpointTest{
+		`{"provider":"jabroni.com", "handle":"mattmocks/project-1"}`,
+		"a request to delete a project added to mspl",
+		"a success response",
+		200,
+		api.NewSuccessResponse(),
+		"mock_seeded_access_token_123",
+	}
+	RunEndpointTests(t, "DELETE", "projects", []*EndpointTest{et})
+	assertNumUserProjects(t, "After deleting a project", "mock_seeded_access_token_123", 2)
 }

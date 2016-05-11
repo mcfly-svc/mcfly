@@ -36,7 +36,7 @@ func (r *Responder) RespondWithServerError(err error) {
 }
 
 func (r *Responder) RespondWithSuccess() {
-	r.Respond(ApiResponse{"success!"})
+	r.Respond(NewSuccessResponse())
 }
 
 func (r *Responder) WriteCommonHeaders() {
@@ -57,4 +57,8 @@ func (r *Responder) WriteResponseData(v interface{}) {
 		logging.InternalError(err)
 	}
 	r.Write(b)
+}
+
+func NewSuccessResponse() *ApiResponse {
+	return &ApiResponse{"success!"}
 }

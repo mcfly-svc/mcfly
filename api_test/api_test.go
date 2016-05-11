@@ -104,6 +104,10 @@ func TestMain(m *testing.M) {
 	os.Exit(ret)
 }
 
+func NewApiClient(token string) *client.Client {
+	return client.NewClient(server.URL, token)
+}
+
 func resetDB() {
 	cleanupDB()
 	seedDB()

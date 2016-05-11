@@ -119,6 +119,20 @@ func RunEndpointTests(t *testing.T, httpMethod string, endpointPath string, test
 	}
 }
 
+func assertNumUserProjects(t *testing.T, desc string, token string, expectNumProjects int) {
+	Convey(desc, t, func() {
+		clt := NewApiClient(token)
+		cr, _, err := clt.GetProjects()
+		if err != nil {
+			t.Error(err)
+		}
+		projects := cr.Data.(*[]api.ProjectResp)
+		Convey(fmt.Sprintf("Should be %d projects for the user with token %s", expectNumProjects, token), func() {
+			So(len(*projects), ShouldEqual, expectNumProjects)
+		})
+	})
+}
+
 func soFieldsShouldEqual(t *testing.T, res *http.Response, expectedFields map[string]interface{}) {
 	actualFields := resBodyMap(t, res)
 	for f, v := range expectedFields {

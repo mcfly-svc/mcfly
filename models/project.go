@@ -25,6 +25,17 @@ func (db *DB) SaveProject(p *Project, u *User) error {
 	return nil
 }
 
+// GetAllProjects returns all projects for all users
+func (db *DB) GetAllProjects() ([]Project, error) {
+	projects := []Project{}
+	err := db.Select(&projects, `SELECT * FROM project`)
+	if err != nil {
+		return nil, err
+	}
+	return projects, nil
+}
+
+// GetUserProjects returns projects owned by a given user
 func (db *DB) GetUserProjects(user *User) ([]Project, error) {
 	projects := []Project{}
 	err := db.Select(
@@ -43,16 +54,20 @@ func (db *DB) GetUserProjects(user *User) ([]Project, error) {
 
 func (db *DB) DeleteUserProject(user *User, provider string, handle string) error {
 	_, err := db.Exec(
-		`DELETE FROM user_project
-		 INNER JOIN project ON project.id=user_project.project_id
-		 WHERE project.source_provider=$1
-		 AND project.handle=$2
+		`DELETE FROM project
+		 USING user_project
+		 WHERE id=user_project.project_id
+		 AND source_provider=$1
+		 AND handle=$2
 		 AND user_project.user_id=$3`,
 		provider,
 		handle,
 		user.ID,
 	)
-	return err
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 /*
