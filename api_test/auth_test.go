@@ -34,10 +34,6 @@ func TestLogin(t *testing.T) {
 			"expected user data with the existing access token",
 			200,
 			api.LoginResp{Name: "Matt Mockman", AccessToken: "mock_seeded_access_token_123"},
-			/*map[string]interface{}{
-				"name":         "Matt Mockman",
-				"access_token": "mock_seeded_access_token_123",
-			},*/
 			"",
 		},
 
@@ -47,10 +43,6 @@ func TestLogin(t *testing.T) {
 			"expected user data with a newly generated access token",
 			200,
 			api.LoginResp{Name: "Mike Jimmers", AccessToken: "mock_generated_access_token_123"},
-			/*map[string]interface{}{
-				"name":         "Mike Jimmers",
-				"access_token": "mock_generated_access_token_123",
-			},*/
 			"",
 		},
 	}
