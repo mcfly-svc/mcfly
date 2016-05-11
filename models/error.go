@@ -42,6 +42,8 @@ func (e ModelsError) Error() string {
 	switch e.Code {
 	case "not_found":
 		return fmt.Sprintf("Not found")
+	case "duplicate":
+		return fmt.Sprintf("Already exists")
 	default:
 		return fmt.Sprintf("Unknown model error")
 	}

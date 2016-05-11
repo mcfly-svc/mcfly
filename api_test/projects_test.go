@@ -62,6 +62,15 @@ func TestPostProject(t *testing.T) {
 		},
 
 		{
+			`{ "handle":"mattmocks/project-1", "provider":"jabroni.com" }`,
+			"a request to save a project that already exists",
+			"a project exists error",
+			400,
+			api.NewDuplicateErr("project", "mattmocks/project-1"),
+			"mock_seeded_access_token_123",
+		},
+
+		{
 			validJson,
 			"a request to save a valid project",
 			"success",

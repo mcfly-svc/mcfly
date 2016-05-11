@@ -11,11 +11,20 @@ func (db *DB) SaveProject(p *Project, u *User) error {
 	var id int64
 	q := `INSERT INTO project(handle,source_url,source_provider) VALUES($1,$2,$3) RETURNING id`
 	tx := db.MustBegin()
+
+	// TODO: wrap this to handle QueryError like the *DB methods
+	// ... or figure out a better way to do this?
 	r := tx.QueryRowx(q, p.Handle, p.SourceUrl, p.SourceProvider)
 	err := r.Scan(&id)
 	if err != nil {
-		return err
+		qErr := NewQueryError(q, err, []interface{}{p.Handle, p.SourceUrl, p.SourceProvider})
+		if qErr.Name == "unique_violation" {
+			return NewModelsError("duplicate")
+		} else {
+			return qErr
+		}
 	}
+
 	p.ID = id
 	tx.MustExec(`INSERT INTO user_project (user_id,project_id) VALUES($1,$2)`, u.ID, p.ID)
 	err = tx.Commit()

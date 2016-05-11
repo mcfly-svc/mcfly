@@ -20,6 +20,7 @@ CREATE TABLE project (
 	source_url							text,
 	source_provider					provider
 );
+CREATE UNIQUE INDEX project_handle_provider ON project (handle, source_provider);
 
 CREATE TABLE build (
 	id											serial PRIMARY KEY,

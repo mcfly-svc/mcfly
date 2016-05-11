@@ -75,3 +75,7 @@ func NewProviderTokenNotFoundErr(provider string) *ApiError {
 func NewNotFoundErr(entity string, handle string) *ApiError {
 	return NewApiErr(fmt.Sprintf("%s %s not found", entity, handle))
 }
+
+func NewDuplicateErr(entity string, handle string) *ApiError {
+	return NewApiErr(fmt.Sprintf("%s %s already added", entity, handle))
+}

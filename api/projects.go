@@ -47,7 +47,16 @@ func (handlers *Handlers) PostProject(r *Responder, ctx *RequestContext) {
 
 	err = handlers.db.SaveProject(&project, ctx.CurrentUser)
 	if err != nil {
-		r.RespondWithServerError(err)
+		switch v := err.(type) {
+		case *models.ModelsError:
+			if v.Code == "duplicate" {
+				r.RespondWithError(NewDuplicateErr("project", reqData.Handle))
+			} else {
+				r.RespondWithServerError(v)
+			}
+		default:
+			r.RespondWithServerError(err)
+		}
 		return
 	}
 
@@ -99,7 +108,7 @@ func (handlers *Handlers) DeleteProject(r *Responder, ctx *RequestContext) {
 			if v.Code == "not_found" {
 				r.RespondWithError(NewNotFoundErr("project", project.Handle))
 			} else {
-				r.RespondWithServerError(err)
+				r.RespondWithServerError(v)
 			}
 		default:
 			r.RespondWithServerError(err)

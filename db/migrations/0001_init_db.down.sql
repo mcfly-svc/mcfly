@@ -1,5 +1,6 @@
 DROP INDEX IF EXISTS project_service_username_name;
 DROP INDEX IF EXISTS provideraccesstoken_user;
+DROP INDEX IF EXISTS project_handle_provider;
 
 DROP TABLE IF EXISTS build;
 DROP TABLE IF EXISTS user_project;
