@@ -78,6 +78,21 @@ func (self *Client) GetProjects() (*ClientResponse, *http.Response, error) {
 	return decodeResponse(res, &projects)
 }
 
+func (self *Client) DeleteProject(projectHandle string, provider string) (*ClientResponse, *http.Response, error) {
+	json, err := json.Marshal(api.ProjectReq{projectHandle, provider})
+	if err != nil {
+		return nil, nil, err
+	}
+	jsonStr := string(json)
+	res, err := self.DoDelete("projects", &jsonStr, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var apiResp api.ApiResponse
+	return decodeResponse(res, &apiResp)
+}
+
 func (self *Client) EndpointUrl(endpointName string) string {
 	return fmt.Sprintf("%s/api/0/%s", self.ServerURL, endpointName)
 }
@@ -90,8 +105,8 @@ func (self *Client) DoPost(endpoint string, JSON *string, opts *RequestOptions) 
 	return self.DoReq("POST", endpoint, JSON, opts)
 }
 
-func (self *Client) DoDelete(endpoint string, opts *RequestOptions) (*http.Response, error) {
-	return self.DoReq("DELETE", endpoint, nil, opts)
+func (self *Client) DoDelete(endpoint string, JSON *string, opts *RequestOptions) (*http.Response, error) {
+	return self.DoReq("DELETE", endpoint, JSON, opts)
 }
 
 func (self *Client) DoReq(method string, endpoint string, JSON *string, opts *RequestOptions) (*http.Response, error) {
