@@ -12,7 +12,7 @@ import (
 type GitHubClient interface {
 	GetCurrentUser(string) (*github.User, *github.Response, error)
 	GetRepo(string, string, string) (*github.Repository, *github.Response, error)
-	GetReposByOwner(string, string) (*github.RepositoriesSearchResult, *github.Response, error)
+	SearchRepos(string, string) (*github.RepositoriesSearchResult, *github.Response, error)
 }
 
 type GoGitHubClient struct{}
@@ -31,12 +31,12 @@ func (self *GoGitHubClient) GetRepo(
 	return gh.Repositories.Get(owner, repo)
 }
 
-func (self *GoGitHubClient) GetReposByOwner(
+func (self *GoGitHubClient) SearchRepos(
 	token string,
-	owner string,
+	query string,
 ) (*github.RepositoriesSearchResult, *github.Response, error) {
 	gh := self.NewClient(token)
-	return gh.Search.Repositories(fmt.Sprintf("user:%s", owner), &github.SearchOptions{})
+	return gh.Search.Repositories(query, &github.SearchOptions{})
 }
 
 func (self *GoGitHubClient) NewClient(token string) *github.Client {
@@ -92,7 +92,7 @@ func (self *GitHub) GetProjectData(token string, projectHandle string) (*Project
 }
 
 func (self *GitHub) GetProjects(token string, username string) ([]ProjectData, error) {
-	repoSearchResult, _, err := self.GetReposByOwner(token, username)
+	repoSearchResult, _, err := self.SearchRepos(token, fmt.Sprintf("user:%s", username))
 	if err != nil {
 		return nil, self.handleGetProjectsError(err)
 	}

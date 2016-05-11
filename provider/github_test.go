@@ -10,6 +10,7 @@ import (
 )
 
 var mockyJoe3Repos *github.RepositoriesSearchResult
+var johnyNoRepos *github.RepositoriesSearchResult
 
 func init() {
 	mockyJoe3Repos = &github.RepositoriesSearchResult{
@@ -19,6 +20,10 @@ func init() {
 			github.Repository{HTMLURL: strPtr("http://github.com/mockyjoe/mock.repo-2"), FullName: strPtr("mockyjoe/mock.repo-2")},
 			github.Repository{HTMLURL: strPtr("http://github.com/mockyjoe/mock.repo-3"), FullName: strPtr("mockyjoe/mock.repo-3")},
 		},
+	}
+	johnyNoRepos = &github.RepositoriesSearchResult{
+		intPtr(0),
+		[]github.Repository{},
 	}
 }
 
@@ -37,8 +42,8 @@ func (self *MockGitHubClient) GetRepo(
 	owner string,
 	repo string,
 ) (*github.Repository, *github.Response, error) {
-	if token == "mock_invalid_gh_token" {
-		return nil, nil, provider.NewTokenInvalidErr("github")
+	if err := checkMockTokenInvalid(token); err != nil {
+		return nil, nil, err
 	}
 	if repo == "does_not_exist" {
 		return nil, nil, provider.NewProjectNotFoundErr("github", "mock/does_not_exist")
@@ -47,14 +52,24 @@ func (self *MockGitHubClient) GetRepo(
 	return &github.Repository{HTMLURL: &url}, nil, nil
 }
 
-func (self *MockGitHubClient) GetReposByOwner(
+func (self *MockGitHubClient) SearchRepos(
 	token string,
-	owner string,
+	query string,
 ) (*github.RepositoriesSearchResult, *github.Response, error) {
-	if token == "mock_invalid_gh_token" {
-		return nil, nil, provider.NewTokenInvalidErr("github")
+	if err := checkMockTokenInvalid(token); err != nil {
+		return nil, nil, err
+	}
+	if query == "user:johny_norepos" {
+		return johnyNoRepos, nil, nil
 	}
 	return mockyJoe3Repos, nil, nil
+}
+
+func checkMockTokenInvalid(token string) error {
+	if token == "mock_invalid_gh_token" {
+		return provider.NewTokenInvalidErr("github")
+	}
+	return nil
 }
 
 var gh provider.GitHub
@@ -103,8 +118,7 @@ func TestGetProjectData(t *testing.T) {
 
 func TestGetProjectDataInvalidTokenError(t *testing.T) {
 	_, err := gh.GetProjectData("mock_invalid_gh_token", "mock/project")
-	expectErrMsg := provider.NewTokenInvalidErr("github").Error()
-	assert.Equal(t, expectErrMsg, err.Error())
+	assertTokenInvalidErr(t, err)
 }
 
 func TestGetProjectDataNotFoundError(t *testing.T) {
@@ -114,11 +128,23 @@ func TestGetProjectDataNotFoundError(t *testing.T) {
 }
 
 func TestGetProjects(t *testing.T) {
+	projects, _ := gh.GetProjects("mock_token", "mock_username")
+	assert.Equal(t, 3, len(projects))
+	assert.Equal(t, "http://github.com/mockyjoe/mock.repo-2", projects[1].Url)
+	assert.Equal(t, "mockyjoe/mock.repo-2", projects[1].Handle)
+}
 
+func TestGetProjectsNoRepos(t *testing.T) {
+	projects, _ := gh.GetProjects("mock_token", "johny_norepos")
+	assert.Equal(t, 0, len(projects))
 }
 
 func TestGetProjectsInvalidToken(t *testing.T) {
 	_, err := gh.GetProjects("mock_invalid_gh_token", "mockyjoe")
+	assertTokenInvalidErr(t, err)
+}
+
+func assertTokenInvalidErr(t *testing.T, err error) {
 	expectErrMsg := provider.NewTokenInvalidErr("github").Error()
 	assert.Equal(t, expectErrMsg, err.Error())
 }
