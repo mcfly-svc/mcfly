@@ -53,7 +53,7 @@ func (db *DB) GetUserProjects(user *User) ([]Project, error) {
 }
 
 func (db *DB) DeleteUserProject(user *User, provider string, handle string) error {
-	_, err := db.Exec(
+	result, qErr := db.Exec(
 		`DELETE FROM project
 		 USING user_project
 		 WHERE id=user_project.project_id
@@ -64,8 +64,15 @@ func (db *DB) DeleteUserProject(user *User, provider string, handle string) erro
 		handle,
 		user.ID,
 	)
+	if qErr != nil {
+		return qErr
+	}
+	n, err := result.RowsAffected()
 	if err != nil {
 		return err
+	}
+	if n == 0 {
+		return NewModelsError("not_found")
 	}
 	return nil
 }

@@ -33,3 +33,20 @@ func NewQueryError(query string, queryError error, args []interface{}) *QueryExe
 	}
 	return &QueryExecError{query, err, err.Code.Name(), args, false, false}
 }
+
+type ModelsError struct {
+	Code string
+}
+
+func (e ModelsError) Error() string {
+	switch e.Code {
+	case "not_found":
+		return fmt.Sprintf("Not found")
+	default:
+		return fmt.Sprintf("Unknown model error")
+	}
+}
+
+func NewModelsError(code string) *ModelsError {
+	return &ModelsError{code}
+}

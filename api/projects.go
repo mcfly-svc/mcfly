@@ -94,7 +94,16 @@ func (handlers *Handlers) DeleteProject(r *Responder, ctx *RequestContext) {
 
 	err := handlers.db.DeleteUserProject(ctx.CurrentUser, project.Provider, project.Handle)
 	if err != nil {
-		r.RespondWithServerError(err)
+		switch v := err.(type) {
+		case *models.ModelsError:
+			if v.Code == "not_found" {
+				r.RespondWithError(NewNotFoundErr("project", project.Handle))
+			} else {
+				r.RespondWithServerError(err)
+			}
+		default:
+			r.RespondWithServerError(err)
+		}
 		return
 	}
 

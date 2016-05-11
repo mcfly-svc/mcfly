@@ -130,14 +130,14 @@ func TestDeleteProject(t *testing.T) {
 		afterAuthTest.MissingParamEndpointTest(`{ "handle":"asdf" }`, "provider"),
 		afterAuthTest.MissingParamEndpointTest(`{ "provider":"jabroni.com" }`, "handle"),
 		afterAuthTest.UnsupportedProviderTest(`{ "handle":"mattmocks/project-1", "provider":"jnk" }`, "jnk"),
-		/*{
-			`{"provider":"dne", "handle":"mock/project-that-does-not-exist"}`,
+		{
+			`{"provider":"jabroni.com", "handle":"mock/project-that-does-not-exist"}`,
 			"a request to delete a project that does not exist",
 			"a project not found response",
-			200,
+			400,
 			api.NewNotFoundErr("project", "mock/project-that-does-not-exist"),
 			"mock_seeded_access_token_123",
-		},*/
+		},
 	}
 	RunEndpointTests(t, "DELETE", "projects", tests)
 
