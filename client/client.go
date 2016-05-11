@@ -40,11 +40,7 @@ func (self *Client) Login(token string, provider string) (*ClientResponse, *http
 	}
 
 	var loginResp api.LoginResp
-	if err := decodeResponse(res, &loginResp); err != nil {
-		return nil, res, err
-	}
-
-	return &ClientResponse{loginResp, res.StatusCode}, res, nil
+	return decodeResponse(res, &loginResp)
 }
 
 func (self *Client) AddProject(projectHandle string, provider string) (*ClientResponse, *http.Response, error) {
@@ -59,11 +55,7 @@ func (self *Client) AddProject(projectHandle string, provider string) (*ClientRe
 	}
 
 	var apiResp api.ApiResponse
-	if err := decodeResponse(res, &apiResp); err != nil {
-		return nil, res, err
-	}
-
-	return &ClientResponse{apiResp, res.StatusCode}, res, nil
+	return decodeResponse(res, &apiResp)
 }
 
 func (self *Client) GetProviderProjects(providerKey string) (*ClientResponse, *http.Response, error) {
@@ -73,11 +65,7 @@ func (self *Client) GetProviderProjects(providerKey string) (*ClientResponse, *h
 	}
 
 	var pData []provider.ProjectData
-	if err := decodeResponse(res, &pData); err != nil {
-		return nil, res, err
-	}
-
-	return &ClientResponse{pData, res.StatusCode}, res, nil
+	return decodeResponse(res, &pData)
 }
 
 func (self *Client) EndpointUrl(endpointName string) string {
@@ -144,16 +132,20 @@ type bodyReader struct {
 
 func (m bodyReader) Close() error { return nil }
 
-func decodeResponse(res *http.Response, v interface{}) error {
+func decodeResponse(res *http.Response, v interface{}) (*ClientResponse, *http.Response, error) {
 	b, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		return err
+		return nil, res, err
 	}
 	res.Body = bodyReader{bytes.NewBuffer(b)}
 	if err := json.Unmarshal(b, &v); err != nil {
-		return err
+		apiErr := api.ApiError{}
+		if uerr := json.Unmarshal(b, &apiErr); uerr != nil {
+			return nil, res, err
+		}
+		return &ClientResponse{apiErr, res.StatusCode}, res, nil
 	}
-	return nil
+	return &ClientResponse{v, res.StatusCode}, res, nil
 }
 
 func decodeResponseFromType(res *http.Response, t reflect.Type) (interface{}, error) {

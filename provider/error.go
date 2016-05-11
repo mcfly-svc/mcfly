@@ -2,38 +2,43 @@ package provider
 
 import "fmt"
 
-type ProviderTokenInvalidError struct {
-	Provider string
-}
-
-func (e ProviderTokenInvalidError) Error() string {
-	return fmt.Sprintf("%s token is invalid", e.Provider)
-}
-
-func NewProviderTokenInvalidErr(token string) *ProviderTokenInvalidError {
-	return &ProviderTokenInvalidError{token}
-}
-
-type GetProjectDataError struct {
-	Name          string
-	ProjectHandle string
+type ProviderError struct {
+	Code          string
 	Provider      string
+	ProjectHandle string
 }
 
-func (e GetProjectDataError) Error() string {
-	msg := fmt.Sprintf("Unable to get project from %s", e.Provider)
-	if e.Name == "not_found" {
-		return fmt.Sprintf("%s. %s project `%s` not found", msg, e.Provider, e.ProjectHandle)
-	} else if e.Name == "invalid_handle" {
-		return fmt.Sprintf("%s. Invalid %s project handle `%s`", msg, e.Provider, e.ProjectHandle)
+func (e ProviderError) Error() string {
+	switch e.Code {
+	case "token_invalid":
+		return fmt.Sprintf("%s token is invalid", e.Provider)
+	case "not_found":
+		return fmt.Sprintf("%s project `%s` not found", e.Provider, e.ProjectHandle)
+	case "invalid_project_handle":
+		return fmt.Sprintf("Invalid %s project handle `%s`", e.Provider, e.ProjectHandle)
+	case "get_projects_failed":
+		return fmt.Sprintf("Get %s projects failed", e.Provider)
+	default:
+		return fmt.Sprintf("Unknown %s error", e.Provider)
 	}
-	return msg
 }
 
-func NewProjectDataNotFoundErr(projectHandle string, provider string) *GetProjectDataError {
-	return &GetProjectDataError{"not_found", projectHandle, provider}
+func NewProviderErr(code string, provider string, projectHandle string) *ProviderError {
+	return &ProviderError{code, provider, projectHandle}
 }
 
-func NewProjectDataInvalidHandleErr(projectHandle string, provider string) *GetProjectDataError {
-	return &GetProjectDataError{"invalid_handle", projectHandle, provider}
+func NewTokenInvalidErr(provider string) *ProviderError {
+	return NewProviderErr("token_invalid", provider, "")
+}
+
+func NewProjectNotFoundErr(provider string, projectHandle string) *ProviderError {
+	return NewProviderErr("not_found", provider, projectHandle)
+}
+
+func NewInvalidProjectHandleErr(provider string, projectHandle string) *ProviderError {
+	return NewProviderErr("invalid_project_handle", provider, projectHandle)
+}
+
+func NewGetProjectsFailedErr(provider string) error {
+	return NewProviderErr("get_projects_failed", provider, "")
 }

@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/google/go-github/github"
+	"github.com/mikec/msplapi/logging"
 	"golang.org/x/oauth2"
 )
 
@@ -81,16 +82,11 @@ func (self *GitHub) GetTokenData(token string) (*TokenDataResponse, error) {
 func (self *GitHub) GetProjectData(token string, projectHandle string) (*ProjectData, error) {
 	ph, err := parseProjectHandle(projectHandle)
 	if err != nil {
-		return nil, NewProjectDataInvalidHandleErr(projectHandle, self.Key())
+		return nil, NewInvalidProjectHandleErr(self.Key(), projectHandle)
 	}
 	repo, _, err := self.GetRepo(token, ph.Owner, ph.Repo)
 	if err != nil {
-		switch v := err.(type) {
-		case *github.ErrorResponse:
-			return nil, githubToProviderErr(v, self.Key(), projectHandle)
-		default:
-			return nil, v
-		}
+		return nil, self.handleGetProjectDataError(err, projectHandle)
 	}
 	return &ProjectData{*repo.HTMLURL, projectHandle}, nil
 }
@@ -98,12 +94,7 @@ func (self *GitHub) GetProjectData(token string, projectHandle string) (*Project
 func (self *GitHub) GetProjects(token string, username string) ([]ProjectData, error) {
 	repoSearchResult, _, err := self.GetReposByOwner(token, username)
 	if err != nil {
-		switch v := err.(type) {
-		case *github.ErrorResponse:
-			return nil, githubToProviderErr(v, self.Key(), "")
-		default:
-			return nil, v
-		}
+		return nil, self.handleGetProjectsError(err)
 	}
 	pData := make([]ProjectData, len(repoSearchResult.Repositories))
 	for i, r := range repoSearchResult.Repositories {
@@ -112,14 +103,49 @@ func (self *GitHub) GetProjects(token string, username string) ([]ProjectData, e
 	return pData, nil
 }
 
-func githubToProviderErr(ghErr *github.ErrorResponse, ghProviderKey string, projectHandle string) error {
-	switch ghErr.Message {
-	case "Not Found":
-		return NewProjectDataNotFoundErr(projectHandle, ghProviderKey)
-	case "Bad credentials":
-		return NewProviderTokenInvalidErr(ghProviderKey)
+func (self *GitHub) handleGetProjectDataError(err error, projectHandle string) error {
+	switch v := err.(type) {
+	case *github.ErrorResponse:
+		if ghErr := self.handleGitHubError(v); ghErr != nil {
+			return ghErr
+		}
+		switch v.Message {
+		case "Not Found":
+			return NewProjectNotFoundErr(self.Key(), projectHandle)
+		default:
+			return v
+		}
 	default:
-		return ghErr
+		return v
+	}
+}
+
+func (self *GitHub) handleGetProjectsError(err error) error {
+	switch v := err.(type) {
+	case *github.ErrorResponse:
+		if ghErr := self.handleGitHubError(v); ghErr != nil {
+			return ghErr
+		}
+		switch v.Message {
+		case "Validation Failed":
+			// TODO: find out why this failed. If it's because the user's
+			// github account was deleted, handle that and respond accordingly
+			logging.InternalError(v)
+			return NewGetProjectsFailedErr(self.Key())
+		default:
+			return v
+		}
+	default:
+		return v
+	}
+}
+
+func (self *GitHub) handleGitHubError(ghErr *github.ErrorResponse) error {
+	switch ghErr.Message {
+	case "Bad credentials":
+		return NewTokenInvalidErr(self.Key())
+	default:
+		return nil
 	}
 }
 

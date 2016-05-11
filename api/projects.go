@@ -31,9 +31,7 @@ func (handlers *Handlers) PostProject(r *Responder, ctx *RequestContext) {
 	)
 	if err != nil {
 		switch v := err.(type) {
-		case *provider.GetProjectDataError:
-			r.RespondWithError(NewApiErr(v.Error()))
-		case *provider.ProviderTokenInvalidError:
+		case *provider.ProviderError:
 			r.RespondWithError(NewApiErr(v.Error()))
 		default:
 			r.RespondWithServerError(err)
@@ -72,7 +70,12 @@ func (handlers *Handlers) GetProviderProjects(r *Responder, ctx *RequestContext)
 		ctx.SourceProviderToken.ProviderUsername,
 	)
 	if err != nil {
-		r.RespondWithServerError(err)
+		switch v := err.(type) {
+		case *provider.ProviderError:
+			r.RespondWithError(NewApiErr(v.Error()))
+		default:
+			r.RespondWithServerError(err)
+		}
 		return
 	}
 	r.Respond(projects)

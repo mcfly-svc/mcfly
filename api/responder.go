@@ -29,10 +29,10 @@ func (r *Responder) RespondWithError(apiErr *ApiError) {
 }
 
 func (r *Responder) RespondWithServerError(err error) {
-	logging.Panic(err)
 	r.WriteCommonHeaders()
 	r.WriteErrorHeaders()
 	r.WriteResponseData(NewServerErr())
+	logging.InternalError(err)
 }
 
 func (r *Responder) RespondWithSuccess() {
@@ -54,7 +54,7 @@ func (r *Responder) WriteErrorHeaders() {
 func (r *Responder) WriteResponseData(v interface{}) {
 	b, err := json.Marshal(v)
 	if err != nil {
-		logging.Panic(err)
+		logging.InternalError(err)
 	}
 	r.Write(b)
 }
