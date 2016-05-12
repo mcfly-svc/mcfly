@@ -3,12 +3,12 @@ package api_test
 import (
 	"github.com/mikec/msplapi/api"
 	"github.com/mikec/msplapi/client"
+	"github.com/mikec/msplapi/config"
 	"github.com/mikec/msplapi/db"
 	"github.com/mikec/msplapi/logging"
 	"github.com/mikec/msplapi/provider"
 
 	"io"
-	"net/http"
 	"net/http/httptest"
 	"os"
 	"testing"
@@ -18,16 +18,8 @@ var (
 	server    *httptest.Server
 	reader    io.Reader
 	apiClient *client.Client
-	dbUrl     string
+	cfg       *config.Config
 )
-
-type MockLogger struct{}
-
-func (m MockLogger) Handler(h http.Handler, s string) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		h.ServeHTTP(w, r)
-	})
-}
 
 type MockProvider struct{}
 
@@ -71,10 +63,9 @@ func (p *MockProvider) GetProjectData(token string, projectHandle string) (*prov
 }
 
 func init() {
+	cfg = GetTestConfig()
 
 	jabroni := MockProvider{}
-
-	dbUrl = "postgres://localhost:5432/marsupi_test?sslmode=disable"
 
 	authProviders := make(map[string]provider.AuthProvider)
 	authProviders[jabroni.Key()] = &jabroni
@@ -84,8 +75,7 @@ func init() {
 
 	server = httptest.NewServer(
 		api.NewRouter(
-			dbUrl,
-			//MockLogger{},
+			cfg,
 			logging.HttpRequestLogger{},
 			generateMockToken,
 			authProviders,
@@ -114,9 +104,9 @@ func resetDB() {
 }
 
 func cleanupDB() {
-	db.Clean(dbUrl)
+	db.Clean(cfg.DatabaseUrl)
 }
 
 func seedDB() {
-	db.Seed(dbUrl)
+	db.Seed(cfg.DatabaseUrl)
 }

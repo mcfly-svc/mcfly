@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/mikec/msplapi/config"
 
 	"github.com/mikec/msplapi/models"
 	"github.com/mikec/msplapi/provider"
@@ -15,14 +16,14 @@ type RequestLogger interface {
 }
 
 func NewRouter(
-	dbUrl string,
+	cfg *config.Config,
 	logger RequestLogger,
 	generateToken func() string,
 	authProviders map[string]provider.AuthProvider,
 	sourceProviders map[string]provider.SourceProvider,
 ) *mux.Router {
 
-	db, err := models.NewDB(dbUrl)
+	db, err := models.NewDB(cfg.DatabaseUrl)
 	if err != nil {
 		log.Panic(err)
 	}

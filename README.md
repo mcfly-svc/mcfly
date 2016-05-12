@@ -11,6 +11,8 @@ Run postgres SQL locally
 
 `make`
 
+If you're running on localhost, you need to run [ngrok](https://ngrok.com) `ngrok http -subdomain=msplapi 8081` for webhooks to work. Upgrading to ngrok Pro plan is required.
+
 
 Run API Server
 ==============
@@ -34,3 +36,11 @@ Database
 `msplapi create-db`
 `msplapi clean-db`
 `msplapi seed-db`
+
+Environment Config
+==================
+
+```
+# URL for the api service
+export MSPL_API_URL=http://msplapi.ngrok.io
+```

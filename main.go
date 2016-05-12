@@ -9,6 +9,7 @@ import (
 
 	"github.com/chrismrivera/cmd"
 	"github.com/mikec/msplapi/api"
+	"github.com/mikec/msplapi/config"
 	"github.com/mikec/msplapi/db"
 	"github.com/mikec/msplapi/logging"
 	"github.com/mikec/msplapi/provider"
@@ -17,9 +18,15 @@ import (
 )
 
 var cmdr *cmd.App = cmd.NewApp()
-var dbUrl = "postgres://localhost:5432/marsupi_test?sslmode=disable"
+var cfg *config.Config
 
 func main() {
+
+	_cfg, err := config.NewConfigFromEnvironment()
+	if err != nil {
+		log.Fatal(err)
+	}
+	cfg = _cfg
 
 	cmdr.AddCommand(runServerCmd)
 	cmdr.AddCommand(dbMigrateCmd)
@@ -54,7 +61,7 @@ var dbMigrateCmd = cmd.NewCommand(
 		cmd.AppendArg("direction", "(up|down)")
 	},
 	func(cmd *cmd.Command) error {
-		db.RunMigrate(dbUrl, cmd.Arg("direction"))
+		db.RunMigrate(cfg.DatabaseUrl, cmd.Arg("direction"))
 		return nil
 	},
 )
@@ -63,7 +70,7 @@ var dbCreateCmd = cmd.NewCommand(
 	"create-db", "Database", "Creates the database",
 	func(cmd *cmd.Command) {},
 	func(cmd *cmd.Command) error {
-		db.Create(dbUrl)
+		db.Create(cfg.DatabaseUrl)
 		return nil
 	},
 )
@@ -72,7 +79,7 @@ var dbCleanCmd = cmd.NewCommand(
 	"clean-db", "Database", "Removes all data from the database",
 	func(cmd *cmd.Command) {},
 	func(cmd *cmd.Command) error {
-		db.Clean(dbUrl)
+		db.Clean(cfg.DatabaseUrl)
 		return nil
 	},
 )
@@ -81,7 +88,7 @@ var dbSeedCmd = cmd.NewCommand(
 	"seed-db", "Database", "Adds seed data to the database",
 	func(cmd *cmd.Command) {},
 	func(cmd *cmd.Command) error {
-		db.Seed(dbUrl)
+		db.Seed(cfg.DatabaseUrl)
 		return nil
 	},
 )
@@ -99,7 +106,7 @@ func RunServer() {
 	sourceProviders[dropbox.Key()] = &dropbox
 
 	router := api.NewRouter(
-		dbUrl,
+		cfg,
 		logging.HttpRequestLogger{},
 		generateAccessToken,
 		authProviders,
