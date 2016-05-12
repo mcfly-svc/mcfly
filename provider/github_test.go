@@ -65,6 +65,19 @@ func (self *MockGitHubClient) SearchRepos(
 	return mockyJoe3Repos, nil, nil
 }
 
+func (self *MockGitHubClient) CreateHook(
+	token,
+	owner,
+	repo string,
+	hook *github.Hook,
+) (*github.Hook, *github.Response, error) {
+	if token == "invalid" {
+		return nil, nil, fmt.Errorf("Mock Error")
+	} else {
+		return nil, nil, nil
+	}
+}
+
 func checkMockTokenInvalid(token string) error {
 	if token == "mock_invalid_gh_token" {
 		return provider.NewTokenInvalidErr("github")
@@ -75,7 +88,13 @@ func checkMockTokenInvalid(token string) error {
 var gh provider.GitHub
 
 func init() {
-	gh = provider.GitHub{&MockGitHubClient{}}
+	srcProviderCfg := provider.SourceProviderConfig{
+		ProjectUpdateHookUrlFmt: fmt.Sprintf("http://mocky.com/api/0/webhooks/{provider}/project-update"),
+	}
+	gh = provider.GitHub{
+		GitHubClient:         &MockGitHubClient{},
+		SourceProviderConfig: &srcProviderCfg,
+	}
 }
 
 func TestGetTokenDataBadCredentialsError(t *testing.T) {
@@ -92,28 +111,12 @@ func TestGetTokenDataValidToken(t *testing.T) {
 }
 
 func TestGetProjectData(t *testing.T) {
-
-	var tests = []struct {
-		Handle                    string
-		ExpectValidHandle         bool
-		ExpectProjectDataReturned bool
-	}{
-		{"has/oneslash", true, true},
-		{"noslash", false, false},
-		{"has/two/slashes", false, false},
-	}
-
-	for _, tst := range tests {
-		p, err := gh.GetProjectData("abc", tst.Handle)
-		if tst.ExpectValidHandle {
-			assert.Nil(t, err, fmt.Sprintf("Expected `%s` to be a valid project handle", tst.Handle))
-		} else {
-			assert.NotNil(t, err, fmt.Sprintf("Expected `%s` to be an invalid project handle", tst.Handle))
-		}
-		if tst.ExpectProjectDataReturned {
-			assert.Equal(t, "http://github.com/mock/out", p.Url)
-		}
-	}
+	p, _ := gh.GetProjectData("abc", "has/oneslash")
+	assert.Equal(t, "http://github.com/mock/out", p.Url)
+	runProjectHandleValidationTests(t, func(handle string) error {
+		_, err := gh.GetProjectData("abc", handle)
+		return err
+	})
 }
 
 func TestGetProjectDataInvalidTokenError(t *testing.T) {
@@ -144,9 +147,37 @@ func TestGetProjectsInvalidToken(t *testing.T) {
 	assertTokenInvalidErr(t, err)
 }
 
+func TestCreateProjectUpdateHook(t *testing.T) {
+	runProjectHandleValidationTests(t, func(handle string) error {
+		return gh.CreateProjectUpdateHook("abc", handle)
+	})
+
+	err := gh.CreateProjectUpdateHook("invalid", "asdf/asdflkj")
+	assert.NotNil(t, err, "Expected CreateHook error to be returned")
+}
+
 func assertTokenInvalidErr(t *testing.T, err error) {
 	expectErrMsg := provider.NewTokenInvalidErr("github").Error()
 	assert.Equal(t, expectErrMsg, err.Error())
+}
+
+func runProjectHandleValidationTests(t *testing.T, fn func(string) error) {
+	var tests = []struct {
+		Handle            string
+		ExpectValidHandle bool
+	}{
+		{"has/oneslash", true},
+		{"noslash", false},
+		{"has/two/slashes", false},
+	}
+	for _, tst := range tests {
+		err := fn(tst.Handle)
+		if tst.ExpectValidHandle {
+			assert.Nil(t, err, fmt.Sprintf("Expected `%s` to be a valid project handle", tst.Handle))
+		} else {
+			assert.NotNil(t, err, fmt.Sprintf("Expected `%s` to be an invalid project handle", tst.Handle))
+		}
+	}
 }
 
 func strPtr(v string) *string { return &v }

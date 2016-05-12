@@ -85,17 +85,18 @@ func (handlers *Handlers) MakeHandlerFunc(opts HandlerOptions) func(http.Respons
 				return
 			}
 			ctx.SourceProvider = &sourceProvider
-
-			spToken, err := handlers.db.GetProviderTokenForUser(ctx.CurrentUser, sp)
-			if err != nil {
-				r.RespondWithServerError(err)
-				return
+			if opts.AuthRequired {
+				spToken, err := handlers.db.GetProviderTokenForUser(ctx.CurrentUser, sp)
+				if err != nil {
+					r.RespondWithServerError(err)
+					return
+				}
+				if spToken == nil {
+					r.RespondWithError(NewProviderTokenNotFoundErr(sp))
+					return
+				}
+				ctx.SourceProviderToken = spToken
 			}
-			if spToken == nil {
-				r.RespondWithError(NewProviderTokenNotFoundErr(sp))
-				return
-			}
-			ctx.SourceProviderToken = spToken
 		}
 
 		if opts.UseAuthProvider {

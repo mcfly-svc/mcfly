@@ -95,8 +95,17 @@ var dbSeedCmd = cmd.NewCommand(
 
 // RunServer runs the HTTP server
 func RunServer() {
-	github := provider.GitHub{&provider.GoGitHubClient{}}
-	dropbox := provider.Dropbox{}
+	srcProviderCfg := provider.SourceProviderConfig{
+		ProjectUpdateHookUrlFmt: fmt.Sprintf("%s/api/0/webhooks/{provider}/project-update", cfg.ApiUrl),
+	}
+
+	github := provider.GitHub{
+		GitHubClient:         &provider.GoGitHubClient{},
+		SourceProviderConfig: &srcProviderCfg,
+	}
+	dropbox := provider.Dropbox{
+		SourceProviderConfig: &srcProviderCfg,
+	}
 
 	authProviders := make(map[string]provider.AuthProvider)
 	authProviders[github.Key()] = &github

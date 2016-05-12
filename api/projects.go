@@ -1,6 +1,7 @@
 package api
 
 import (
+	"github.com/mikec/msplapi/logging"
 	"github.com/mikec/msplapi/models"
 	"github.com/mikec/msplapi/provider"
 )
@@ -25,10 +26,8 @@ func (handlers *Handlers) PostProject(r *Responder, ctx *RequestContext) {
 	reqData := ctx.RequestData.(*ProjectReq)
 
 	sourceProvider := *ctx.SourceProvider
-	projectData, err := sourceProvider.GetProjectData(
-		ctx.SourceProviderToken.AccessToken,
-		reqData.Handle,
-	)
+	token := ctx.SourceProviderToken.AccessToken
+	projectData, err := sourceProvider.GetProjectData(token, reqData.Handle)
 	if err != nil {
 		switch v := err.(type) {
 		case *provider.ProviderError:
@@ -65,6 +64,10 @@ func (handlers *Handlers) PostProject(r *Responder, ctx *RequestContext) {
 		project.SourceUrl,
 		project.SourceProvider,
 	})
+
+	if err = sourceProvider.CreateProjectUpdateHook(token, reqData.Handle); err != nil {
+		logging.InternalError(err)
+	}
 }
 
 func (handlers *Handlers) GetProviderProjects(r *Responder, ctx *RequestContext) {
@@ -76,6 +79,11 @@ func (handlers *Handlers) GetProviderProjects(r *Responder, ctx *RequestContext)
 	if err != nil {
 		switch v := err.(type) {
 		case *provider.ProviderError:
+			if v.Code == "get_projects_failed" {
+				// TODO: find out why this failed. If it's because the user's
+				// github account was deleted, handle that and respond accordingly
+				logging.InternalError(v)
+			}
 			r.RespondWithError(NewApiErr(v.Error()))
 		default:
 			r.RespondWithServerError(err)

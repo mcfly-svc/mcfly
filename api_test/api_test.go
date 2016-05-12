@@ -62,6 +62,10 @@ func (p *MockProvider) GetProjectData(token string, projectHandle string) (*prov
 	return &provider.ProjectData{"https://jabroni.com/mock/project-x", "mock/project-x"}, nil
 }
 
+func (p *MockProvider) CreateProjectUpdateHook(token string, projectHandle string) error {
+	return nil
+}
+
 func init() {
 	cfg = GetTestConfig()
 	resetDB()

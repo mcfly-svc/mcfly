@@ -1,5 +1,7 @@
 package provider
 
+import "strings"
+
 type ProjectData struct {
 	Url    string `json:"url"`
 	Handle string `json:"handle"`
@@ -15,4 +17,16 @@ type SourceProvider interface {
 
 	// GetProjects returns all projects on a source provider owned by a given user
 	GetProjects(string, string) ([]ProjectData, error)
+
+	// CreateProjectUpdateHook creates a webhook on the source provider that will notify
+	// msplapi when a given project is updated
+	CreateProjectUpdateHook(string, string) error
+}
+
+type SourceProviderConfig struct {
+	ProjectUpdateHookUrlFmt string
+}
+
+func (self *SourceProviderConfig) GetProjectUpdateHookUrl(key string) string {
+	return strings.Replace(self.ProjectUpdateHookUrlFmt, "{provider}", key, 1)
 }

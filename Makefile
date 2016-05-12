@@ -19,3 +19,6 @@ run: build
 
 ngrok:
 	ngrok http -subdomain=msplapi 8081
+
+# gofmt
+# govet

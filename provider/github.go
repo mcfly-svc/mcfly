@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/google/go-github/github"
-	"github.com/mikec/msplapi/logging"
 	"golang.org/x/oauth2"
 )
 
@@ -13,6 +12,7 @@ type GitHubClient interface {
 	GetCurrentUser(string) (*github.User, *github.Response, error)
 	GetRepo(string, string, string) (*github.Repository, *github.Response, error)
 	SearchRepos(string, string) (*github.RepositoriesSearchResult, *github.Response, error)
+	CreateHook(string, string, string, *github.Hook) (*github.Hook, *github.Response, error)
 }
 
 type GoGitHubClient struct{}
@@ -39,6 +39,16 @@ func (self *GoGitHubClient) SearchRepos(
 	return gh.Search.Repositories(query, &github.SearchOptions{})
 }
 
+func (self *GoGitHubClient) CreateHook(
+	token,
+	owner,
+	repo string,
+	hook *github.Hook,
+) (*github.Hook, *github.Response, error) {
+	gh := self.NewClient(token)
+	return gh.Repositories.CreateHook(owner, repo, hook)
+}
+
 func (self *GoGitHubClient) NewClient(token string) *github.Client {
 	tc := oauth2.NewClient(oauth2.NoContext, &TokenSource{token})
 	return github.NewClient(tc)
@@ -57,6 +67,7 @@ func (t *TokenSource) Token() (*oauth2.Token, error) {
 
 type GitHub struct {
 	GitHubClient
+	*SourceProviderConfig
 }
 
 func (self *GitHub) Key() string {
@@ -103,6 +114,31 @@ func (self *GitHub) GetProjects(token string, username string) ([]ProjectData, e
 	return pData, nil
 }
 
+func (self *GitHub) CreateProjectUpdateHook(token string, projectHandle string) error {
+	ph, err := parseProjectHandle(projectHandle)
+	if err != nil {
+		return NewInvalidProjectHandleErr(self.Key(), projectHandle)
+	}
+	_, _, err = self.CreateHook(token, ph.Owner, ph.Repo, &github.Hook{
+		Name:   strPtr("web"),
+		Active: boolPtr(true),
+		Events: []string{
+			"push",
+			"pull_request",
+		},
+		Config: map[string]interface{}{
+			"url":          self.GetProjectUpdateHookUrl(self.Key()),
+			"content_type": "json",
+		},
+	})
+	if err != nil {
+		// TODO: might need to handle the "Validation Failed" error that occurs
+		// when the hook already exists
+		return err
+	}
+	return nil
+}
+
 func (self *GitHub) handleGetProjectDataError(err error, projectHandle string) error {
 	switch v := err.(type) {
 	case *github.ErrorResponse:
@@ -128,9 +164,6 @@ func (self *GitHub) handleGetProjectsError(err error) error {
 		}
 		switch v.Message {
 		case "Validation Failed":
-			// TODO: find out why this failed. If it's because the user's
-			// github account was deleted, handle that and respond accordingly
-			logging.InternalError(v)
 			return NewGetProjectsFailedErr(self.Key())
 		default:
 			return v
@@ -160,4 +193,12 @@ func parseProjectHandle(projectHandle string) (*ProjectHandle, error) {
 		return nil, fmt.Errorf("Invalid project handle `%s`", projectHandle)
 	}
 	return &ProjectHandle{s[0], s[1]}, nil
+}
+
+func strPtr(s string) *string {
+	return &s
+}
+
+func boolPtr(b bool) *bool {
+	return &b
 }

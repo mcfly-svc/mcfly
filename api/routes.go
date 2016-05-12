@@ -74,6 +74,16 @@ func AllRoutes(handlers *Handlers) Routes {
 			}),
 		},
 
+		Route{
+			"ProjectUpdateWebhook",
+			"POST",
+			"/api/0/webhooks/{provider}/project-update",
+			handlers.MakeHandlerFunc(HandlerOptions{
+				UseSourceProvider: true,
+				After:             handlers.ProjectUpdateWebhook,
+			}),
+		},
+
 		// projects
 		/*Route{
 			"ProjectPost",
