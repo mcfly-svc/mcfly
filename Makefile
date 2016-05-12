@@ -1,4 +1,4 @@
-all: get build test
+all: get build database test
 
 get:
 	go get -u github.com/jteeuwen/go-bindata/...
@@ -11,8 +11,11 @@ database:
 	msplapi create-db
 	msplapi seed-db
 
-test: database
+test: build
 	go test ./...
 
 run: build
 	msplapi run
+
+ngrok:
+	ngrok http -subdomain=msplapi 8081

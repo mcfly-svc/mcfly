@@ -64,6 +64,7 @@ func (p *MockProvider) GetProjectData(token string, projectHandle string) (*prov
 
 func init() {
 	cfg = GetTestConfig()
+	resetDB()
 
 	jabroni := MockProvider{}
 

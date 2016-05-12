@@ -43,4 +43,5 @@ Environment Config
 ```
 # URL for the api service
 export MSPL_API_URL=http://msplapi.ngrok.io
+export MSPL_DATABASE_URL=postgres://localhost:5432/marsupi?sslmode=disable
 ```
