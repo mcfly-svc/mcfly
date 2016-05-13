@@ -1,7 +1,9 @@
 package provider
 
 import (
+	"encoding/json"
 	"fmt"
+	"net/http"
 	"strings"
 
 	"github.com/google/go-github/github"
@@ -91,7 +93,7 @@ func (self *GitHub) GetTokenData(token string) (*TokenDataResponse, error) {
 }
 
 func (self *GitHub) GetProjectData(token string, projectHandle string) (*ProjectData, error) {
-	ph, err := parseProjectHandle(projectHandle)
+	ph, err := NewProjectHandle(projectHandle)
 	if err != nil {
 		return nil, NewInvalidProjectHandleErr(self.Key(), projectHandle)
 	}
@@ -115,7 +117,7 @@ func (self *GitHub) GetProjects(token string, username string) ([]ProjectData, e
 }
 
 func (self *GitHub) CreateProjectUpdateHook(token string, projectHandle string) error {
-	ph, err := parseProjectHandle(projectHandle)
+	ph, err := NewProjectHandle(projectHandle)
 	if err != nil {
 		return NewInvalidProjectHandleErr(self.Key(), projectHandle)
 	}
@@ -137,6 +139,21 @@ func (self *GitHub) CreateProjectUpdateHook(token string, projectHandle string) 
 		return err
 	}
 	return nil
+}
+
+func (self *GitHub) DecodeProjectUpdateRequest(req *http.Request) (*ProjectUpdateData, error) {
+	var payload github.WebHookPayload
+	if err := json.NewDecoder(req.Body).Decode(&payload); err != nil {
+		return nil, err
+	}
+	pu := ProjectUpdateData{
+		ProjectHandle: *payload.Repo.FullName,
+		Builds:        make([]string, len(payload.Commits)),
+	}
+	for i, commit := range payload.Commits {
+		pu.Builds[i] = *commit.ID
+	}
+	return &pu, nil
 }
 
 func (self *GitHub) handleGetProjectDataError(err error, projectHandle string) error {
@@ -187,12 +204,16 @@ type ProjectHandle struct {
 	Repo  string
 }
 
-func parseProjectHandle(projectHandle string) (*ProjectHandle, error) {
+func NewProjectHandle(projectHandle string) (*ProjectHandle, error) {
 	s := strings.Split(projectHandle, "/")
 	if len(s) != 2 {
 		return nil, fmt.Errorf("Invalid project handle `%s`", projectHandle)
 	}
 	return &ProjectHandle{s[0], s[1]}, nil
+}
+
+func (ph ProjectHandle) String() string {
+	return fmt.Sprintf("%s/%s", ph.Owner, ph.Repo)
 }
 
 func strPtr(s string) *string {

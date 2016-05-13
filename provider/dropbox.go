@@ -1,6 +1,9 @@
 package provider
 
-import "fmt"
+import (
+	"fmt"
+	"net/http"
+)
 
 type Dropbox struct {
 	*SourceProviderConfig
@@ -24,4 +27,8 @@ func (self *Dropbox) GetProjects(token string, username string) ([]ProjectData, 
 
 func (self *Dropbox) CreateProjectUpdateHook(token string, projectHandle string) error {
 	return fmt.Errorf("Not Implemented")
+}
+
+func (self *Dropbox) DecodeProjectUpdateRequest(req *http.Request) (*ProjectUpdateData, error) {
+	return nil, fmt.Errorf("Not Implemented")
 }

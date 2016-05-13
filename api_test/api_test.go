@@ -9,6 +9,7 @@ import (
 	"github.com/mikec/msplapi/provider"
 
 	"io"
+	"net/http"
 	"net/http/httptest"
 	"os"
 	"testing"
@@ -64,6 +65,10 @@ func (p *MockProvider) GetProjectData(token string, projectHandle string) (*prov
 
 func (p *MockProvider) CreateProjectUpdateHook(token string, projectHandle string) error {
 	return nil
+}
+
+func (p *MockProvider) DecodeProjectUpdateRequest(req *http.Request) (*provider.ProjectUpdateData, error) {
+	return nil, nil
 }
 
 func init() {

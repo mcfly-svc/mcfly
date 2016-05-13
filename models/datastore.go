@@ -9,6 +9,7 @@ import (
 type Datastore interface {
 	SaveProject(*Project, *User) error
 	GetUserProjects(*User) ([]Project, error)
+	GetProject(string, string) (*Project, error)
 	DeleteUserProject(*User, string, string) error
 
 	SaveUser(*User) error
@@ -16,6 +17,9 @@ type Datastore interface {
 	GetUserByProviderToken(*ProviderAccessToken) (*User, error)
 	GetProviderTokenForUser(*User, string) (*ProviderAccessToken, error)
 	SetUserProviderToken(int64, *ProviderAccessToken) error
+
+	SaveBuild(b *Build) error
+	SaveBuilds(builds []*Build) error
 }
 
 type DB struct {

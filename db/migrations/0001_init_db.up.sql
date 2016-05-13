@@ -10,7 +10,7 @@ CREATE TABLE provider_access_token (
 	provider								provider,
 	provider_username 			text,
 	access_token 						text,
- 	user_id									integer REFERENCES marsupi_user(id)
+ 	user_id									integer REFERENCES marsupi_user(id) ON DELETE CASCADE
 );
 CREATE UNIQUE INDEX provideraccesstoken_user ON provider_access_token (provider, user_id);
 
@@ -24,9 +24,8 @@ CREATE UNIQUE INDEX project_handle_provider ON project (handle, source_provider)
 
 CREATE TABLE build (
 	id											serial PRIMARY KEY,
-	project_id							integer REFERENCES project(id),
-	hash										text,
-	build_provider					provider
+	handle 									text,
+	project_id							integer REFERENCES project(id) ON DELETE CASCADE
 );
 
 CREATE TABLE user_project (

@@ -1,7 +1,9 @@
 package provider_test
 
 import (
+	"bytes"
 	"fmt"
+	"net/http"
 	"testing"
 
 	"github.com/google/go-github/github"
@@ -156,6 +158,40 @@ func TestCreateProjectUpdateHook(t *testing.T) {
 	assert.NotNil(t, err, "Expected CreateHook error to be returned")
 }
 
+func TestDecodeProjectUpdateRequest(t *testing.T) {
+	tests := []struct {
+		BodyString string
+		Expect     *provider.ProjectUpdateData
+		ExpectErr  bool
+		Message    string
+	}{
+		{
+			BodyString: "{junk}",
+			Expect:     nil,
+			ExpectErr:  true,
+			Message:    "Should fail on invalid JSON",
+		},
+		{
+			BodyString: `{"repository":{"full_name":"mockman/banana"},"commits":[{"id":"abc"},{"id":"123"}]}`,
+			Expect: &provider.ProjectUpdateData{
+				Builds:        []string{"abc", "123"},
+				ProjectHandle: "mockman/banana",
+			},
+			ExpectErr: false,
+			Message:   "When given a payload with a two commits it should return the correct ProjectUpdateData",
+		},
+	}
+	for _, test := range tests {
+		pData, err := gh.DecodeProjectUpdateRequest(&http.Request{
+			Body: bodyReader{bytes.NewBuffer([]byte(test.BodyString))},
+		})
+		assert.Equal(t, test.Expect, pData, test.Message)
+		if test.ExpectErr {
+			assert.NotNil(t, err, test.Message)
+		}
+	}
+}
+
 func assertTokenInvalidErr(t *testing.T, err error) {
 	expectErrMsg := provider.NewTokenInvalidErr("github").Error()
 	assert.Equal(t, expectErrMsg, err.Error())
@@ -179,6 +215,12 @@ func runProjectHandleValidationTests(t *testing.T, fn func(string) error) {
 		}
 	}
 }
+
+type bodyReader struct {
+	*bytes.Buffer
+}
+
+func (m bodyReader) Close() error { return nil }
 
 func strPtr(v string) *string { return &v }
 func intPtr(v int) *int       { return &v }

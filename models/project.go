@@ -61,6 +61,23 @@ func (db *DB) GetUserProjects(user *User) ([]Project, error) {
 	return projects, nil
 }
 
+// GetProject returns projects by handle and source provider
+func (db *DB) GetProject(projectHandle string, sourceProvider string) (*Project, error) {
+	p := Project{}
+	q := `SELECT * FROM project
+			  WHERE handle=$1
+			  AND source_provider=$2`
+	err := db.Get(&p, q, projectHandle, sourceProvider)
+	if err != nil {
+		if err.NoRows {
+			return nil, nil
+		} else {
+			return nil, err
+		}
+	}
+	return &p, nil
+}
+
 func (db *DB) DeleteUserProject(user *User, provider string, handle string) error {
 	result, qErr := db.Exec(
 		`DELETE FROM project
