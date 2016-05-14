@@ -1,15 +1,18 @@
 package api_test
 
 import (
+	"log"
+
+	_ "github.com/mattes/migrate/driver/postgres"
 	"github.com/mikec/msplapi/api"
 	"github.com/mikec/msplapi/client"
 	"github.com/mikec/msplapi/config"
 	"github.com/mikec/msplapi/db"
 	"github.com/mikec/msplapi/logging"
+	"github.com/mikec/msplapi/models"
 	"github.com/mikec/msplapi/provider"
 
 	"io"
-	"net/http"
 	"net/http/httptest"
 	"os"
 	"testing"
@@ -20,6 +23,7 @@ var (
 	reader    io.Reader
 	apiClient *client.Client
 	cfg       *config.Config
+	database  *models.DB
 )
 
 type MockProvider struct{}
@@ -63,17 +67,14 @@ func (p *MockProvider) GetProjectData(token string, projectHandle string) (*prov
 	return &provider.ProjectData{"https://jabroni.com/mock/project-x", "mock/project-x"}, nil
 }
 
-func (p *MockProvider) CreateProjectUpdateHook(token string, projectHandle string) error {
-	return nil
-}
-
-func (p *MockProvider) DecodeProjectUpdateRequest(req *http.Request) (*provider.ProjectUpdateData, error) {
-	return nil, nil
-}
-
 func init() {
 	cfg = GetTestConfig()
-	resetDB()
+	dbs, err := models.NewDB(cfg.DatabaseUrl)
+	database = dbs
+	if err != nil {
+		log.Fatal(err)
+	}
+	createDB()
 
 	jabroni := MockProvider{}
 
@@ -106,6 +107,10 @@ func TestMain(m *testing.M) {
 
 func NewApiClient(token string) *client.Client {
 	return client.NewClient(server.URL, token)
+}
+
+func createDB() {
+	db.Create(cfg.DatabaseUrl)
 }
 
 func resetDB() {

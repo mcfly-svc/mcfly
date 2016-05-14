@@ -9,6 +9,7 @@ import (
 
 	"github.com/mikec/msplapi/api"
 	"github.com/mikec/msplapi/client"
+	"github.com/mikec/msplapi/models"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -130,6 +131,20 @@ func assertNumUserProjects(t *testing.T, desc string, token string, expectNumPro
 		projects := cr.Data.(*[]api.ProjectResp)
 		Convey(fmt.Sprintf("Should be %d projects for the user with token %s", expectNumProjects, token), func() {
 			So(len(*projects), ShouldEqual, expectNumProjects)
+		})
+	})
+}
+
+func assertProjectHasBuildCommits(t *testing.T, desc string, project *models.Project, buildCommits map[string]bool) {
+	Convey(desc, t, func() {
+		builds, err := database.GetProjectBuilds(project)
+		if err != nil {
+			t.Error(err)
+		}
+		Convey("it should save the expected number of builds", func() {
+			for _, b := range builds {
+				So(buildCommits[b.Handle], ShouldBeTrue)
+			}
 		})
 	})
 }

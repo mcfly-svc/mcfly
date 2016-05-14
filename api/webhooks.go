@@ -3,6 +3,7 @@ package api
 import (
 	"fmt"
 
+	"github.com/mikec/msplapi/logging"
 	"github.com/mikec/msplapi/models"
 )
 
@@ -12,15 +13,18 @@ func (handlers *Handlers) ProjectUpdateWebhook(r *Responder, ctx *RequestContext
 	projectUpdate, err := sourceProvider.DecodeProjectUpdateRequest(r.Request)
 	if err != nil {
 		r.RespondWithServerError(err)
+		return
 	}
 
 	project, err := handlers.db.GetProject(projectUpdate.ProjectHandle, sourceProvider.Key())
 	if err != nil {
 		r.RespondWithServerError(err)
+		return
 	}
 	if project == nil {
 		err = fmt.Errorf(NewNotFoundErr("project", projectUpdate.ProjectHandle).Error)
 		r.RespondWithServerError(err)
+		return
 	}
 
 	builds := make([]*models.Build, len(projectUpdate.Builds))
@@ -31,8 +35,12 @@ func (handlers *Handlers) ProjectUpdateWebhook(r *Responder, ctx *RequestContext
 		}
 	}
 
-	if err = handlers.db.SaveBuilds(builds); err != nil {
-		r.RespondWithServerError(err)
+	if errs := handlers.db.SaveBuilds(builds); errs != nil {
+		for _, e := range errs {
+			logging.InternalError(e)
+		}
+		r.RespondWithServerError(fmt.Errorf("SaveBuilds failed in ProjectUpdateWebhook"))
+		return
 	}
 
 	r.RespondWithSuccess()

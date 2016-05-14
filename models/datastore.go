@@ -19,7 +19,7 @@ type Datastore interface {
 	SetUserProviderToken(int64, *ProviderAccessToken) error
 
 	SaveBuild(b *Build) error
-	SaveBuilds(builds []*Build) error
+	SaveBuilds(builds []*Build) []error
 }
 
 type DB struct {

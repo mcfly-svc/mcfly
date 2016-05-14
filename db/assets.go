@@ -104,7 +104,7 @@ func dbMigrations0001_init_dbUpSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "db/migrations/0001_init_db.up.sql", size: 1044, mode: os.FileMode(420), modTime: time.Unix(1463167509, 0)}
+	info := bindataFileInfo{name: "db/migrations/0001_init_db.up.sql", size: 1044, mode: os.FileMode(420), modTime: time.Unix(1463187460, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }

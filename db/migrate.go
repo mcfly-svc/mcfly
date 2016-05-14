@@ -30,6 +30,9 @@ func RunMigrate(
 	fmt.Println("Running migrate", direction)
 
 	tmpDir := createTmpDir()
+
+	defer removeDir(tmpDir)
+
 	assetPath := "db/migrations"
 	assets, err := AssetDir(assetPath)
 	check(err)
@@ -45,8 +48,6 @@ func RunMigrate(
 		}
 		return
 	}
-
-	removeDir(tmpDir)
 }
 
 func writeAssetToTmpDir(assetPath string, assetFile string, tmpDir string) {
