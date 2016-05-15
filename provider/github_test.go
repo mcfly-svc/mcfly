@@ -75,6 +75,23 @@ func (self *MockGitHubClient) CreateHook(
 ) (*github.Hook, *github.Response, error) {
 	if token == "invalid" {
 		return nil, nil, fmt.Errorf("Mock Error")
+	} else if token == "hook_exists" {
+		panic(fmt.Errorf("Test error: should not call CreateHook"))
+		return nil, nil, nil
+	} else {
+		return nil, nil, nil
+	}
+}
+
+func (self *MockGitHubClient) ListHooks(token, owner, repo string) ([]github.Hook, *github.Response, error) {
+	if token == "hook_exists" {
+		return []github.Hook{
+			{
+				Config: map[string]interface{}{
+					"url": "http://mocky.com/api/0/webhooks/github/project-update",
+				},
+			},
+		}, nil, nil
 	} else {
 		return nil, nil, nil
 	}
@@ -156,6 +173,9 @@ func TestCreateProjectUpdateHook(t *testing.T) {
 
 	err := gh.CreateProjectUpdateHook("invalid", "asdf/asdflkj")
 	assert.NotNil(t, err, "Expected CreateHook error to be returned")
+
+	err = gh.CreateProjectUpdateHook("hook_exists", "asdf/asdflkj")
+	assert.Nil(t, err, "Expected CreateHook to return nil")
 }
 
 func TestDecodeProjectUpdateRequest(t *testing.T) {

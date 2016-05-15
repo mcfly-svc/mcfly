@@ -15,6 +15,7 @@ type GitHubClient interface {
 	GetRepo(string, string, string) (*github.Repository, *github.Response, error)
 	SearchRepos(string, string) (*github.RepositoriesSearchResult, *github.Response, error)
 	CreateHook(string, string, string, *github.Hook) (*github.Hook, *github.Response, error)
+	ListHooks(string, string, string) ([]github.Hook, *github.Response, error)
 }
 
 type GoGitHubClient struct{}
@@ -25,30 +26,29 @@ func (self *GoGitHubClient) GetCurrentUser(token string) (*github.User, *github.
 }
 
 func (self *GoGitHubClient) GetRepo(
-	token string,
-	owner string,
-	repo string,
+	token, owner, repo string,
 ) (*github.Repository, *github.Response, error) {
 	gh := self.NewClient(token)
 	return gh.Repositories.Get(owner, repo)
 }
 
 func (self *GoGitHubClient) SearchRepos(
-	token string,
-	query string,
+	token, query string,
 ) (*github.RepositoriesSearchResult, *github.Response, error) {
 	gh := self.NewClient(token)
 	return gh.Search.Repositories(query, &github.SearchOptions{})
 }
 
 func (self *GoGitHubClient) CreateHook(
-	token,
-	owner,
-	repo string,
-	hook *github.Hook,
+	token, owner, repo string, hook *github.Hook,
 ) (*github.Hook, *github.Response, error) {
 	gh := self.NewClient(token)
 	return gh.Repositories.CreateHook(owner, repo, hook)
+}
+
+func (self *GoGitHubClient) ListHooks(token, owner, repo string) ([]github.Hook, *github.Response, error) {
+	gh := self.NewClient(token)
+	return gh.Repositories.ListHooks(owner, repo, nil)
 }
 
 func (self *GoGitHubClient) NewClient(token string) *github.Client {
@@ -121,22 +121,28 @@ func (self *GitHub) CreateProjectUpdateHook(token string, projectHandle string) 
 	if err != nil {
 		return NewInvalidProjectHandleErr(self.Key(), projectHandle)
 	}
-	_, _, err = self.CreateHook(token, ph.Owner, ph.Repo, &github.Hook{
-		Name:   strPtr("web"),
-		Active: boolPtr(true),
-		Events: []string{
-			"push",
-			"pull_request",
-		},
-		Config: map[string]interface{}{
-			"url":          self.GetProjectUpdateHookUrl(self.Key()),
-			"content_type": "json",
-		},
-	})
+
+	hookExists, err := self.HookExists(token, ph.Owner, ph.Repo)
 	if err != nil {
-		// TODO: might need to handle the "Validation Failed" error that occurs
-		// when the hook already exists
 		return err
+	}
+
+	if !hookExists {
+		_, _, err = self.CreateHook(token, ph.Owner, ph.Repo, &github.Hook{
+			Name:   strPtr("web"),
+			Active: boolPtr(true),
+			Events: []string{
+				"push",
+				"pull_request",
+			},
+			Config: map[string]interface{}{
+				"url":          self.GetProjectUpdateHookUrl(self.Key()),
+				"content_type": "json",
+			},
+		})
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -154,6 +160,20 @@ func (self *GitHub) DecodeProjectUpdateRequest(req *http.Request) (*ProjectUpdat
 		pu.Builds[i] = *commit.ID
 	}
 	return &pu, nil
+}
+
+func (self *GitHub) HookExists(token, owner, repo string) (bool, error) {
+	hooks, _, err := self.ListHooks(token, owner, repo)
+	if err != nil {
+		return false, err
+	}
+	hookUrl := self.GetProjectUpdateHookUrl(self.Key())
+	for _, hook := range hooks {
+		if hook.Config["url"] == hookUrl {
+			return true, nil
+		}
+	}
+	return false, nil
 }
 
 func (self *GitHub) handleGetProjectDataError(err error, projectHandle string) error {
