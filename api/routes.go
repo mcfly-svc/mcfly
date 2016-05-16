@@ -84,6 +84,17 @@ func AllRoutes(handlers *Handlers) Routes {
 			}),
 		},
 
+		Route{
+			"SaveBuild",
+			"POST",
+			"/api/0/builds",
+			handlers.MakeHandlerFunc(HandlerOptions{
+				RequestData:       BuildReq{},
+				UseSourceProvider: true,
+				After:             handlers.SaveBuild,
+			}),
+		},
+
 		// projects
 		/*Route{
 			"ProjectPost",

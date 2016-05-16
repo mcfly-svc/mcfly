@@ -12,6 +12,7 @@ import (
 	"github.com/mikec/msplapi/config"
 	"github.com/mikec/msplapi/db"
 	"github.com/mikec/msplapi/logging"
+	"github.com/mikec/msplapi/mq"
 	"github.com/mikec/msplapi/provider"
 
 	_ "github.com/mattes/migrate/driver/postgres"
@@ -95,6 +96,8 @@ var dbSeedCmd = cmd.NewCommand(
 
 // RunServer runs the HTTP server
 func RunServer() {
+	msgChannel := mq.CreateChannel(cfg.RabbitMQUrl)
+
 	srcProviderCfg := provider.SourceProviderConfig{
 		ProjectUpdateHookUrlFmt: fmt.Sprintf("%s/api/0/webhooks/{provider}/project-update", cfg.ApiUrl),
 	}
@@ -117,6 +120,7 @@ func RunServer() {
 	router := api.NewRouter(
 		cfg,
 		logging.HttpRequestLogger{},
+		msgChannel,
 		generateAccessToken,
 		authProviders,
 		sourceProviders,

@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/mikec/msplapi/api"
-	"github.com/mikec/msplapi/models"
 	"github.com/mikec/msplapi/provider"
 )
 
@@ -72,9 +71,4 @@ func TestProjectUpdateWebhook(t *testing.T) {
 			"",
 		},
 	})
-	p := models.Project{Handle: "mattmocks/project-3", SourceProvider: "jabroni.com"}
-	commits := make(map[string]bool)
-	commits["abc"] = true
-	commits["123"] = true
-	assertProjectHasBuildCommits(t, "When a payload request with commits is received", &p, commits)
 }

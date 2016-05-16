@@ -6,14 +6,16 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/mikec/msplapi/models"
+	"github.com/mikec/msplapi/mq"
 	"github.com/mikec/msplapi/provider"
 )
 
 type Handlers struct {
-	db              models.Datastore
-	generateToken   func() string
-	authProviders   map[string]provider.AuthProvider
-	sourceProviders map[string]provider.SourceProvider
+	DB              models.Datastore
+	MessageChannel  mq.MessageChannel
+	GenerateToken   func() string
+	AuthProviders   map[string]provider.AuthProvider
+	SourceProviders map[string]provider.SourceProvider
 }
 
 type HandlerOptions struct {
@@ -51,7 +53,7 @@ func (handlers *Handlers) MakeHandlerFunc(opts HandlerOptions) func(http.Respons
 		r := &Responder{w, req}
 
 		if opts.AuthRequired {
-			ctx.CurrentUser = r.ValidateAuthorization(handlers.db)
+			ctx.CurrentUser = r.ValidateAuthorization(handlers.DB)
 			if ctx.CurrentUser == nil {
 				return
 			}
@@ -78,7 +80,7 @@ func (handlers *Handlers) MakeHandlerFunc(opts HandlerOptions) func(http.Respons
 			} else {
 				sp = ctx.RequestData.(SourceProviderRequest).SourceProvider()
 			}
-			sourceProvider := handlers.sourceProviders[sp]
+			sourceProvider := handlers.SourceProviders[sp]
 			if sourceProvider == nil {
 				// TODO: change these errors to provider type specific
 				r.RespondWithError(NewUnsupportedProviderErr(sp))
@@ -86,7 +88,7 @@ func (handlers *Handlers) MakeHandlerFunc(opts HandlerOptions) func(http.Respons
 			}
 			ctx.SourceProvider = &sourceProvider
 			if opts.AuthRequired {
-				spToken, err := handlers.db.GetProviderTokenForUser(ctx.CurrentUser, sp)
+				spToken, err := handlers.DB.GetProviderTokenForUser(ctx.CurrentUser, sp)
 				if err != nil {
 					r.RespondWithServerError(err)
 					return
@@ -101,7 +103,7 @@ func (handlers *Handlers) MakeHandlerFunc(opts HandlerOptions) func(http.Respons
 
 		if opts.UseAuthProvider {
 			ap := ctx.RequestData.(AuthProviderRequest).AuthProvider()
-			authProvider := handlers.authProviders[ap]
+			authProvider := handlers.AuthProviders[ap]
 			if authProvider == nil {
 				// TODO: change these errors to provider type specific
 				r.RespondWithError(NewUnsupportedProviderErr(ap))

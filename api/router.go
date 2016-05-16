@@ -6,6 +6,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/mikec/msplapi/config"
+	"github.com/mikec/msplapi/mq"
 
 	"github.com/mikec/msplapi/models"
 	"github.com/mikec/msplapi/provider"
@@ -18,6 +19,7 @@ type RequestLogger interface {
 func NewRouter(
 	cfg *config.Config,
 	logger RequestLogger,
+	msgChannel mq.MessageChannel,
 	generateToken func() string,
 	authProviders map[string]provider.AuthProvider,
 	sourceProviders map[string]provider.SourceProvider,
@@ -28,7 +30,13 @@ func NewRouter(
 		log.Panic(err)
 	}
 
-	handlers := &Handlers{db, generateToken, authProviders, sourceProviders}
+	handlers := &Handlers{
+		DB:              db,
+		MessageChannel:  msgChannel,
+		GenerateToken:   generateToken,
+		AuthProviders:   authProviders,
+		SourceProviders: sourceProviders,
+	}
 	log.Printf("Connected to postgres")
 
 	router := mux.NewRouter().StrictSlash(true)

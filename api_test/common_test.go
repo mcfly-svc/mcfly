@@ -142,6 +142,7 @@ func assertProjectHasBuildCommits(t *testing.T, desc string, project *models.Pro
 			t.Error(err)
 		}
 		Convey("it should save the expected number of builds", func() {
+			So(len(builds), ShouldEqual, len(buildCommits))
 			for _, b := range builds {
 				So(buildCommits[b.Handle], ShouldBeTrue)
 			}

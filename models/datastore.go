@@ -18,8 +18,7 @@ type Datastore interface {
 	GetProviderTokenForUser(*User, string) (*ProviderAccessToken, error)
 	SetUserProviderToken(int64, *ProviderAccessToken) error
 
-	SaveBuild(b *Build) error
-	SaveBuilds(builds []*Build) []error
+	SaveBuild(b *Build, p *Project) error
 }
 
 type DB struct {
@@ -36,6 +35,14 @@ func NewDB(dbName string) (*DB, error) {
 
 func (db *DB) Get(dest interface{}, query string, args ...interface{}) *QueryExecError {
 	err := db.DB.Get(dest, query, args...)
+	if err != nil {
+		return NewQueryError(query, err, args)
+	}
+	return nil
+}
+
+func (db *DB) Select(dest interface{}, query string, args ...interface{}) *QueryExecError {
+	err := db.DB.Select(dest, query, args...)
 	if err != nil {
 		return NewQueryError(query, err, args)
 	}

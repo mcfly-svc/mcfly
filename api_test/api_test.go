@@ -11,6 +11,7 @@ import (
 	"github.com/mikec/msplapi/logging"
 	"github.com/mikec/msplapi/models"
 	"github.com/mikec/msplapi/provider"
+	"github.com/streadway/amqp"
 
 	"io"
 	"net/http/httptest"
@@ -67,9 +68,20 @@ func (p *MockProvider) GetProjectData(token string, projectHandle string) (*prov
 	return &provider.ProjectData{"https://jabroni.com/mock/project-x", "mock/project-x"}, nil
 }
 
+type MockMessageChannel struct{}
+
+func (m *MockMessageChannel) Send(q *amqp.Queue, v interface{}) error {
+	return nil
+}
+
+func (m *MockMessageChannel) StartDeploy(buildHandle, sourceProvider string) error {
+	return nil
+}
+
 func init() {
 	cfg = GetTestConfig()
 	dbs, err := models.NewDB(cfg.DatabaseUrl)
+
 	database = dbs
 	if err != nil {
 		log.Fatal(err)
@@ -77,6 +89,8 @@ func init() {
 	createDB()
 
 	jabroni := MockProvider{}
+
+	msgChannel := &MockMessageChannel{}
 
 	authProviders := make(map[string]provider.AuthProvider)
 	authProviders[jabroni.Key()] = &jabroni
@@ -88,6 +102,7 @@ func init() {
 		api.NewRouter(
 			cfg,
 			logging.HttpRequestLogger{},
+			msgChannel,
 			generateMockToken,
 			authProviders,
 			sourceProviders,

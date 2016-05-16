@@ -16,7 +16,7 @@ func (handlers *Handlers) ProjectUpdateWebhook(r *Responder, ctx *RequestContext
 		return
 	}
 
-	project, err := handlers.db.GetProject(projectUpdate.ProjectHandle, sourceProvider.Key())
+	project, err := handlers.DB.GetProject(projectUpdate.ProjectHandle, sourceProvider.Key())
 	if err != nil {
 		r.RespondWithServerError(err)
 		return
@@ -29,20 +29,18 @@ func (handlers *Handlers) ProjectUpdateWebhook(r *Responder, ctx *RequestContext
 
 	builds := make([]*models.Build, len(projectUpdate.Builds))
 	for i, buildID := range projectUpdate.Builds {
-		builds[i] = &models.Build{
-			ProjectID: project.ID,
-			Handle:    buildID,
-		}
+		builds[i] = &models.Build{Handle: buildID}
 	}
 
-	// TODO NEXT: figure out what how to actually get the project code and deploy it
-	// and add build commands to mclovin
-
-	if errs := handlers.db.SaveBuilds(builds); errs != nil {
-		for _, e := range errs {
-			logging.InternalError(e)
+	hasErrs := false
+	for _, build := range builds {
+		if err = handlers.MessageChannel.StartDeploy(build.Handle, sourceProvider.Key()); err != nil {
+			logging.InternalError(err)
+			hasErrs = true
 		}
-		r.RespondWithServerError(fmt.Errorf("SaveBuilds failed in ProjectUpdateWebhook"))
+	}
+	if hasErrs {
+		r.RespondWithServerError(fmt.Errorf("Builds "))
 		return
 	}
 

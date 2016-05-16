@@ -44,7 +44,7 @@ func (handlers *Handlers) PostProject(r *Responder, ctx *RequestContext) {
 		SourceProvider: reqData.Provider,
 	}
 
-	err = handlers.db.SaveProject(&project, ctx.CurrentUser)
+	err = handlers.DB.SaveProject(&project, ctx.CurrentUser)
 	if err != nil {
 		switch v := err.(type) {
 		case *models.ModelsError:
@@ -94,7 +94,7 @@ func (handlers *Handlers) GetProviderProjects(r *Responder, ctx *RequestContext)
 }
 
 func (handlers *Handlers) GetProjects(r *Responder, ctx *RequestContext) {
-	projects, err := handlers.db.GetUserProjects(ctx.CurrentUser)
+	projects, err := handlers.DB.GetUserProjects(ctx.CurrentUser)
 	if err != nil {
 		r.RespondWithServerError(err)
 		return
@@ -109,7 +109,7 @@ func (handlers *Handlers) GetProjects(r *Responder, ctx *RequestContext) {
 func (handlers *Handlers) DeleteProject(r *Responder, ctx *RequestContext) {
 	project := ctx.RequestData.(*ProjectReq)
 
-	err := handlers.db.DeleteUserProject(ctx.CurrentUser, project.Provider, project.Handle)
+	err := handlers.DB.DeleteUserProject(ctx.CurrentUser, project.Provider, project.Handle)
 	if err != nil {
 		switch v := err.(type) {
 		case *models.ModelsError:

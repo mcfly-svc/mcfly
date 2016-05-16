@@ -40,7 +40,7 @@ func (handlers *Handlers) Login(r *Responder, ctx *RequestContext) {
 	}
 
 	var u *models.User
-	u, err = handlers.db.GetUserByProviderToken(pt)
+	u, err = handlers.DB.GetUserByProviderToken(pt)
 	if err != nil {
 		r.RespondWithServerError(err)
 		return
@@ -48,13 +48,13 @@ func (handlers *Handlers) Login(r *Responder, ctx *RequestContext) {
 	if u == nil { // if user doesn't exist
 		u = &models.User{
 			Name:        td.UserName,
-			AccessToken: handlers.generateToken(),
+			AccessToken: handlers.GenerateToken(),
 		}
-		if err = handlers.db.SaveUser(u); err != nil {
+		if err = handlers.DB.SaveUser(u); err != nil {
 			r.RespondWithServerError(err)
 			return
 		}
-		if err = handlers.db.SetUserProviderToken(u.ID, pt); err != nil {
+		if err = handlers.DB.SetUserProviderToken(u.ID, pt); err != nil {
 			r.RespondWithServerError(err)
 			return
 		}
