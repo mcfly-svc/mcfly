@@ -84,12 +84,11 @@ func (self *GitHub) GetTokenData(token string) (*TokenDataResponse, error) {
 			return nil, err
 		}
 		if ghErr.Message == "Bad credentials" {
-			return &TokenDataResponse{false, self.Key(), "", ""}, nil
+			return &TokenDataResponse{false, self.Key(), "", nil}, nil
 		}
 		return nil, ghErr
 	}
-
-	return &TokenDataResponse{true, self.Key(), *user.Login, *user.Name}, nil
+	return &TokenDataResponse{true, self.Key(), *user.Login, user.Name}, nil
 }
 
 func (self *GitHub) GetProjectData(token string, projectHandle string) (*ProjectData, error) {

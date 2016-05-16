@@ -33,7 +33,7 @@ func TestLogin(t *testing.T) {
 			"a valid provider token owned by an existing user",
 			"expected user data with the existing access token",
 			200,
-			api.LoginResp{Name: "Matt Mockman", AccessToken: "mock_seeded_access_token_123"},
+			api.LoginResp{Name: strPtr("Matt Mockman"), AccessToken: "mock_seeded_access_token_123"},
 			"",
 		},
 
@@ -42,7 +42,7 @@ func TestLogin(t *testing.T) {
 			"a valid provider token owned by a user that does not exist",
 			"expected user data with a newly generated access token",
 			200,
-			api.LoginResp{Name: "Mike Jimmers", AccessToken: "mock_generated_access_token_123"},
+			api.LoginResp{Name: strPtr("Mike Jimmers"), AccessToken: "mock_generated_access_token_123"},
 			"",
 		},
 	}

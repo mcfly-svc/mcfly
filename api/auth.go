@@ -12,8 +12,8 @@ func (lr *LoginReq) AuthProvider() string {
 }
 
 type LoginResp struct {
-	Name        string `json:"name"`
-	AccessToken string `json:"access_token"`
+	Name        *string `json:"name,omitempty"`
+	AccessToken string  `json:"access_token"`
 }
 
 // Login with a provider access token

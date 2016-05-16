@@ -19,7 +19,7 @@ func Seed(dbUrl string) {
 		addProviderValue(db.DB, val)
 	}
 
-	u := &models.User{Name: "Matt Mockman", AccessToken: "mock_seeded_access_token_123"}
+	u := &models.User{Name: strPtr("Matt Mockman"), AccessToken: "mock_seeded_access_token_123"}
 	insertUser(db, u)
 
 	insertProviderAccessToken(db, u.ID, &models.ProviderAccessToken{
@@ -52,11 +52,11 @@ func Seed(dbUrl string) {
 		SourceUrl:      "https://jabroni.com/mattmocks/project-3",
 	})
 
-	u2 := &models.User{Name: "Penelope Providerless", AccessToken: "mock_token_for_user_with_no_provider_tokens"}
+	u2 := &models.User{Name: strPtr("Penelope Providerless"), AccessToken: "mock_token_for_user_with_no_provider_tokens"}
 	insertUser(db, u2)
 
 	u3 := &models.User{
-		Name:        "Bethany Badprovidertoken",
+		Name:        strPtr("Bethany Badprovidertoken"),
 		AccessToken: "mock_token_for_user_with_bad_jabroni.com_token",
 	}
 	insertUser(db, u3)
@@ -93,4 +93,8 @@ func insertProject(db *models.DB, u *models.User, p *models.Project) {
 	//fmt.Printf("INSERT project %+v\n for user %d\n", *p, u.ID)
 	err := db.SaveProject(p, u)
 	checkFatal(err)
+}
+
+func strPtr(s string) *string {
+	return &s
 }

@@ -4,7 +4,7 @@ type TokenDataResponse struct {
 	IsValid          bool
 	Provider         string
 	ProviderUsername string
-	UserName         string
+	UserName         *string
 }
 
 // AuthProvider is a service used for authenticating to msplapi

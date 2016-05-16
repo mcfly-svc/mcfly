@@ -97,6 +97,8 @@ var dbSeedCmd = cmd.NewCommand(
 // RunServer runs the HTTP server
 func RunServer() {
 	msgChannel := mq.CreateChannel(cfg.RabbitMQUrl)
+	defer msgChannel.CloseConnection()
+	defer msgChannel.CloseChannel()
 
 	srcProviderCfg := provider.SourceProviderConfig{
 		ProjectUpdateHookUrlFmt: fmt.Sprintf("%s/api/0/webhooks/{provider}/project-update", cfg.ApiUrl),

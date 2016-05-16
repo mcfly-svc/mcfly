@@ -190,3 +190,5 @@ func marshalJson(t *testing.T, v interface{}) string {
 	}
 	return string(b)
 }
+
+func strPtr(v string) *string { return &v }

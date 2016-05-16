@@ -34,6 +34,8 @@ type MockGitHubClient struct{}
 func (self *MockGitHubClient) GetCurrentUser(token string) (*github.User, *github.Response, error) {
 	if token == "mock_bad_token" {
 		return nil, nil, &github.ErrorResponse{Message: "Bad credentials"}
+	} else if token == "nil_github_name" {
+		return &github.User{Login: strPtr("@mjones"), Name: nil}, nil, nil
 	} else {
 		return &github.User{Login: strPtr("@mjones"), Name: strPtr("Mock Jones")}, nil, nil
 	}
@@ -126,7 +128,15 @@ func TestGetTokenDataValidToken(t *testing.T) {
 	assert.True(t, td.IsValid, "Token data should be valid")
 	assert.Equal(t, "github", td.Provider, "Token data response should include provider name")
 	assert.Equal(t, "@mjones", td.ProviderUsername, "Token data response should include provider username")
-	assert.Equal(t, "Mock Jones", td.UserName, "Token data response should include user's name")
+	assert.Equal(t, strPtr("Mock Jones"), td.UserName, "Token data response should include user's name")
+}
+
+func TestGetTokenDataNilGitHubName(t *testing.T) {
+	td, _ := gh.GetTokenData("nil_github_name")
+	assert.True(t, td.IsValid, "Token data should be valid")
+	assert.Equal(t, "github", td.Provider, "Token data response should include provider name")
+	assert.Equal(t, "@mjones", td.ProviderUsername, "Token data response should include provider username")
+	assert.Nil(t, td.UserName, "Token data response should include a nil UserName")
 }
 
 func TestGetProjectData(t *testing.T) {

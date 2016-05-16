@@ -48,11 +48,11 @@ func generateMockToken() string {
 // get data from the provider based on a provider auth token
 func (p *MockProvider) GetTokenData(token string) (*provider.TokenDataResponse, error) {
 	if token == "badtoken" {
-		return &provider.TokenDataResponse{false, p.Key(), "", ""}, nil
+		return &provider.TokenDataResponse{false, p.Key(), "", nil}, nil
 	} else if token == "mock_jabroni.com_token_123" {
-		return &provider.TokenDataResponse{true, p.Key(), "mattmocks", "Matt Mockman"}, nil
+		return &provider.TokenDataResponse{true, p.Key(), "mattmocks", strPtr("Matt Mockman")}, nil
 	}
-	return &provider.TokenDataResponse{true, p.Key(), "mikej", "Mike Jimmers"}, nil
+	return &provider.TokenDataResponse{true, p.Key(), "mikej", strPtr("Mike Jimmers")}, nil
 }
 
 func (p *MockProvider) GetProjectData(token string, projectHandle string) (*provider.ProjectData, error) {
@@ -75,6 +75,14 @@ func (m *MockMessageChannel) Send(q *amqp.Queue, v interface{}) error {
 }
 
 func (m *MockMessageChannel) StartDeploy(buildHandle, sourceProvider string) error {
+	return nil
+}
+
+func (m *MockMessageChannel) CloseConnection() error {
+	return nil
+}
+
+func (m *MockMessageChannel) CloseChannel() error {
 	return nil
 }
 
