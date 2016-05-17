@@ -3,6 +3,7 @@ package db
 import (
 	"log"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 )
 
@@ -30,4 +31,12 @@ func isDbErr(err error, errName string) bool {
 		return true
 	}
 	return false
+}
+
+func Connect(dbUrl string) *sqlx.DB {
+	dbconn, err := sqlx.Connect("postgres", dbUrl)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	return dbconn
 }

@@ -8,8 +8,7 @@ import (
 )
 
 var (
-	dbUrl string
-	DB    *models.DB
+	DB *models.DB
 )
 
 func getDB() *models.DB {
@@ -17,8 +16,7 @@ func getDB() *models.DB {
 }
 
 func init() {
-	dbUrl = "postgres://localhost:5432/marsupi_test?sslmode=disable"
-	newDb, err := models.NewDB(dbUrl)
+	newDb, err := models.NewDB("postgres://localhost:5432/marsupi_test?sslmode=disable")
 	if err != nil {
 		panic(err)
 	}
@@ -31,11 +29,11 @@ func resetDB() {
 }
 
 func cleanupDB() {
-	db.Clean(dbUrl)
+	db.Clean(DB.DB)
 }
 
 func seedDB() {
-	db.Seed(dbUrl)
+	db.Seed(DB.DB)
 }
 
 func checkErr(t *testing.T, err error) {

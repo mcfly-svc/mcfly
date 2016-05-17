@@ -21,6 +21,7 @@ type Handlers struct {
 type HandlerOptions struct {
 	AuthRequired      bool
 	RequestData       interface{}
+	ProjectContext    bool
 	UseSourceProvider bool
 	UseAuthProvider   bool
 	After             func(*Responder, *RequestContext)
@@ -31,6 +32,7 @@ type RequestContext struct {
 	RequestData         interface{}
 	SourceProvider      *provider.SourceProvider
 	SourceProviderToken *models.ProviderAccessToken
+	Project             *models.Project
 	AuthProvider        *provider.AuthProvider
 }
 
@@ -40,6 +42,10 @@ type SourceProviderRequest interface {
 
 type AuthProviderRequest interface {
 	AuthProvider() string
+}
+
+type ProjectContextRequest interface {
+	ProjectHandle() string
 }
 
 // MakeHandlerFunc returns a handler function based on options provided. It executes the
@@ -73,8 +79,12 @@ func (handlers *Handlers) MakeHandlerFunc(opts HandlerOptions) func(http.Respons
 			}
 		}
 
+		if opts.ProjectContext {
+			opts.UseSourceProvider = true
+		}
+
+		var sp string
 		if opts.UseSourceProvider {
-			var sp string
 			if vars["provider"] != "" {
 				sp = vars["provider"]
 			} else {
@@ -99,6 +109,20 @@ func (handlers *Handlers) MakeHandlerFunc(opts HandlerOptions) func(http.Respons
 				}
 				ctx.SourceProviderToken = spToken
 			}
+		}
+
+		if opts.ProjectContext {
+			projectHandle := ctx.RequestData.(ProjectContextRequest).ProjectHandle()
+			project, err := handlers.DB.GetProject(projectHandle, sp)
+			if err != nil {
+				r.RespondWithServerError(err)
+				return
+			}
+			if project == nil {
+				r.RespondWithError(NewNotFoundErr("project", projectHandle))
+				return
+			}
+			ctx.Project = project
 		}
 
 		if opts.UseAuthProvider {

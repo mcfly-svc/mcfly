@@ -62,7 +62,9 @@ var dbMigrateCmd = cmd.NewCommand(
 		cmd.AppendArg("direction", "(up|down)")
 	},
 	func(cmd *cmd.Command) error {
-		db.RunMigrate(cfg.DatabaseUrl, cmd.Arg("direction"))
+		dir := cmd.Arg("direction")
+		log.Printf("Running database migration %s", dir)
+		db.RunMigrate(cfg.DatabaseUrl, dir)
 		return nil
 	},
 )
@@ -71,6 +73,7 @@ var dbCreateCmd = cmd.NewCommand(
 	"create-db", "Database", "Creates the database",
 	func(cmd *cmd.Command) {},
 	func(cmd *cmd.Command) error {
+		log.Println("Creating database")
 		db.Create(cfg.DatabaseUrl)
 		return nil
 	},
@@ -80,7 +83,8 @@ var dbCleanCmd = cmd.NewCommand(
 	"clean-db", "Database", "Removes all data from the database",
 	func(cmd *cmd.Command) {},
 	func(cmd *cmd.Command) error {
-		db.Clean(cfg.DatabaseUrl)
+		log.Println("Cleaning database")
+		db.Clean(db.Connect(cfg.DatabaseUrl))
 		return nil
 	},
 )
@@ -89,7 +93,8 @@ var dbSeedCmd = cmd.NewCommand(
 	"seed-db", "Database", "Adds seed data to the database",
 	func(cmd *cmd.Command) {},
 	func(cmd *cmd.Command) error {
-		db.Seed(cfg.DatabaseUrl)
+		log.Println("Seeding database")
+		db.Seed(db.Connect(cfg.DatabaseUrl))
 		return nil
 	},
 )

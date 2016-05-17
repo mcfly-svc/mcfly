@@ -9,11 +9,9 @@ import (
 )
 
 // Seed inserts seed data into the database. It runs Clean first to delete any existing data.
-func Seed(dbUrl string) {
-	Clean(dbUrl)
-
-	db, err := models.NewDB(dbUrl)
-	checkFatal(err)
+func Seed(conn *sqlx.DB) {
+	Clean(conn)
+	db := &models.DB{conn}
 
 	for _, val := range []string{"jabroni.com", "schlockbox"} {
 		addProviderValue(db.DB, val)

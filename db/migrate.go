@@ -27,8 +27,6 @@ func RunMigrate(
 		log.Fatal(fmt.Errorf("No migrate direction `%s`. Use `up` or `down`", direction))
 	}
 
-	fmt.Println("Running migrate", direction)
-
 	tmpDir := createTmpDir()
 
 	defer removeDir(tmpDir)

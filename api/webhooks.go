@@ -34,7 +34,7 @@ func (handlers *Handlers) ProjectUpdateWebhook(r *Responder, ctx *RequestContext
 
 	hasErrs := false
 	for _, build := range builds {
-		if err = handlers.MessageChannel.StartDeploy(build.Handle, sourceProvider.Key()); err != nil {
+		if err = handlers.SendStartDeployMessage(build.Handle, sourceProvider.Key()); err != nil {
 			logging.InternalError(err)
 			hasErrs = true
 		}

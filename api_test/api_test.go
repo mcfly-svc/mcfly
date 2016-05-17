@@ -1,6 +1,7 @@
 package api_test
 
 import (
+	"fmt"
 	"log"
 
 	_ "github.com/mattes/migrate/driver/postgres"
@@ -75,6 +76,9 @@ func (m *MockMessageChannel) Send(q *amqp.Queue, v interface{}) error {
 }
 
 func (m *MockMessageChannel) StartDeploy(buildHandle, sourceProvider string) error {
+	if buildHandle == "start_deploy_error" {
+		return fmt.Errorf("mock start deploy error")
+	}
 	return nil
 }
 
@@ -142,9 +146,9 @@ func resetDB() {
 }
 
 func cleanupDB() {
-	db.Clean(cfg.DatabaseUrl)
+	db.Clean(database.DB)
 }
 
 func seedDB() {
-	db.Seed(cfg.DatabaseUrl)
+	db.Seed(database.DB)
 }

@@ -89,9 +89,24 @@ func AllRoutes(handlers *Handlers) Routes {
 			"POST",
 			"/api/0/builds",
 			handlers.MakeHandlerFunc(HandlerOptions{
+				// TODO: will be called by another service, and that call
+				// should probably be authenticated? the service won't have
+				// the user's access token
 				RequestData:       BuildReq{},
 				UseSourceProvider: true,
 				After:             handlers.SaveBuild,
+			}),
+		},
+
+		Route{
+			"Deploy",
+			"POST",
+			"/api/0/deploy",
+			handlers.MakeHandlerFunc(HandlerOptions{
+				AuthRequired:   true,
+				RequestData:    DeployReq{},
+				ProjectContext: true,
+				After:          handlers.Deploy,
 			}),
 		},
 
