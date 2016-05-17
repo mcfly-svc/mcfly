@@ -10,6 +10,7 @@ import (
 
 func (handlers *Handlers) ProjectUpdateWebhook(r *Responder, ctx *RequestContext) {
 	sourceProvider := *ctx.SourceProvider
+	spKey := sourceProvider.Key()
 
 	projectUpdate, err := sourceProvider.DecodeProjectUpdateRequest(r.Request)
 	if err != nil {
@@ -17,14 +18,21 @@ func (handlers *Handlers) ProjectUpdateWebhook(r *Responder, ctx *RequestContext
 		return
 	}
 
-	project, err := handlers.DB.GetProject(projectUpdate.ProjectHandle, sourceProvider.Key())
-	if err != nil {
-		r.RespondWithServerError(err)
+	project, err := handlers.DB.GetProject(projectUpdate.ProjectHandle, spKey)
+	nfe := NewNotFoundErr("project", projectUpdate.ProjectHandle).Error
+	if respondToNotFoundErr(r, nfe, project, err) {
 		return
 	}
-	if project == nil {
-		err = fmt.Errorf(NewNotFoundErr("project", projectUpdate.ProjectHandle).Error)
-		r.RespondWithServerError(err)
+
+	user, err := handlers.DB.GetUserByProject(project)
+	nfe = fmt.Sprintf("GetUserByProject failed: could not find %s project %s", spKey, project.Handle)
+	if respondToNotFoundErr(r, nfe, user, err) {
+		return
+	}
+
+	providerAccessToken, err := handlers.DB.GetProviderTokenForUser(user, spKey)
+	nfe = fmt.Sprintf("No %s access token for user %s", spKey, user.ID)
+	if respondToNotFoundErr(r, nfe, providerAccessToken, err) {
 		return
 	}
 
@@ -38,8 +46,8 @@ func (handlers *Handlers) ProjectUpdateWebhook(r *Responder, ctx *RequestContext
 		dpq := mq.DeployQueueMessage{
 			BuildHandle:               build.Handle,
 			ProjectHandle:             project.Handle,
-			SourceProvider:            sourceProvider.Key(),
-			SourceProviderAccessToken: "", // TODO: get this after verifying the webhook request
+			SourceProvider:            spKey,
+			SourceProviderAccessToken: providerAccessToken.AccessToken,
 		}
 		if err = handlers.MessageChannel.SendDeployQueueMessage(&dpq); err != nil {
 			logging.InternalError(err)
@@ -52,4 +60,16 @@ func (handlers *Handlers) ProjectUpdateWebhook(r *Responder, ctx *RequestContext
 	}
 
 	r.RespondWithSuccess()
+}
+
+func respondToNotFoundErr(r *Responder, notFoundMsg string, entity interface{}, err error) bool {
+	if err != nil {
+		r.RespondWithServerError(err)
+		return true
+	}
+	if entity == nil {
+		r.RespondWithServerError(fmt.Errorf(notFoundMsg))
+		return true
+	}
+	return false
 }
