@@ -18,6 +18,8 @@ func (e ProviderError) Error() string {
 		return fmt.Sprintf("Invalid %s project handle `%s`", e.Provider, e.ProjectHandle)
 	case "get_projects_failed":
 		return fmt.Sprintf("Get %s projects failed", e.Provider)
+	case "invalid_webook_signature":
+		return fmt.Sprintf("Invalid signature in webhook request from %s", e.Provider)
 	default:
 		return fmt.Sprintf("Unknown %s error", e.Provider)
 	}
@@ -41,4 +43,8 @@ func NewInvalidProjectHandleErr(provider string, projectHandle string) *Provider
 
 func NewGetProjectsFailedErr(provider string) error {
 	return NewProviderErr("get_projects_failed", provider, "")
+}
+
+func NewInvalidWebhookSignatureErr(provider string) error {
+	return NewProviderErr("invalid_webook_signature", provider, "")
 }

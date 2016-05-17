@@ -8,7 +8,8 @@ import (
 )
 
 func TestGetProjectUpdateHookUrl(t *testing.T) {
-	s := provider.SourceProviderConfig{"api/1/{provider}/something"}
+	s := provider.SourceProviderConfig{"api/1/{provider}/something", "mock_webhook_secret"}
 	url := s.GetProjectUpdateHookUrl("jabroni.com")
 	assert.Equal(t, "api/1/jabroni.com/something", url)
+	// TODO: test for WebhookSecret
 }

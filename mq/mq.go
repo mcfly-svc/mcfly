@@ -9,7 +9,7 @@ import (
 
 type MessageChannel interface {
 	Send(*amqp.Queue, interface{}) error
-	StartDeploy(string, string) error
+	SendDeployQueueMessage(*DeployQueueMessage) error
 	CloseConnection() error
 	CloseChannel() error
 }
@@ -18,20 +18,20 @@ func CreateChannel(rabbitMQUrl string) *MsplChannel {
 
 	conn := connect(rabbitMQUrl)
 	ch := openChannel(conn)
-	buildQueue := declareQueue(ch, "build")
+	deployQueue := declareQueue(ch, "deploy")
 
 	return &MsplChannel{
-		Connection: conn,
-		Channel:    ch,
-		BuildQueue: buildQueue,
+		Connection:  conn,
+		Channel:     ch,
+		DeployQueue: deployQueue,
 		// other queues...
 	}
 }
 
 type MsplChannel struct {
-	Connection *amqp.Connection
-	Channel    *amqp.Channel
-	BuildQueue *amqp.Queue
+	Connection  *amqp.Connection
+	Channel     *amqp.Channel
+	DeployQueue *amqp.Queue
 }
 
 func (rc *MsplChannel) Send(q *amqp.Queue, v interface{}) error {

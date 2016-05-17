@@ -5,6 +5,7 @@ import (
 
 	"github.com/mikec/msplapi/logging"
 	"github.com/mikec/msplapi/models"
+	"github.com/mikec/msplapi/mq"
 )
 
 func (handlers *Handlers) ProjectUpdateWebhook(r *Responder, ctx *RequestContext) {
@@ -34,13 +35,19 @@ func (handlers *Handlers) ProjectUpdateWebhook(r *Responder, ctx *RequestContext
 
 	hasErrs := false
 	for _, build := range builds {
-		if err = handlers.SendStartDeployMessage(build.Handle, sourceProvider.Key()); err != nil {
+		dpq := mq.DeployQueueMessage{
+			BuildHandle:               build.Handle,
+			ProjectHandle:             project.Handle,
+			SourceProvider:            sourceProvider.Key(),
+			SourceProviderAccessToken: "", // TODO: get this after verifying the webhook request
+		}
+		if err = handlers.MessageChannel.SendDeployQueueMessage(&dpq); err != nil {
 			logging.InternalError(err)
 			hasErrs = true
 		}
 	}
 	if hasErrs {
-		r.RespondWithServerError(fmt.Errorf("Builds "))
+		r.RespondWithServerError(fmt.Errorf("Calls to SendDeployQueueMessage failed"))
 		return
 	}
 

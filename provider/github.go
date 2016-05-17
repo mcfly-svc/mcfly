@@ -1,8 +1,13 @@
 package provider
 
 import (
+	"bytes"
+	"crypto/hmac"
+	"crypto/sha1"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"strings"
 
@@ -16,6 +21,7 @@ type GitHubClient interface {
 	SearchRepos(string, string) (*github.RepositoriesSearchResult, *github.Response, error)
 	CreateHook(string, string, string, *github.Hook) (*github.Hook, *github.Response, error)
 	ListHooks(string, string, string) ([]github.Hook, *github.Response, error)
+	DeleteHook(string, string, string, int) (*github.Response, error)
 }
 
 type GoGitHubClient struct{}
@@ -44,6 +50,13 @@ func (self *GoGitHubClient) CreateHook(
 ) (*github.Hook, *github.Response, error) {
 	gh := self.NewClient(token)
 	return gh.Repositories.CreateHook(owner, repo, hook)
+}
+
+func (self *GoGitHubClient) DeleteHook(
+	token, owner, repo string, id int,
+) (*github.Response, error) {
+	gh := self.NewClient(token)
+	return gh.Repositories.DeleteHook(owner, repo, id)
 }
 
 func (self *GoGitHubClient) ListHooks(token, owner, repo string) ([]github.Hook, *github.Response, error) {
@@ -121,32 +134,43 @@ func (self *GitHub) CreateProjectUpdateHook(token string, projectHandle string) 
 		return NewInvalidProjectHandleErr(self.Key(), projectHandle)
 	}
 
-	hookExists, err := self.HookExists(token, ph.Owner, ph.Repo)
+	existingHook, err := self.GetProjectUpdateHook(token, ph.Owner, ph.Repo)
 	if err != nil {
 		return err
 	}
-
-	if !hookExists {
-		_, _, err = self.CreateHook(token, ph.Owner, ph.Repo, &github.Hook{
-			Name:   strPtr("web"),
-			Active: boolPtr(true),
-			Events: []string{
-				"push",
-				"pull_request",
-			},
-			Config: map[string]interface{}{
-				"url":          self.GetProjectUpdateHookUrl(self.Key()),
-				"content_type": "json",
-			},
-		})
+	if existingHook != nil {
+		_, err = self.DeleteHook(token, ph.Owner, ph.Repo, *existingHook.ID)
 		if err != nil {
 			return err
 		}
+	}
+
+	_, _, err = self.CreateHook(token, ph.Owner, ph.Repo, &github.Hook{
+		Name:   strPtr("web"),
+		Active: boolPtr(true),
+		Events: []string{
+			"push",
+			"pull_request",
+		},
+		Config: map[string]interface{}{
+			"url":          self.GetProjectUpdateHookUrl(self.Key()),
+			"content_type": "json",
+			"secret":       self.SourceProviderConfig.WebhookSecret,
+		},
+	})
+	if err != nil {
+		return err
 	}
 	return nil
 }
 
 func (self *GitHub) DecodeProjectUpdateRequest(req *http.Request) (*ProjectUpdateData, error) {
+	bodyBytes, err := ioutil.ReadAll(req.Body)
+	if err != nil {
+		return nil, err
+	}
+	req.Body = bodyReader{bytes.NewBuffer(bodyBytes)}
+
 	var payload github.WebHookPayload
 	if err := json.NewDecoder(req.Body).Decode(&payload); err != nil {
 		return nil, err
@@ -158,21 +182,30 @@ func (self *GitHub) DecodeProjectUpdateRequest(req *http.Request) (*ProjectUpdat
 	for i, commit := range payload.Commits {
 		pu.Builds[i] = *commit.ID
 	}
+
+	xHubSig := req.Header.Get("X-Hub-Signature")
+	whSecret := self.SourceProviderConfig.WebhookSecret
+
+	signatureVerified := checkSig(bodyBytes, xHubSig, whSecret)
+	if !signatureVerified {
+		return nil, NewInvalidWebhookSignatureErr(self.Key())
+	}
+
 	return &pu, nil
 }
 
-func (self *GitHub) HookExists(token, owner, repo string) (bool, error) {
+func (self *GitHub) GetProjectUpdateHook(token, owner, repo string) (*github.Hook, error) {
 	hooks, _, err := self.ListHooks(token, owner, repo)
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 	hookUrl := self.GetProjectUpdateHookUrl(self.Key())
 	for _, hook := range hooks {
 		if hook.Config["url"] == hookUrl {
-			return true, nil
+			return &hook, nil
 		}
 	}
-	return false, nil
+	return nil, nil
 }
 
 func (self *GitHub) handleGetProjectDataError(err error, projectHandle string) error {
@@ -218,6 +251,13 @@ func (self *GitHub) handleGitHubError(ghErr *github.ErrorResponse) error {
 	}
 }
 
+func checkSig(body []byte, signature, key string) bool {
+	mac := hmac.New(sha1.New, []byte(key))
+	mac.Write(body)
+	expectedSig := fmt.Sprintf("sha1=%s", hex.EncodeToString(mac.Sum(nil)))
+	return signature == expectedSig
+}
+
 type ProjectHandle struct {
 	Owner string
 	Repo  string
@@ -242,3 +282,9 @@ func strPtr(s string) *string {
 func boolPtr(b bool) *bool {
 	return &b
 }
+
+type bodyReader struct {
+	*bytes.Buffer
+}
+
+func (m bodyReader) Close() error { return nil }

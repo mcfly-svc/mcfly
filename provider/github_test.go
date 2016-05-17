@@ -2,6 +2,9 @@ package provider_test
 
 import (
 	"bytes"
+	"crypto/hmac"
+	"crypto/sha1"
+	"encoding/hex"
 	"fmt"
 	"net/http"
 	"testing"
@@ -77,18 +80,25 @@ func (self *MockGitHubClient) CreateHook(
 ) (*github.Hook, *github.Response, error) {
 	if token == "invalid" {
 		return nil, nil, fmt.Errorf("Mock Error")
-	} else if token == "hook_exists" {
-		panic(fmt.Errorf("Test error: should not call CreateHook"))
-		return nil, nil, nil
 	} else {
 		return nil, nil, nil
 	}
+}
+
+func (self *MockGitHubClient) DeleteHook(
+	token,
+	owner,
+	repo string,
+	id int,
+) (*github.Response, error) {
+	return nil, nil
 }
 
 func (self *MockGitHubClient) ListHooks(token, owner, repo string) ([]github.Hook, *github.Response, error) {
 	if token == "hook_exists" {
 		return []github.Hook{
 			{
+				ID: intPtr(27),
 				Config: map[string]interface{}{
 					"url": "http://mocky.com/api/0/webhooks/github/project-update",
 				},
@@ -111,6 +121,7 @@ var gh provider.GitHub
 func init() {
 	srcProviderCfg := provider.SourceProviderConfig{
 		ProjectUpdateHookUrlFmt: fmt.Sprintf("http://mocky.com/api/0/webhooks/{provider}/project-update"),
+		WebhookSecret:           "mock_webhook_secret",
 	}
 	gh = provider.GitHub{
 		GitHubClient:         &MockGitHubClient{},
@@ -194,12 +205,14 @@ func TestDecodeProjectUpdateRequest(t *testing.T) {
 		Expect     *provider.ProjectUpdateData
 		ExpectErr  bool
 		Message    string
+		ValidSig   bool
 	}{
 		{
 			BodyString: "{junk}",
 			Expect:     nil,
 			ExpectErr:  true,
 			Message:    "Should fail on invalid JSON",
+			ValidSig:   true,
 		},
 		{
 			BodyString: `{"repository":{"full_name":"mockman/banana"},"commits":[{"id":"abc"},{"id":"123"}]}`,
@@ -209,12 +222,22 @@ func TestDecodeProjectUpdateRequest(t *testing.T) {
 			},
 			ExpectErr: false,
 			Message:   "When given a payload with a two commits it should return the correct ProjectUpdateData",
+			ValidSig:  true,
 		},
 	}
 	for _, test := range tests {
-		pData, err := gh.DecodeProjectUpdateRequest(&http.Request{
-			Body: bodyReader{bytes.NewBuffer([]byte(test.BodyString))},
-		})
+		req := &http.Request{
+			Header: make(map[string][]string),
+			Body:   bodyReader{bytes.NewBuffer([]byte(test.BodyString))},
+		}
+		var secret string
+		if test.ValidSig {
+			secret = gh.SourceProviderConfig.WebhookSecret
+		} else {
+			secret = "invalid_secret"
+		}
+		req.Header.Add("X-Hub-Signature", makeSig(test.BodyString, secret))
+		pData, err := gh.DecodeProjectUpdateRequest(req)
 		assert.Equal(t, test.Expect, pData, test.Message)
 		if test.ExpectErr {
 			assert.NotNil(t, err, test.Message)
@@ -251,6 +274,13 @@ type bodyReader struct {
 }
 
 func (m bodyReader) Close() error { return nil }
+
+func makeSig(message, key string) string {
+	//fmt.Printf("ENCODING body/key %s/%s\n", message, key)
+	mac := hmac.New(sha1.New, []byte(key))
+	mac.Write([]byte(message))
+	return fmt.Sprintf("sha1=%s", hex.EncodeToString(mac.Sum(nil)))
+}
 
 func strPtr(v string) *string { return &v }
 func intPtr(v int) *int       { return &v }

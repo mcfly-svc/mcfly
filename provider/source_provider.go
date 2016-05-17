@@ -32,12 +32,14 @@ type SourceProvider interface {
 
 	// DecodeProjectUpdateRequest decodes the request made to the ProjectUpdate webhook
 	// by the source provider, and returns an array of builds that were added in the
-	// project update
+	// project update. It should return an error if the request did not originate from
+	// the provider
 	DecodeProjectUpdateRequest(*http.Request) (*ProjectUpdateData, error)
 }
 
 type SourceProviderConfig struct {
 	ProjectUpdateHookUrlFmt string
+	WebhookSecret           string
 }
 
 func (self *SourceProviderConfig) GetProjectUpdateHookUrl(key string) string {

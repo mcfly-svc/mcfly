@@ -1,5 +1,7 @@
 package api
 
+import "github.com/mikec/msplapi/mq"
+
 type DeployReq struct {
 	BuildHandle         string `json:"build_handle" validate:"nonzero"`
 	SourceProjectHandle string `json:"project_handle" validate:"nonzero"`
@@ -18,15 +20,17 @@ func (handlers *Handlers) Deploy(r *Responder, ctx *RequestContext) {
 	deployReq := ctx.RequestData.(*DeployReq)
 	sp := *ctx.SourceProvider
 
-	err := handlers.SendStartDeployMessage(deployReq.BuildHandle, sp.Key())
+	dpq := mq.DeployQueueMessage{
+		BuildHandle:               deployReq.BuildHandle,
+		ProjectHandle:             ctx.Project.Handle,
+		SourceProvider:            sp.Key(),
+		SourceProviderAccessToken: ctx.SourceProviderToken.AccessToken,
+	}
+	err := handlers.MessageChannel.SendDeployQueueMessage(&dpq)
 	if err != nil {
 		r.RespondWithServerError(err)
 		return
 	}
 
 	r.RespondWithSuccess()
-}
-
-func (handlers *Handlers) SendStartDeployMessage(buildHandle, provider string) error {
-	return handlers.MessageChannel.StartDeploy(buildHandle, provider)
 }

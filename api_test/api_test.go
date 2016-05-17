@@ -11,6 +11,7 @@ import (
 	"github.com/mikec/msplapi/db"
 	"github.com/mikec/msplapi/logging"
 	"github.com/mikec/msplapi/models"
+	"github.com/mikec/msplapi/mq"
 	"github.com/mikec/msplapi/provider"
 	"github.com/streadway/amqp"
 
@@ -75,8 +76,8 @@ func (m *MockMessageChannel) Send(q *amqp.Queue, v interface{}) error {
 	return nil
 }
 
-func (m *MockMessageChannel) StartDeploy(buildHandle, sourceProvider string) error {
-	if buildHandle == "start_deploy_error" {
+func (m *MockMessageChannel) SendDeployQueueMessage(dpq *mq.DeployQueueMessage) error {
+	if dpq.BuildHandle == "start_deploy_error" {
 		return fmt.Errorf("mock start deploy error")
 	}
 	return nil

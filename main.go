@@ -107,6 +107,7 @@ func RunServer() {
 
 	srcProviderCfg := provider.SourceProviderConfig{
 		ProjectUpdateHookUrlFmt: fmt.Sprintf("%s/api/0/webhooks/{provider}/project-update", cfg.ApiUrl),
+		WebhookSecret:           cfg.WebhookSecret,
 	}
 
 	github := provider.GitHub{
