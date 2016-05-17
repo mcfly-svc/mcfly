@@ -9,3 +9,4 @@ DROP TABLE IF EXISTS provider_access_token;
 DROP TABLE IF EXISTS marsupi_user;
 
 DROP TYPE IF EXISTS provider;
+DROP TYPE IF EXISTS build_deploy_status;

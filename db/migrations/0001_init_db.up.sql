@@ -1,4 +1,5 @@
 CREATE TYPE provider AS ENUM ('github', 'dropbox', 'travis', 'jenkins');
+CREATE TYPE build_deploy_status AS ENUM('succeeded', 'pending', 'failed');
 
 CREATE TABLE marsupi_user (
 	id											serial PRIMARY KEY,
@@ -25,7 +26,8 @@ CREATE UNIQUE INDEX project_handle_provider ON project (handle, source_provider)
 CREATE TABLE build (
 	id											serial PRIMARY KEY,
 	handle 									text,
-	project_id							integer REFERENCES project(id) ON DELETE CASCADE
+	project_id							integer REFERENCES project(id) ON DELETE CASCADE,
+	deploy_status 					build_deploy_status
 );
 
 CREATE TABLE user_project (

@@ -29,33 +29,21 @@ func NewClient(serverURL string, token string) *Client {
 }
 
 func (self *Client) Login(token string, provider string) (*ClientResponse, *http.Response, error) {
-	json, err := json.Marshal(api.LoginReq{token, provider})
-	if err != nil {
-		return nil, nil, err
-	}
-	jsonStr := string(json)
-	res, err := self.DoPost("login", &jsonStr, nil)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var loginResp api.LoginResp
-	return decodeResponse(res, &loginResp)
+	var loginReq api.LoginResp
+	return self.DoClientRequest("POST", "login", api.LoginReq{token, provider}, &loginReq)
 }
 
 func (self *Client) AddProject(projectHandle string, provider string) (*ClientResponse, *http.Response, error) {
-	json, err := json.Marshal(api.ProjectReq{projectHandle, provider})
-	if err != nil {
-		return nil, nil, err
-	}
-	jsonStr := string(json)
-	res, err := self.DoPost("projects", &jsonStr, nil)
-	if err != nil {
-		return nil, nil, err
-	}
+	return self.DoClientRequest("POST", "projects", api.ProjectReq{projectHandle, provider}, &api.ApiResponse{})
+}
 
-	var apiResp api.ApiResponse
-	return decodeResponse(res, &apiResp)
+func (self *Client) DeleteProject(projectHandle string, provider string) (*ClientResponse, *http.Response, error) {
+	return self.DoClientRequest("DELETE", "projects", api.ProjectReq{projectHandle, provider}, &api.ApiResponse{})
+}
+
+func (self *Client) Deploy(buildHandle, projectHandle, provider string) (*ClientResponse, *http.Response, error) {
+	req := api.DeployReq{SourceProjectHandle: projectHandle, BuildHandle: buildHandle, Provider: provider}
+	return self.DoClientRequest("POST", "deploy", req, &api.ApiResponse{})
 }
 
 func (self *Client) GetProviderProjects(providerKey string) (*ClientResponse, *http.Response, error) {
@@ -78,19 +66,21 @@ func (self *Client) GetProjects() (*ClientResponse, *http.Response, error) {
 	return decodeResponse(res, &projects)
 }
 
-func (self *Client) DeleteProject(projectHandle string, provider string) (*ClientResponse, *http.Response, error) {
-	json, err := json.Marshal(api.ProjectReq{projectHandle, provider})
+func (self *Client) DoClientRequest(
+	method, endpoint string,
+	reqData interface{},
+	respData interface{},
+) (*ClientResponse, *http.Response, error) {
+	json, err := json.Marshal(reqData)
 	if err != nil {
 		return nil, nil, err
 	}
 	jsonStr := string(json)
-	res, err := self.DoDelete("projects", &jsonStr, nil)
+	res, err := self.DoReq(method, endpoint, &jsonStr, nil)
 	if err != nil {
 		return nil, nil, err
 	}
-
-	var apiResp api.ApiResponse
-	return decodeResponse(res, &apiResp)
+	return decodeResponse(res, respData)
 }
 
 func (self *Client) EndpointUrl(endpointName string) string {
@@ -166,7 +156,7 @@ func decodeResponse(res *http.Response, v interface{}) (*ClientResponse, *http.R
 	if err := json.Unmarshal(b, &v); err != nil {
 		apiErr := api.ApiError{}
 		if uerr := json.Unmarshal(b, &apiErr); uerr != nil {
-			return nil, res, err
+			return nil, res, NewBodyDecodeError(string(b))
 		}
 		return &ClientResponse{apiErr, res.StatusCode}, res, nil
 	}

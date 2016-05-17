@@ -2,14 +2,15 @@ package models
 
 type Build struct {
 	// TODO: get rid of json: for all models?
-	ID        int64  `db:"id" json:"id"`
-	Handle    string `db:"handle" json:"handle"`
-	ProjectID int64  `db:"project_id"`
+	ID           int64  `db:"id" json:"id"`
+	Handle       string `db:"handle" json:"handle"`
+	ProjectID    int64  `db:"project_id"`
+	DeployStatus string `db:"deploy_status"`
 }
 
 func (db *DB) SaveBuild(b *Build, p *Project) error {
-	q := `INSERT INTO build(project_id, handle) VALUES($1,$2)`
-	_, err := db.Exec(q, p.ID, b.Handle)
+	q := `INSERT INTO build(project_id, handle, deploy_status) VALUES($1,$2,$3)`
+	_, err := db.Exec(q, p.ID, b.Handle, "pending")
 	if err != nil {
 		return err
 	}
