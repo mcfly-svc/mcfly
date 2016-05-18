@@ -20,7 +20,7 @@ func (db *DB) SaveProject(p *Project, u *User) error {
 	if err != nil {
 		qErr := NewQueryError(q, err, []interface{}{p.Handle, p.SourceUrl, p.SourceProvider})
 		if qErr.Name == "unique_violation" {
-			return NewModelsError("duplicate")
+			return ErrDuplicate
 		} else {
 			return qErr
 		}
@@ -99,7 +99,7 @@ func (db *DB) DeleteUserProject(user *User, provider string, handle string) erro
 		return err
 	}
 	if n == 0 {
-		return NewModelsError("not_found")
+		return ErrNotFound
 	}
 	return nil
 }

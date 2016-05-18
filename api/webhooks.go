@@ -20,19 +20,19 @@ func (handlers *Handlers) ProjectUpdateWebhook(r *Responder, ctx *RequestContext
 
 	project, err := handlers.DB.GetProject(projectUpdate.ProjectHandle, spKey)
 	nfe := NewNotFoundErr("project", projectUpdate.ProjectHandle).Error
-	if respondToNotFoundErr(r, nfe, project, err) {
+	if respondToNotFoundErr(r, nfe, err) {
 		return
 	}
 
 	user, err := handlers.DB.GetUserByProject(project)
 	nfe = fmt.Sprintf("GetUserByProject failed: could not find %s project %s", spKey, project.Handle)
-	if respondToNotFoundErr(r, nfe, user, err) {
+	if respondToNotFoundErr(r, nfe, err) {
 		return
 	}
 
 	providerAccessToken, err := handlers.DB.GetProviderTokenForUser(user, spKey)
 	nfe = fmt.Sprintf("No %s access token for user %s", spKey, user.ID)
-	if respondToNotFoundErr(r, nfe, providerAccessToken, err) {
+	if respondToNotFoundErr(r, nfe, err) {
 		return
 	}
 
@@ -62,13 +62,13 @@ func (handlers *Handlers) ProjectUpdateWebhook(r *Responder, ctx *RequestContext
 	r.RespondWithSuccess()
 }
 
-func respondToNotFoundErr(r *Responder, notFoundMsg string, entity interface{}, err error) bool {
+func respondToNotFoundErr(r *Responder, notFoundMsg string, err error) bool {
 	if err != nil {
+		if err == models.ErrNotFound {
+			r.RespondWithServerError(fmt.Errorf(notFoundMsg))
+			return true
+		}
 		r.RespondWithServerError(err)
-		return true
-	}
-	if entity == nil {
-		r.RespondWithServerError(fmt.Errorf(notFoundMsg))
 		return true
 	}
 	return false

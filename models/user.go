@@ -36,16 +36,14 @@ func (db *DB) SetUserProviderToken(userID int64, providerToken *ProviderAccessTo
 	return nil
 }
 
-// TODO: don't return nil, just return the NoRows error
-// GetUserByAccessToken gets a user by their Marsupi access token. It returns nil if the access token
-// does not exist
+// GetUserByAccessToken gets a user by their Marsupi access token
 func (db *DB) GetUserByAccessToken(accessToken string) (*User, error) {
 	user := &User{}
 	q := `SELECT * FROM marsupi_user WHERE access_token=$1`
 	err := db.Get(user, q, accessToken)
 	if err != nil {
 		if err.NoRows {
-			return nil, nil
+			return nil, ErrNotFound
 		} else {
 			return nil, err
 		}
@@ -53,9 +51,7 @@ func (db *DB) GetUserByAccessToken(accessToken string) (*User, error) {
 	return user, nil
 }
 
-// TODO: don't return nil, just return the NoRows error
-// GetUserByProviderToken gets a user by one of their provider access tokens. It returns nil if the
-// provider access token does not exist
+// GetUserByProviderToken gets a user by one of their provider access tokens
 func (db *DB) GetUserByProviderToken(providerToken *ProviderAccessToken) (*User, error) {
 	user := &User{}
 	q := `SELECT marsupi_user.* FROM marsupi_user 
@@ -67,7 +63,7 @@ func (db *DB) GetUserByProviderToken(providerToken *ProviderAccessToken) (*User,
 	err := db.Get(user, q, providerToken.Provider, providerToken.ProviderUsername, providerToken.AccessToken)
 	if err != nil {
 		if err.NoRows {
-			return nil, nil
+			return nil, ErrNotFound
 		} else {
 			return nil, err
 		}
@@ -75,9 +71,7 @@ func (db *DB) GetUserByProviderToken(providerToken *ProviderAccessToken) (*User,
 	return user, nil
 }
 
-// TODO: don't return nil, just return the NoRows error
-// GetUserByProject gets a user by one of their project handles. It returns nil if the
-// project does not exist
+// GetUserByProject gets a user by one of their project handles
 func (db *DB) GetUserByProject(project *Project) (*User, error) {
 	user := &User{}
 	q := `SELECT marsupi_user.* FROM marsupi_user 
@@ -88,7 +82,7 @@ func (db *DB) GetUserByProject(project *Project) (*User, error) {
 	err := db.Get(user, q, project.Handle, project.SourceProvider)
 	if err != nil {
 		if err.NoRows {
-			return nil, nil
+			return nil, ErrNotFound
 		} else {
 			return nil, err
 		}
@@ -96,9 +90,7 @@ func (db *DB) GetUserByProject(project *Project) (*User, error) {
 	return user, nil
 }
 
-// TODO: don't return nil, just return the NoRows error
-// GetProviderTokenForUser gets a provider token for a given user and provider. It returns nil if
-// the user does not have a token for this provider
+// GetProviderTokenForUser gets a provider token for a given user and provider
 func (db *DB) GetProviderTokenForUser(user *User, provider string) (*ProviderAccessToken, error) {
 	pt := &ProviderAccessToken{}
 	q := `SELECT provider_access_token.* FROM marsupi_user
@@ -109,7 +101,7 @@ func (db *DB) GetProviderTokenForUser(user *User, provider string) (*ProviderAcc
 	err := db.Get(pt, q, provider, user.ID)
 	if err != nil {
 		if err.NoRows {
-			return nil, nil
+			return nil, ErrNotFound
 		} else {
 			return nil, err
 		}

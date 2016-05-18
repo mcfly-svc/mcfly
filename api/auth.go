@@ -41,7 +41,7 @@ func (handlers *Handlers) Login(r *Responder, ctx *RequestContext) {
 
 	var u *models.User
 	u, err = handlers.DB.GetUserByProviderToken(pt)
-	if err != nil {
+	if err != nil && err != models.ErrNotFound {
 		r.RespondWithServerError(err)
 		return
 	}

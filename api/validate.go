@@ -23,12 +23,11 @@ func (r *Responder) ValidateAuthorization(db models.Datastore) *models.User {
 
 	user, err := db.GetUserByAccessToken(authToken)
 	if err != nil {
+		if err == models.ErrNotFound {
+			r.RespondWithError(NewInvalidAuthTokenError(authToken))
+			return nil
+		}
 		r.RespondWithServerError(err)
-		return nil
-	}
-
-	if user == nil {
-		r.RespondWithError(NewInvalidAuthTokenError(authToken))
 		return nil
 	}
 

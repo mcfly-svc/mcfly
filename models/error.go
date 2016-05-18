@@ -9,6 +9,9 @@ import (
 )
 
 var ErrNotFound = errors.New("not found")
+var ErrExists = errors.New("already exists")
+var ErrDuplicate = errors.New("duplicate")
+var ErrUnknown = errors.New("unknown model error")
 
 type QueryExecError struct {
 	Query   string
@@ -35,23 +38,4 @@ func NewQueryError(query string, queryError error, args []interface{}) *QueryExe
 		return &QueryExecError{query, queryError, "", args, noRows, txCommitted}
 	}
 	return &QueryExecError{query, err, err.Code.Name(), args, false, false}
-}
-
-type ModelsError struct {
-	Code string
-}
-
-func (e ModelsError) Error() string {
-	switch e.Code {
-	case "not_found":
-		return fmt.Sprintf("Not found")
-	case "duplicate":
-		return fmt.Sprintf("Already exists")
-	default:
-		return fmt.Sprintf("Unknown model error")
-	}
-}
-
-func NewModelsError(code string) *ModelsError {
-	return &ModelsError{code}
 }
