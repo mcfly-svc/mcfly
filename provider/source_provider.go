@@ -12,7 +12,7 @@ type ProjectData struct {
 }
 
 type BuildData struct {
-	Url    string
+	Url    *string
 	Handle string
 	Config []byte
 }

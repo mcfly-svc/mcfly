@@ -133,7 +133,7 @@ func (self *GitHub) GetBuildData(token, sha, projectHandle string) (*BuildData, 
 		return nil, err
 	}
 	return &BuildData{
-		Url:    ptrToStr(commit.HTMLURL),
+		Url:    commit.HTMLURL,
 		Handle: sha,
 		Config: []byte(""),
 	}, nil
@@ -311,10 +311,3 @@ type bodyReader struct {
 }
 
 func (m bodyReader) Close() error { return nil }
-
-func ptrToStr(s *string) string {
-	if s != nil {
-		return *s
-	}
-	return ""
-}
