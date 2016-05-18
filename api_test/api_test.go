@@ -70,6 +70,10 @@ func (p *MockProvider) GetProjectData(token string, projectHandle string) (*prov
 	return &provider.ProjectData{"https://jabroni.com/mock/project-x", "mock/project-x"}, nil
 }
 
+func (self *MockProvider) GetBuildData(token, buildHandle, projectHandle string) (*provider.BuildData, error) {
+	return nil, nil
+}
+
 type MockMessageChannel struct{}
 
 func (m *MockMessageChannel) Send(q *amqp.Queue, v interface{}) error {

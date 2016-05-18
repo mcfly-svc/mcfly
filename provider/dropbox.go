@@ -32,3 +32,7 @@ func (self *Dropbox) CreateProjectUpdateHook(token string, projectHandle string)
 func (self *Dropbox) DecodeProjectUpdateRequest(req *http.Request) (*ProjectUpdateData, error) {
 	return nil, fmt.Errorf("Not Implemented")
 }
+
+func (self *Dropbox) GetBuildData(token, buildHandle, projectHandle string) (*BuildData, error) {
+	return nil, fmt.Errorf("Not Implemented")
+}

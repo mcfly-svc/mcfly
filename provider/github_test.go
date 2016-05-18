@@ -109,6 +109,11 @@ func (self *MockGitHubClient) ListHooks(token, owner, repo string) ([]github.Hoo
 	}
 }
 
+func (self *MockGitHubClient) GetCommit(token, owner, repo, sha string,
+) (*github.RepositoryCommit, *github.Response, error) {
+	return nil, nil, nil
+}
+
 func checkMockTokenInvalid(token string) error {
 	if token == "mock_invalid_gh_token" {
 		return provider.NewTokenInvalidErr("github")

@@ -1,6 +1,7 @@
 package provider
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 )
@@ -8,6 +9,12 @@ import (
 type ProjectData struct {
 	Url    string `json:"url"`
 	Handle string `json:"handle"`
+}
+
+type BuildData struct {
+	Url    string
+	Handle string
+	Config []byte
 }
 
 type ProjectUpdateData struct {
@@ -35,6 +42,9 @@ type SourceProvider interface {
 	// project update. It should return an error if the request did not originate from
 	// the provider
 	DecodeProjectUpdateRequest(*http.Request) (*ProjectUpdateData, error)
+
+	// GetBuildData gets data for a given build
+	GetBuildData(string, string, string) (*BuildData, error)
 }
 
 type SourceProviderConfig struct {
@@ -53,4 +63,17 @@ func GetSourceProviders(config *SourceProviderConfig) map[string]SourceProvider 
 	sourceProviders[github.Key()] = &github
 	sourceProviders[dropbox.Key()] = &dropbox
 	return sourceProviders
+}
+
+func GetSourceProvider(key string, config *SourceProviderConfig) (SourceProvider, error) {
+	sourceProviders := GetSourceProviders(config)
+	sp := sourceProviders[key]
+	if sp == nil {
+		return nil, NewSourceProviderNotSupportedErr(key)
+	}
+	return sp, nil
+}
+
+func NewSourceProviderNotSupportedErr(key string) error {
+	return fmt.Errorf("Source provider %s not supported", key)
 }

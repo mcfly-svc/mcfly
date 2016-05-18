@@ -113,21 +113,6 @@ func RunServer() {
 	authProviders := provider.GetAuthProviders()
 	sourceProviders := provider.GetSourceProviders(&srcProviderCfg)
 
-	/*github := provider.GitHub{
-		GitHubClient:         &provider.GoGitHubClient{},
-		SourceProviderConfig: &srcProviderCfg,
-	}
-	dropbox := provider.Dropbox{
-		SourceProviderConfig: &srcProviderCfg,
-	}
-
-	authProviders := make(map[string]provider.AuthProvider)
-	authProviders[github.Key()] = &github
-
-	sourceProviders := make(map[string]provider.SourceProvider)
-	sourceProviders[github.Key()] = &github
-	sourceProviders[dropbox.Key()] = &dropbox*/
-
 	router := api.NewRouter(
 		cfg,
 		logging.HttpRequestLogger{},

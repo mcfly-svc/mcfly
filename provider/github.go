@@ -22,6 +22,7 @@ type GitHubClient interface {
 	CreateHook(string, string, string, *github.Hook) (*github.Hook, *github.Response, error)
 	ListHooks(string, string, string) ([]github.Hook, *github.Response, error)
 	DeleteHook(string, string, string, int) (*github.Response, error)
+	GetCommit(string, string, string, string) (*github.RepositoryCommit, *github.Response, error)
 }
 
 type GoGitHubClient struct{}
@@ -62,6 +63,12 @@ func (self *GoGitHubClient) DeleteHook(
 func (self *GoGitHubClient) ListHooks(token, owner, repo string) ([]github.Hook, *github.Response, error) {
 	gh := self.NewClient(token)
 	return gh.Repositories.ListHooks(owner, repo, nil)
+}
+
+func (self *GoGitHubClient) GetCommit(token, owner, repo, sha string,
+) (*github.RepositoryCommit, *github.Response, error) {
+	gh := self.NewClient(token)
+	return gh.Repositories.GetCommit(owner, repo, sha)
 }
 
 func (self *GoGitHubClient) NewClient(token string) *github.Client {
@@ -114,6 +121,22 @@ func (self *GitHub) GetProjectData(token string, projectHandle string) (*Project
 		return nil, self.handleGetProjectDataError(err, projectHandle)
 	}
 	return &ProjectData{*repo.HTMLURL, projectHandle}, nil
+}
+
+func (self *GitHub) GetBuildData(token, sha, projectHandle string) (*BuildData, error) {
+	ph, err := NewProjectHandle(projectHandle)
+	if err != nil {
+		return nil, NewInvalidProjectHandleErr(self.Key(), projectHandle)
+	}
+	commit, _, err := self.GetCommit(token, ph.Owner, ph.Repo, sha)
+	if err != nil {
+		return nil, err
+	}
+	return &BuildData{
+		Url:    ptrToStr(commit.HTMLURL),
+		Handle: sha,
+		Config: []byte(""),
+	}, nil
 }
 
 func (self *GitHub) GetProjects(token string, username string) ([]ProjectData, error) {
@@ -288,3 +311,10 @@ type bodyReader struct {
 }
 
 func (m bodyReader) Close() error { return nil }
+
+func ptrToStr(s *string) string {
+	if s != nil {
+		return *s
+	}
+	return ""
+}
