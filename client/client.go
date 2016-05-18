@@ -44,6 +44,10 @@ func (self *Client) Deploy(request *apidata.DeployReq) (*ClientResponse, *http.R
 	return self.DoClientRequest("POST", "deploy", request, &apidata.ApiResponse{})
 }
 
+func (self *Client) SaveBuild(request *apidata.BuildReq) (*ClientResponse, *http.Response, error) {
+	return self.DoClientRequest("POST", "builds", request, &apidata.ApiResponse{})
+}
+
 func (self *Client) GetProviderProjects(providerKey string) (*ClientResponse, *http.Response, error) {
 	res, err := self.DoGet(fmt.Sprintf("%s/projects", providerKey), nil)
 	if err != nil {
