@@ -76,10 +76,13 @@ func (m *MockMessageChannel) Send(q *amqp.Queue, v interface{}) error {
 	return nil
 }
 
+var _lastDeployQueueMessage *mq.DeployQueueMessage
+
 func (m *MockMessageChannel) SendDeployQueueMessage(dpq *mq.DeployQueueMessage) error {
 	if dpq.BuildHandle == "start_deploy_error" {
 		return fmt.Errorf("mock start deploy error")
 	}
+	_lastDeployQueueMessage = dpq
 	return nil
 }
 

@@ -8,6 +8,7 @@ import (
 
 	"github.com/mikec/msplapi/api"
 	"github.com/mikec/msplapi/provider"
+	"github.com/stretchr/testify/assert"
 )
 
 func (p *MockProvider) CreateProjectUpdateHook(token string, projectHandle string) error {
@@ -71,4 +72,17 @@ func TestProjectUpdateWebhook(t *testing.T) {
 			"",
 		},
 	})
+
+	assert.Equal(t, "mattmocks/project-3", _lastDeployQueueMessage.ProjectHandle,
+		"should send the correct project handle in the deploy queue message")
+
+	assert.Equal(t, "jabroni.com", _lastDeployQueueMessage.SourceProvider,
+		"should send the correct provider in the deploy queue message")
+
+	assert.Equal(t, "123", _lastDeployQueueMessage.BuildHandle,
+		"should send the correct build handle in the deploy queue message")
+
+	assert.Equal(t, "mock_jabroni.com_token_123", _lastDeployQueueMessage.SourceProviderAccessToken,
+		"should send the correct provider access token in the deploy queue message")
+
 }
