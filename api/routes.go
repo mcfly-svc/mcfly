@@ -2,6 +2,8 @@ package api
 
 import (
 	"net/http"
+
+	"github.com/mikec/msplapi/api/apidata"
 )
 
 type Route struct {
@@ -22,7 +24,7 @@ func AllRoutes(handlers *Handlers) Routes {
 			"POST",
 			"/api/0/login",
 			handlers.MakeHandlerFunc(HandlerOptions{
-				RequestData:     LoginReq{},
+				RequestData:     apidata.LoginReq{},
 				UseAuthProvider: true,
 				After:           handlers.Login,
 			}),
@@ -35,7 +37,7 @@ func AllRoutes(handlers *Handlers) Routes {
 			"/api/0/projects",
 			handlers.MakeHandlerFunc(HandlerOptions{
 				AuthRequired:      true,
-				RequestData:       ProjectReq{},
+				RequestData:       apidata.ProjectReq{},
 				UseSourceProvider: true,
 				After:             handlers.PostProject,
 			}),
@@ -68,7 +70,7 @@ func AllRoutes(handlers *Handlers) Routes {
 			"/api/0/projects",
 			handlers.MakeHandlerFunc(HandlerOptions{
 				AuthRequired:      true,
-				RequestData:       ProjectReq{},
+				RequestData:       apidata.ProjectReq{},
 				UseSourceProvider: true,
 				After:             handlers.DeleteProject,
 			}),
@@ -92,7 +94,7 @@ func AllRoutes(handlers *Handlers) Routes {
 				// TODO: will be called by another service, and that call
 				// should probably be authenticated? the service won't have
 				// the user's access token
-				RequestData:       BuildReq{},
+				RequestData:       apidata.BuildReq{},
 				UseSourceProvider: true,
 				After:             handlers.SaveBuild,
 			}),
@@ -104,56 +106,10 @@ func AllRoutes(handlers *Handlers) Routes {
 			"/api/0/deploy",
 			handlers.MakeHandlerFunc(HandlerOptions{
 				AuthRequired:   true,
-				RequestData:    DeployReq{},
+				RequestData:    apidata.DeployReq{},
 				ProjectContext: true,
 				After:          handlers.Deploy,
 			}),
 		},
-
-		// projects
-		/*Route{
-			"ProjectPost",
-			"POST",
-			"/api/0/projects",
-			handlers.ProjectPost,
-		},
-		Route{
-			"ProjectsGet",
-			"GET",
-			"/api/0/projects",
-			handlers.ProjectsGet,
-		},
-		Route{
-			"ProjectGet",
-			"GET",
-			"/api/0/projects/{project_id}",
-			handlers.ProjectGet,
-		},
-		Route{
-			"ProjectDelete",
-			"DELETE",
-			"/api/0/projects/{project_id}",
-			handlers.ProjectDelete,
-		},
-		*/
-		// users
-		/*Route{
-		      "UserPost",
-		      "POST",
-		      "/api/0/users",
-		      handlers.UserPost,
-		  },
-		  Route{
-		      "UserGet",
-		      "GET",
-		      "/api/0/users/{user_id}",
-		      handlers.UserGet,
-		  },
-		  Route{
-		      "UserDelete",
-		      "DELETE",
-		      "/api/0/users/{user_id}",
-		      handlers.UserDelete,
-		  },*/
 	}
 }

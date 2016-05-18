@@ -1,20 +1,12 @@
 package api
 
-import "github.com/mikec/msplapi/models"
-
-type BuildReq struct {
-	Handle        string  `json:"handle"`
-	ProjectHandle string  `json:"project_handle"`
-	Provider      string  `json:"provider"`
-	ProviderUrl   *string `json:"provider_url,omitempty"`
-}
-
-func (br *BuildReq) SourceProvider() string {
-	return br.Provider
-}
+import (
+	"github.com/mikec/msplapi/api/apidata"
+	"github.com/mikec/msplapi/models"
+)
 
 func (handlers *Handlers) SaveBuild(r *Responder, ctx *RequestContext) {
-	buildReq := ctx.RequestData.(*BuildReq)
+	buildReq := ctx.RequestData.(*apidata.BuildReq)
 
 	p, err := handlers.DB.GetProject(buildReq.ProjectHandle, buildReq.Provider)
 	if err != nil {

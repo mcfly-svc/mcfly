@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/mikec/msplapi/api"
+	"github.com/mikec/msplapi/api/apidata"
 	"github.com/mikec/msplapi/provider"
 )
 
@@ -75,7 +76,7 @@ func TestPostProject(t *testing.T) {
 			"a request to save a valid project",
 			"success",
 			200,
-			api.ProjectResp{"mock/project-x", "https://jabroni.com/mock/project-x", "jabroni.com"},
+			apidata.ProjectResp{"mock/project-x", "https://jabroni.com/mock/project-x", "jabroni.com"},
 			"mock_seeded_access_token_123",
 		},
 	}
@@ -120,7 +121,7 @@ func TestGetProjects(t *testing.T) {
 			"a request to get projects added to mspl",
 			"a list of mspl projects",
 			200,
-			[]api.ProjectResp{
+			[]apidata.ProjectResp{
 				{"mattmocks/project-1", "https://jabroni.com/mattmocks/project-1", "jabroni.com"},
 				{"mattmocks/project-2", "https://jabroni.com/mattmocks/project-2", "jabroni.com"},
 				{"mattmocks/project-3", "https://jabroni.com/mattmocks/project-3", "jabroni.com"},

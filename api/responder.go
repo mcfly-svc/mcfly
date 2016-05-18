@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/mikec/msplapi/api/apidata"
 	"github.com/mikec/msplapi/logging"
 )
 
@@ -12,17 +13,13 @@ type Responder struct {
 	Request *http.Request
 }
 
-type ApiResponse struct {
-	Status string `json:"status"`
-}
-
 func (r *Responder) Respond(v interface{}) {
 	r.WriteCommonHeaders()
 	r.WriteSuccessHeaders()
 	r.WriteResponseData(v)
 }
 
-func (r *Responder) RespondWithError(apiErr *ApiError) {
+func (r *Responder) RespondWithError(apiErr *apidata.ApiError) {
 	r.WriteCommonHeaders()
 	r.WriteErrorHeaders()
 	r.WriteResponseData(apiErr)
@@ -59,6 +56,6 @@ func (r *Responder) WriteResponseData(v interface{}) {
 	r.Write(b)
 }
 
-func NewSuccessResponse() *ApiResponse {
-	return &ApiResponse{"success!"}
+func NewSuccessResponse() *apidata.ApiResponse {
+	return &apidata.ApiResponse{"success!"}
 }

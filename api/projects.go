@@ -1,29 +1,15 @@
 package api
 
 import (
+	"github.com/mikec/msplapi/api/apidata"
 	"github.com/mikec/msplapi/logging"
 	"github.com/mikec/msplapi/models"
 	"github.com/mikec/msplapi/provider"
 )
 
-type ProjectReq struct {
-	Handle   string `json:"handle" validate:"nonzero"`
-	Provider string `json:"provider" validate:"nonzero"`
-}
-
-func (pr *ProjectReq) SourceProvider() string {
-	return pr.Provider
-}
-
-type ProjectResp struct {
-	Handle   string `json:"handle"`
-	Url      string `json:"url"`
-	Provider string `json:"provider"`
-}
-
 func (handlers *Handlers) PostProject(r *Responder, ctx *RequestContext) {
 
-	reqData := ctx.RequestData.(*ProjectReq)
+	reqData := ctx.RequestData.(*apidata.ProjectReq)
 
 	sourceProvider := *ctx.SourceProvider
 	token := ctx.SourceProviderToken.AccessToken
@@ -54,7 +40,7 @@ func (handlers *Handlers) PostProject(r *Responder, ctx *RequestContext) {
 		return
 	}
 
-	r.Respond(&ProjectResp{
+	r.Respond(&apidata.ProjectResp{
 		project.Handle,
 		project.SourceUrl,
 		project.SourceProvider,
@@ -94,15 +80,15 @@ func (handlers *Handlers) GetProjects(r *Responder, ctx *RequestContext) {
 		r.RespondWithServerError(err)
 		return
 	}
-	projectsResp := make([]ProjectResp, len(projects))
+	projectsResp := make([]apidata.ProjectResp, len(projects))
 	for i, p := range projects {
-		projectsResp[i] = ProjectResp{p.Handle, p.SourceUrl, p.SourceProvider}
+		projectsResp[i] = apidata.ProjectResp{p.Handle, p.SourceUrl, p.SourceProvider}
 	}
 	r.Respond(projectsResp)
 }
 
 func (handlers *Handlers) DeleteProject(r *Responder, ctx *RequestContext) {
-	project := ctx.RequestData.(*ProjectReq)
+	project := ctx.RequestData.(*apidata.ProjectReq)
 
 	err := handlers.DB.DeleteUserProject(ctx.CurrentUser, project.Provider, project.Handle)
 	if err != nil {

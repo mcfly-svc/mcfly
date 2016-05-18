@@ -1,23 +1,12 @@
 package api
 
-import "github.com/mikec/msplapi/mq"
-
-type DeployReq struct {
-	BuildHandle         string `json:"build_handle" validate:"nonzero"`
-	SourceProjectHandle string `json:"project_handle" validate:"nonzero"`
-	Provider            string `json:"provider" validate:"nonzero"`
-}
-
-func (r *DeployReq) SourceProvider() string {
-	return r.Provider
-}
-
-func (r *DeployReq) ProjectHandle() string {
-	return r.SourceProjectHandle
-}
+import (
+	"github.com/mikec/msplapi/api/apidata"
+	"github.com/mikec/msplapi/mq"
+)
 
 func (handlers *Handlers) Deploy(r *Responder, ctx *RequestContext) {
-	deployReq := ctx.RequestData.(*DeployReq)
+	deployReq := ctx.RequestData.(*apidata.DeployReq)
 	sp := *ctx.SourceProvider
 
 	dpq := mq.DeployQueueMessage{

@@ -1,7 +1,7 @@
 package client
 
 import (
-	"github.com/mikec/msplapi/api"
+	"github.com/mikec/msplapi/api/apidata"
 	"github.com/mikec/msplapi/provider"
 
 	"bytes"
@@ -28,22 +28,20 @@ func NewClient(serverURL string, token string) *Client {
 	return &Client{serverURL, token}
 }
 
-func (self *Client) Login(token string, provider string) (*ClientResponse, *http.Response, error) {
-	var loginReq api.LoginResp
-	return self.DoClientRequest("POST", "login", api.LoginReq{token, provider}, &loginReq)
+func (self *Client) Login(request *apidata.LoginReq) (*ClientResponse, *http.Response, error) {
+	return self.DoClientRequest("POST", "login", request, &apidata.LoginResp{})
 }
 
-func (self *Client) AddProject(projectHandle string, provider string) (*ClientResponse, *http.Response, error) {
-	return self.DoClientRequest("POST", "projects", api.ProjectReq{projectHandle, provider}, &api.ApiResponse{})
+func (self *Client) AddProject(request *apidata.ProjectReq) (*ClientResponse, *http.Response, error) {
+	return self.DoClientRequest("POST", "projects", request, &apidata.ApiResponse{})
 }
 
-func (self *Client) DeleteProject(projectHandle string, provider string) (*ClientResponse, *http.Response, error) {
-	return self.DoClientRequest("DELETE", "projects", api.ProjectReq{projectHandle, provider}, &api.ApiResponse{})
+func (self *Client) DeleteProject(request *apidata.ProjectReq) (*ClientResponse, *http.Response, error) {
+	return self.DoClientRequest("DELETE", "projects", request, &apidata.ApiResponse{})
 }
 
-func (self *Client) Deploy(buildHandle, projectHandle, provider string) (*ClientResponse, *http.Response, error) {
-	req := api.DeployReq{SourceProjectHandle: projectHandle, BuildHandle: buildHandle, Provider: provider}
-	return self.DoClientRequest("POST", "deploy", req, &api.ApiResponse{})
+func (self *Client) Deploy(request *apidata.DeployReq) (*ClientResponse, *http.Response, error) {
+	return self.DoClientRequest("POST", "deploy", request, &apidata.ApiResponse{})
 }
 
 func (self *Client) GetProviderProjects(providerKey string) (*ClientResponse, *http.Response, error) {
@@ -62,7 +60,7 @@ func (self *Client) GetProjects() (*ClientResponse, *http.Response, error) {
 		return nil, nil, err
 	}
 
-	var projects []api.ProjectResp
+	var projects []apidata.ProjectResp
 	return decodeResponse(res, &projects)
 }
 
@@ -154,7 +152,7 @@ func decodeResponse(res *http.Response, v interface{}) (*ClientResponse, *http.R
 	}
 	res.Body = bodyReader{bytes.NewBuffer(b)}
 	if err := json.Unmarshal(b, &v); err != nil {
-		apiErr := api.ApiError{}
+		apiErr := apidata.ApiError{}
 		if uerr := json.Unmarshal(b, &apiErr); uerr != nil {
 			return nil, res, NewBodyDecodeError(string(b))
 		}
@@ -175,7 +173,7 @@ func decodeResponseFromType(res *http.Response, t reflect.Type) (interface{}, er
 	}
 	m, ok := v.(map[string]interface{})
 	if ok && m["error"] != nil {
-		var apiErr api.ApiError
+		var apiErr apidata.ApiError
 		if err := json.Unmarshal(b, &apiErr); err != nil {
 			return nil, err
 		}

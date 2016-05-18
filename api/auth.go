@@ -1,25 +1,14 @@
 package api
 
-import "github.com/mikec/msplapi/models"
-
-type LoginReq struct {
-	Token    string `json:"token" validate:"nonzero"`
-	Provider string `json:"provider" validate:"nonzero"`
-}
-
-func (lr *LoginReq) AuthProvider() string {
-	return lr.Provider
-}
-
-type LoginResp struct {
-	Name        *string `json:"name,omitempty"`
-	AccessToken string  `json:"access_token"`
-}
+import (
+	"github.com/mikec/msplapi/api/apidata"
+	"github.com/mikec/msplapi/models"
+)
 
 // Login with a provider access token
 func (handlers *Handlers) Login(r *Responder, ctx *RequestContext) {
 
-	loginReq := ctx.RequestData.(*LoginReq)
+	loginReq := ctx.RequestData.(*apidata.LoginReq)
 	authProvider := *ctx.AuthProvider
 
 	td, err := authProvider.GetTokenData(loginReq.Token)
@@ -60,7 +49,7 @@ func (handlers *Handlers) Login(r *Responder, ctx *RequestContext) {
 		}
 	}
 
-	r.Respond(&LoginResp{
+	r.Respond(&apidata.LoginResp{
 		Name:        u.Name,
 		AccessToken: u.AccessToken,
 	})

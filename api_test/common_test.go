@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/mikec/msplapi/api"
+	"github.com/mikec/msplapi/api/apidata"
 	"github.com/mikec/msplapi/client"
 	"github.com/mikec/msplapi/models"
 	. "github.com/smartystreets/goconvey/convey"
@@ -128,7 +129,7 @@ func assertNumUserProjects(t *testing.T, desc string, token string, expectNumPro
 		if err != nil {
 			t.Error(err)
 		}
-		projects := cr.Data.(*[]api.ProjectResp)
+		projects := cr.Data.(*[]apidata.ProjectResp)
 		Convey(fmt.Sprintf("Should be %d projects for the user with token %s", expectNumProjects, token), func() {
 			So(len(*projects), ShouldEqual, expectNumProjects)
 		})
