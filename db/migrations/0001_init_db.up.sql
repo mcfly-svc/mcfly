@@ -27,7 +27,8 @@ CREATE TABLE build (
 	id											serial PRIMARY KEY,
 	handle 									text,
 	project_id							integer REFERENCES project(id) ON DELETE CASCADE,
-	deploy_status 					build_deploy_status
+	deploy_status 					build_deploy_status,
+	provider_url   					text
 );
 
 CREATE TABLE user_project (

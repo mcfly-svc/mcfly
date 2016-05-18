@@ -32,22 +32,54 @@ func Seed(conn *sqlx.DB) {
 		AccessToken:      "mock_schlockbox_token_123",
 	})
 
-	insertProject(db, u, &models.Project{
+	p1 := &models.Project{
 		Handle:         "mattmocks/project-1",
 		SourceProvider: "jabroni.com",
 		SourceUrl:      "https://jabroni.com/mattmocks/project-1",
-	})
+	}
+	insertProject(db, u, p1)
 
-	insertProject(db, u, &models.Project{
+	p2 := &models.Project{
 		Handle:         "mattmocks/project-2",
 		SourceProvider: "jabroni.com",
 		SourceUrl:      "https://jabroni.com/mattmocks/project-2",
-	})
+	}
+	insertProject(db, u, p2)
 
-	insertProject(db, u, &models.Project{
+	p3 := &models.Project{
 		Handle:         "mattmocks/project-3",
 		SourceProvider: "jabroni.com",
 		SourceUrl:      "https://jabroni.com/mattmocks/project-3",
+	}
+	insertProject(db, u, p3)
+
+	insertBuild(db, p3, &models.Build{
+		Handle:       "abc-1",
+		DeployStatus: "succeeded",
+		ProviderUrl:  strPtr("https://jabroni.com/mattmocks/project-3/builds/abc-1"),
+	})
+
+	insertBuild(db, p3, &models.Build{
+		Handle:       "abc-2",
+		DeployStatus: "succeeded",
+		ProviderUrl:  strPtr("https://jabroni.com/mattmocks/project-3/builds/abc-2"),
+	})
+
+	insertBuild(db, p3, &models.Build{
+		Handle:       "abc-3",
+		DeployStatus: "failed",
+		ProviderUrl:  strPtr("https://jabroni.com/mattmocks/project-3/builds/abc-3"),
+	})
+
+	insertBuild(db, p3, &models.Build{
+		Handle:       "abc-4",
+		DeployStatus: "succeeded",
+	})
+
+	insertBuild(db, p3, &models.Build{
+		Handle:       "abc-4",
+		DeployStatus: "pending",
+		ProviderUrl:  strPtr("https://jabroni.com/mattmocks/project-3/builds/abc-4"),
 	})
 
 	u2 := &models.User{Name: strPtr("Penelope Providerless"), AccessToken: "mock_token_for_user_with_no_provider_tokens"}
@@ -90,6 +122,12 @@ func insertProviderAccessToken(db *models.DB, uid int64, pt *models.ProviderAcce
 func insertProject(db *models.DB, u *models.User, p *models.Project) {
 	//fmt.Printf("INSERT project %+v\n for user %d\n", *p, u.ID)
 	err := db.SaveProject(p, u)
+	checkFatal(err)
+}
+
+func insertBuild(db *models.DB, p *models.Project, b *models.Build) {
+	//fmt.Printf("INSERT build %+v\n for project %d\n", *b, p.ID)
+	err := db.SaveBuild(b, p)
 	checkFatal(err)
 }
 
