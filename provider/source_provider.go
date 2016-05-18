@@ -45,3 +45,12 @@ type SourceProviderConfig struct {
 func (self *SourceProviderConfig) GetProjectUpdateHookUrl(key string) string {
 	return strings.Replace(self.ProjectUpdateHookUrlFmt, "{provider}", key, 1)
 }
+
+func GetSourceProviders(config *SourceProviderConfig) map[string]SourceProvider {
+	sourceProviders := make(map[string]SourceProvider)
+	github := GitHub{GitHubClient: &GoGitHubClient{}, SourceProviderConfig: config}
+	dropbox := Dropbox{SourceProviderConfig: config}
+	sourceProviders[github.Key()] = &github
+	sourceProviders[dropbox.Key()] = &dropbox
+	return sourceProviders
+}

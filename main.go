@@ -110,7 +110,10 @@ func RunServer() {
 		WebhookSecret:           cfg.WebhookSecret,
 	}
 
-	github := provider.GitHub{
+	authProviders := provider.GetAuthProviders()
+	sourceProviders := provider.GetSourceProviders(&srcProviderCfg)
+
+	/*github := provider.GitHub{
 		GitHubClient:         &provider.GoGitHubClient{},
 		SourceProviderConfig: &srcProviderCfg,
 	}
@@ -123,7 +126,7 @@ func RunServer() {
 
 	sourceProviders := make(map[string]provider.SourceProvider)
 	sourceProviders[github.Key()] = &github
-	sourceProviders[dropbox.Key()] = &dropbox
+	sourceProviders[dropbox.Key()] = &dropbox*/
 
 	router := api.NewRouter(
 		cfg,
