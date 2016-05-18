@@ -14,9 +14,14 @@ import (
 	"strings"
 )
 
-type Client struct {
-	ServerURL   string
-	AccessToken string
+type Client interface {
+	Login(*apidata.LoginReq) (*ClientResponse, *http.Response, error)
+	AddProject(*apidata.ProjectReq) (*ClientResponse, *http.Response, error)
+	DeleteProject(*apidata.ProjectReq) (*ClientResponse, *http.Response, error)
+	Deploy(*apidata.DeployReq) (*ClientResponse, *http.Response, error)
+	SaveBuild(*apidata.BuildReq) (*ClientResponse, *http.Response, error)
+	GetProviderProjects(string) (*ClientResponse, *http.Response, error)
+	GetProjects() (*ClientResponse, *http.Response, error)
 }
 
 type ClientResponse struct {
@@ -24,31 +29,36 @@ type ClientResponse struct {
 	StatusCode int
 }
 
-func NewClient(serverURL string, token string) *Client {
-	return &Client{serverURL, token}
+type MsplClient struct {
+	ServerURL   string
+	AccessToken string
 }
 
-func (self *Client) Login(request *apidata.LoginReq) (*ClientResponse, *http.Response, error) {
-	return self.DoClientRequest("POST", "login", request, &apidata.LoginResp{})
+func NewMsplClient(serverURL string, token string) *MsplClient {
+	return &MsplClient{serverURL, token}
 }
 
-func (self *Client) AddProject(request *apidata.ProjectReq) (*ClientResponse, *http.Response, error) {
-	return self.DoClientRequest("POST", "projects", request, &apidata.ApiResponse{})
+func (self *MsplClient) Login(request *apidata.LoginReq) (*ClientResponse, *http.Response, error) {
+	return self.DoMsplClientRequest("POST", "login", request, &apidata.LoginResp{})
 }
 
-func (self *Client) DeleteProject(request *apidata.ProjectReq) (*ClientResponse, *http.Response, error) {
-	return self.DoClientRequest("DELETE", "projects", request, &apidata.ApiResponse{})
+func (self *MsplClient) AddProject(request *apidata.ProjectReq) (*ClientResponse, *http.Response, error) {
+	return self.DoMsplClientRequest("POST", "projects", request, &apidata.ApiResponse{})
 }
 
-func (self *Client) Deploy(request *apidata.DeployReq) (*ClientResponse, *http.Response, error) {
-	return self.DoClientRequest("POST", "deploy", request, &apidata.ApiResponse{})
+func (self *MsplClient) DeleteProject(request *apidata.ProjectReq) (*ClientResponse, *http.Response, error) {
+	return self.DoMsplClientRequest("DELETE", "projects", request, &apidata.ApiResponse{})
 }
 
-func (self *Client) SaveBuild(request *apidata.BuildReq) (*ClientResponse, *http.Response, error) {
-	return self.DoClientRequest("POST", "builds", request, &apidata.ApiResponse{})
+func (self *MsplClient) Deploy(request *apidata.DeployReq) (*ClientResponse, *http.Response, error) {
+	return self.DoMsplClientRequest("POST", "deploy", request, &apidata.ApiResponse{})
 }
 
-func (self *Client) GetProviderProjects(providerKey string) (*ClientResponse, *http.Response, error) {
+func (self *MsplClient) SaveBuild(request *apidata.BuildReq) (*ClientResponse, *http.Response, error) {
+	return self.DoMsplClientRequest("POST", "builds", request, &apidata.ApiResponse{})
+}
+
+func (self *MsplClient) GetProviderProjects(providerKey string) (*ClientResponse, *http.Response, error) {
 	res, err := self.DoGet(fmt.Sprintf("%s/projects", providerKey), nil)
 	if err != nil {
 		return nil, nil, err
@@ -58,7 +68,7 @@ func (self *Client) GetProviderProjects(providerKey string) (*ClientResponse, *h
 	return decodeResponse(res, &pData)
 }
 
-func (self *Client) GetProjects() (*ClientResponse, *http.Response, error) {
+func (self *MsplClient) GetProjects() (*ClientResponse, *http.Response, error) {
 	res, err := self.DoGet("projects", nil)
 	if err != nil {
 		return nil, nil, err
@@ -68,7 +78,7 @@ func (self *Client) GetProjects() (*ClientResponse, *http.Response, error) {
 	return decodeResponse(res, &projects)
 }
 
-func (self *Client) DoClientRequest(
+func (self *MsplClient) DoMsplClientRequest(
 	method, endpoint string,
 	reqData interface{},
 	respData interface{},
@@ -85,23 +95,23 @@ func (self *Client) DoClientRequest(
 	return decodeResponse(res, respData)
 }
 
-func (self *Client) EndpointUrl(endpointName string) string {
+func (self *MsplClient) EndpointUrl(endpointName string) string {
 	return fmt.Sprintf("%s/api/0/%s", self.ServerURL, endpointName)
 }
 
-func (self *Client) DoGet(endpoint string, opts *RequestOptions) (*http.Response, error) {
+func (self *MsplClient) DoGet(endpoint string, opts *RequestOptions) (*http.Response, error) {
 	return self.DoReq("GET", endpoint, nil, opts)
 }
 
-func (self *Client) DoPost(endpoint string, JSON *string, opts *RequestOptions) (*http.Response, error) {
+func (self *MsplClient) DoPost(endpoint string, JSON *string, opts *RequestOptions) (*http.Response, error) {
 	return self.DoReq("POST", endpoint, JSON, opts)
 }
 
-func (self *Client) DoDelete(endpoint string, JSON *string, opts *RequestOptions) (*http.Response, error) {
+func (self *MsplClient) DoDelete(endpoint string, JSON *string, opts *RequestOptions) (*http.Response, error) {
 	return self.DoReq("DELETE", endpoint, JSON, opts)
 }
 
-func (self *Client) DoReq(method string, endpoint string, JSON *string, opts *RequestOptions) (*http.Response, error) {
+func (self *MsplClient) DoReq(method string, endpoint string, JSON *string, opts *RequestOptions) (*http.Response, error) {
 	if opts == nil {
 		opts = NewRequestOptions()
 	}

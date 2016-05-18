@@ -24,7 +24,7 @@ import (
 var (
 	server    *httptest.Server
 	reader    io.Reader
-	apiClient *client.Client
+	apiClient *client.MsplClient
 	cfg       *config.Config
 	database  *models.DB
 )
@@ -128,7 +128,7 @@ func init() {
 			sourceProviders,
 		),
 	)
-	apiClient = client.NewClient(server.URL, "")
+	apiClient = client.NewMsplClient(server.URL, "")
 }
 
 func TestMain(m *testing.M) {
@@ -140,8 +140,8 @@ func TestMain(m *testing.M) {
 	os.Exit(ret)
 }
 
-func NewApiClient(token string) *client.Client {
-	return client.NewClient(server.URL, token)
+func NewApiClient(token string) *client.MsplClient {
+	return client.NewMsplClient(server.URL, token)
 }
 
 func createDB() {
