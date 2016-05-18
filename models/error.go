@@ -2,10 +2,13 @@ package models
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 
 	"github.com/lib/pq"
 )
+
+var ErrNotFound = errors.New("not found")
 
 type QueryExecError struct {
 	Query   string

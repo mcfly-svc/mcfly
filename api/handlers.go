@@ -115,11 +115,11 @@ func (handlers *Handlers) MakeHandlerFunc(opts HandlerOptions) func(http.Respons
 			projectHandle := ctx.RequestData.(ProjectContextRequest).ProjectHandle()
 			project, err := handlers.DB.GetProject(projectHandle, sp)
 			if err != nil {
+				if err == models.ErrNotFound {
+					r.RespondWithError(NewNotFoundErr("project", projectHandle))
+					return
+				}
 				r.RespondWithServerError(err)
-				return
-			}
-			if project == nil {
-				r.RespondWithError(NewNotFoundErr("project", projectHandle))
 				return
 			}
 			ctx.Project = project

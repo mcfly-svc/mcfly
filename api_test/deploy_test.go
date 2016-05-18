@@ -15,6 +15,7 @@ func TestDeploy(t *testing.T) {
 	missingBuildHandle := `{ "project_handle":"mattmocks/project-2", "provider":"jabroni.com" }`
 	missingProjectHandle := `{ "build_handle": "a1b2c3", "provider":"jabroni.com" }`
 	missingProvider := `{ "build_handle": "a1b2c3", "project_handle":"mattmocks/project-2" }`
+	projectDne := `{ "build_handle": "a1b2c3", "project_handle":"jnk/jnk", "provider":"jabroni.com" }`
 
 	tests := []*EndpointTest{
 		afterAuthTest.InvalidJsonEndpointTest(),
@@ -30,6 +31,14 @@ func TestDeploy(t *testing.T) {
 			"a server error",
 			400,
 			api.NewServerErr(),
+			"mock_seeded_access_token_123",
+		},
+		{
+			projectDne,
+			"a request to deploy for a project that does not exist",
+			"a project not found error",
+			400,
+			api.NewNotFoundErr("project", "jnk/jnk"),
 			"mock_seeded_access_token_123",
 		},
 		{

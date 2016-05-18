@@ -70,7 +70,11 @@ func (db *DB) GetProject(projectHandle string, sourceProvider string) (*Project,
 			  AND source_provider=$2`
 	err := db.Get(&p, q, projectHandle, sourceProvider)
 	if err != nil {
-		return nil, err
+		if err.NoRows {
+			return nil, ErrNotFound
+		} else {
+			return nil, err
+		}
 	}
 	return &p, nil
 }

@@ -3,6 +3,7 @@ package models_test
 import (
 	"testing"
 
+	"github.com/mikec/msplapi/models"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -35,7 +36,6 @@ func TestGetProject(t *testing.T) {
 func TestGetProjectThatDoesNotExist(t *testing.T) {
 	resetDB()
 	p, err := DB.GetProject("project/that-does-not-exist", "jabroni.com")
-	//checkErr(t, err)
 	assert.Nil(t, p, "GetProject should return nil")
-	assert.Contains(t, err.Error(), "failed with error: sql: no rows in result set")
+	assert.Equal(t, err, models.ErrNotFound)
 }
