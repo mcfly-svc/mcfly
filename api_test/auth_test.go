@@ -39,7 +39,7 @@ func TestLogin(t *testing.T) {
 		},
 
 		{
-			`{ "token":"mock_jb_token_123", "provider":"jabroni.com"}`,
+			`{ "token":"mock_dne_user_token_123", "provider":"jabroni.com"}`,
 			"a valid provider token owned by a user that does not exist",
 			"expected user data with a newly generated access token",
 			200,

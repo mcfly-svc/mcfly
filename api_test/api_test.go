@@ -28,6 +28,7 @@ var (
 	apiClient *client.MsplClient
 	cfg       *config.Config
 	database  *models.DB
+	jabroni   *mockprovider.MockProvider
 )
 
 func generateMockToken() string {
@@ -68,15 +69,46 @@ func init() {
 	}
 	createDB()
 
-	jabroni := mockprovider.MockProvider{}
+	jabroni = new(mockprovider.MockProvider)
+	jabroni.On("Key").Return("jabroni.com")
+	jabroni.On("GetProjects", "mock_jabroni.com_token_123", "mattmocks").Return([]provider.ProjectData{
+		{"http://jabroni.com/mock/project1", "mock/project1"},
+		{"http://jabroni.com/mock/project2", "mock/project2"},
+		{"http://jabroni.com/mock/project3", "mock/project3"},
+	}, nil)
+	jabroni.On("GetTokenData", "badtoken").Return(
+		&provider.TokenDataResponse{false, "jabroni.com", "", nil}, nil,
+	)
+	jabroni.On("GetTokenData", "mock_jabroni.com_token_123").Return(
+		&provider.TokenDataResponse{true, "jabroni.com", "mattmocks", strPtr("Matt Mockman")}, nil,
+	)
+	jabroni.On("GetTokenData", "mock_dne_user_token_123").Return(
+		&provider.TokenDataResponse{true, "jabroni.com", "mikej", strPtr("Mike Jimmers")}, nil,
+	)
+	jabroni.On("GetProjectData", "mock_jabroni.com_token_123", "project_handle_dne").Return(
+		nil, provider.NewProjectNotFoundErr("jabroni.com", "mock/project-x"),
+	)
+	jabroni.On("GetProjectData", "mock_jabroni.com_token_123", "invalid_project_handle").Return(
+		nil, provider.NewInvalidProjectHandleErr("jabroni.com", "invalid_project_handle"),
+	)
+	jabroni.On("GetProjectData", "bad_saved_jabroni.com_token_123", "mock/project-x").Return(
+		nil, provider.NewTokenInvalidErr("jabroni.com"),
+	)
+	jabroni.On("GetProjectData", "mock_jabroni.com_token_123", "mattmocks/project-1").Return(
+		&provider.ProjectData{"https://jabroni.com/mock/project-x", "mock/project-x"}, nil,
+	)
+	jabroni.On("GetProjectData", "mock_jabroni.com_token_123", "mock/project-x").Return(
+		&provider.ProjectData{"https://jabroni.com/mock/project-x", "mock/project-x"}, nil,
+	)
+	jabroni.On("CreateProjectUpdateHook", "mock_jabroni.com_token_123", "mock/project-x").Return(nil)
 
 	msgChannel := &MockMessageChannel{}
 
 	authProviders := make(map[string]provider.AuthProvider)
-	authProviders[jabroni.Key()] = &jabroni
+	authProviders[jabroni.Key()] = jabroni
 
 	sourceProviders := make(map[string]provider.SourceProvider)
-	sourceProviders[jabroni.Key()] = &jabroni
+	sourceProviders[jabroni.Key()] = jabroni
 
 	server = httptest.NewServer(
 		api.NewRouter(

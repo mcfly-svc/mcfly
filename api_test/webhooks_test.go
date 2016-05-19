@@ -1,11 +1,25 @@
 package api_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/mikec/msplapi/api"
+	"github.com/mikec/msplapi/provider"
 	"github.com/stretchr/testify/assert"
 )
+
+func init() {
+	jabroni.On("DecodeProjectUpdateRequest", "valid_two_commits").Return(&provider.ProjectUpdateData{
+		ProjectHandle: "mattmocks/project-3",
+		Builds:        []string{"abc", "123"},
+	}, nil)
+	jabroni.On("DecodeProjectUpdateRequest", "project_handle_dne").Return(&provider.ProjectUpdateData{
+		ProjectHandle: "jnk/project-dne",
+		Builds:        []string{},
+	}, nil)
+	jabroni.On("DecodeProjectUpdateRequest", "decode_error").Return(nil, fmt.Errorf("mock decode error"))
+}
 
 func TestProjectUpdateWebhookErrors(t *testing.T) {
 	cleanupDB()

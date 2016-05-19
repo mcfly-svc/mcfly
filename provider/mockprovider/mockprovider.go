@@ -1,86 +1,65 @@
 package mockprovider
 
 import (
-	"errors"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 
 	"github.com/mikec/msplapi/provider"
+	"github.com/stretchr/testify/mock"
 )
 
-type MockProvider struct{}
-
-func (ap *MockProvider) Key() string {
-	return "jabroni.com"
+type MockProvider struct {
+	mock.Mock
 }
 
-func (self *MockProvider) GetProjects(token string, username string) ([]provider.ProjectData, error) {
-	return []provider.ProjectData{
-		{"http://jabroni.com/mock/project1", "mock/project1"},
-		{"http://jabroni.com/mock/project2", "mock/project2"},
-		{"http://jabroni.com/mock/project3", "mock/project3"},
-	}, nil
+func (p *MockProvider) Key() string {
+	args := p.Called()
+	return args.String(0)
+}
+
+func (p *MockProvider) GetProjects(token string, username string) ([]provider.ProjectData, error) {
+	args := p.Called(token, username)
+	return args.Get(0).([]provider.ProjectData), args.Error(1)
 }
 
 // get data from the provider based on a provider auth token
 func (p *MockProvider) GetTokenData(token string) (*provider.TokenDataResponse, error) {
-	if token == "badtoken" {
-		return &provider.TokenDataResponse{false, p.Key(), "", nil}, nil
-	} else if token == "mock_jabroni.com_token_123" {
-		return &provider.TokenDataResponse{true, p.Key(), "mattmocks", strPtr("Matt Mockman")}, nil
-	}
-	return &provider.TokenDataResponse{true, p.Key(), "mikej", strPtr("Mike Jimmers")}, nil
+	args := p.Called(token)
+	return args.Get(0).(*provider.TokenDataResponse), args.Error(1)
 }
 
 func (p *MockProvider) GetProjectData(token string, projectHandle string) (*provider.ProjectData, error) {
-	if projectHandle == "project_handle_dne" {
-		return nil, provider.NewProjectNotFoundErr("jabroni.com", "mock/project-x")
+	args := p.Called(token, projectHandle)
+	r0 := args.Get(0)
+	r1 := args.Error(1)
+	if r0 != nil {
+		return r0.(*provider.ProjectData), r1
+	} else {
+		return nil, r1
 	}
-	if projectHandle == "invalid_project_handle" {
-		return nil, provider.NewInvalidProjectHandleErr("jabroni.com", "invalid_project_handle")
-	}
-	if token == "bad_saved_jabroni.com_token_123" {
-		return nil, provider.NewTokenInvalidErr("jabroni.com")
-	}
-	return &provider.ProjectData{"https://jabroni.com/mock/project-x", "mock/project-x"}, nil
 }
 
-func (self *MockProvider) GetBuildData(token, buildHandle, projectHandle string) (*provider.BuildData, error) {
-	if token == "error" {
-		return nil, errors.New("mock GetBuildData error")
-	}
-	return &provider.BuildData{
-		Handle: buildHandle,
-		Url:    strPtr(fmt.Sprintf("mockprojecturl://")),
-		Config: nil,
-	}, nil
+func (p *MockProvider) GetBuildData(token, buildHandle, projectHandle string) (*provider.BuildData, error) {
+	args := p.Called(token, buildHandle, projectHandle)
+	return args.Get(0).(*provider.BuildData), args.Error(1)
 }
 
 func (p *MockProvider) CreateProjectUpdateHook(token string, projectHandle string) error {
-	return nil
+	args := p.Called(token, projectHandle)
+	return args.Error(0)
 }
 
 func (p *MockProvider) DecodeProjectUpdateRequest(req *http.Request) (*provider.ProjectUpdateData, error) {
 	b, err := ioutil.ReadAll(req.Body)
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
-	switch string(b) {
-	case "valid_two_commits":
-		return &provider.ProjectUpdateData{
-			ProjectHandle: "mattmocks/project-3",
-			Builds:        []string{"abc", "123"},
-		}, nil
-	case "project_handle_dne":
-		return &provider.ProjectUpdateData{
-			ProjectHandle: "jnk/project-dne",
-			Builds:        []string{},
-		}, nil
-	case "decode_error":
-		return nil, fmt.Errorf("mock decode error")
-	default:
-		return nil, nil
+	args := p.Called(string(b))
+	r0 := args.Get(0)
+	if r0 != nil {
+		return args.Get(0).(*provider.ProjectUpdateData), args.Error(1)
+	} else {
+		return nil, args.Error(1)
 	}
 }
 
