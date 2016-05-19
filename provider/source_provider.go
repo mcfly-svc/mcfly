@@ -14,7 +14,7 @@ type ProjectData struct {
 type BuildData struct {
 	Url    *string
 	Handle string
-	Config []byte
+	Config *BuildConfig
 }
 
 type ProjectUpdateData struct {

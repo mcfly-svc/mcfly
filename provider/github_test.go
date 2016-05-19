@@ -286,6 +286,3 @@ func makeSig(message, key string) string {
 	mac.Write([]byte(message))
 	return fmt.Sprintf("sha1=%s", hex.EncodeToString(mac.Sum(nil)))
 }
-
-func strPtr(v string) *string { return &v }
-func intPtr(v int) *int       { return &v }

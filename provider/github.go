@@ -135,7 +135,7 @@ func (self *GitHub) GetBuildData(token, sha, projectHandle string) (*BuildData, 
 	return &BuildData{
 		Url:    commit.HTMLURL,
 		Handle: sha,
-		Config: []byte(""),
+		Config: nil,
 	}, nil
 }
 
