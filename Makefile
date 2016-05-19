@@ -1,6 +1,7 @@
 all: get build database test
 
 get:
+	go get -u github.com/stretchr/testify/mock
 	go get -u github.com/jteeuwen/go-bindata/...
 
 build:

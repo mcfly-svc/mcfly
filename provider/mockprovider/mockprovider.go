@@ -1,6 +1,7 @@
 package mockprovider
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -46,7 +47,14 @@ func (p *MockProvider) GetProjectData(token string, projectHandle string) (*prov
 }
 
 func (self *MockProvider) GetBuildData(token, buildHandle, projectHandle string) (*provider.BuildData, error) {
-	return nil, nil
+	if token == "error" {
+		return nil, errors.New("mock GetBuildData error")
+	}
+	return &provider.BuildData{
+		Handle: buildHandle,
+		Url:    strPtr(fmt.Sprintf("mockprojecturl://")),
+		Config: nil,
+	}, nil
 }
 
 func (p *MockProvider) CreateProjectUpdateHook(token string, projectHandle string) error {
