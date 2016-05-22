@@ -5,9 +5,14 @@ import (
 	"strings"
 )
 
-type BuildConfig struct {
-	JSON []byte
+type BuildConfigProperties struct {
 	Site string `json:"site"`
+}
+
+type BuildConfig struct {
+	JSON       []byte
+	Warnings   []BuildConfigWarning
+	Properties *BuildConfigProperties
 }
 
 type BuildConfigWarning struct {
@@ -16,34 +21,36 @@ type BuildConfigWarning struct {
 	Char    *int
 }
 
-func NewBuildConfig(buildConfigJSON []byte) (*BuildConfig, []BuildConfigWarning) {
-	warnings := make([]BuildConfigWarning, 0)
+func NewBuildConfig(buildConfigJSON []byte) *BuildConfig {
 	bc := NewDefaultBuildConfig()
 	if buildConfigJSON == nil {
-		warnings = append(warnings, BuildConfigWarning{Message: "missing config file"})
-		return bc, warnings
+		bc.Warnings = append(bc.Warnings, BuildConfigWarning{Message: "missing config file"})
+		return bc
 	}
 
 	bc.JSON = buildConfigJSON
 
-	err := json.Unmarshal(buildConfigJSON, bc)
+	err := json.Unmarshal(buildConfigJSON, bc.Properties)
 	if err != nil {
 		line, char := jsonDecodeError(string(buildConfigJSON), err)
-		warnings = append(warnings, BuildConfigWarning{
+		bc.Warnings = append(bc.Warnings, BuildConfigWarning{
 			Message: err.Error(),
 			Line:    &line,
 			Char:    &char,
 		})
-		return bc, warnings
+		return bc
 	}
 
-	return bc, nil
+	return bc
 }
 
 func NewDefaultBuildConfig() *BuildConfig {
 	return &BuildConfig{
-		JSON: nil,
-		Site: "/",
+		JSON:     nil,
+		Warnings: make([]BuildConfigWarning, 0),
+		Properties: &BuildConfigProperties{
+			Site: "/",
+		},
 	}
 }
 

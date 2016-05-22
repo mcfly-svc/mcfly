@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/hmac"
 	"crypto/sha1"
+	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -23,6 +24,8 @@ type GitHubClient interface {
 	ListHooks(string, string, string) ([]github.Hook, *github.Response, error)
 	DeleteHook(string, string, string, int) (*github.Response, error)
 	GetCommit(string, string, string, string) (*github.RepositoryCommit, *github.Response, error)
+	GetContents(string, string, string, string, string) (
+		*github.RepositoryContent, []*github.RepositoryContent, *github.Response, error)
 }
 
 type GoGitHubClient struct{}
@@ -69,6 +72,12 @@ func (self *GoGitHubClient) GetCommit(token, owner, repo, sha string,
 ) (*github.RepositoryCommit, *github.Response, error) {
 	gh := self.NewClient(token)
 	return gh.Repositories.GetCommit(owner, repo, sha)
+}
+
+func (self *GoGitHubClient) GetContents(token, owner, repo, path, sha string,
+) (*github.RepositoryContent, []*github.RepositoryContent, *github.Response, error) {
+	gh := self.NewClient(token)
+	return gh.Repositories.GetContents(owner, repo, path, &github.RepositoryContentGetOptions{Ref: sha})
 }
 
 func (self *GoGitHubClient) NewClient(token string) *github.Client {
@@ -135,8 +144,28 @@ func (self *GitHub) GetBuildData(token, sha, projectHandle string) (*BuildData, 
 	return &BuildData{
 		Url:    commit.HTMLURL,
 		Handle: sha,
-		Config: nil,
 	}, nil
+}
+
+func (self *GitHub) GetBuildConfig(token, sha, projectHandle string) (*BuildConfig, error) {
+	ph, err := NewProjectHandle(projectHandle)
+	if err != nil {
+		return nil, NewInvalidProjectHandleErr(self.Key(), projectHandle)
+	}
+	file, _, _, err := self.GetContents(token, ph.Owner, ph.Repo, "mspl.json", sha)
+	if err != nil {
+		return nil, err
+	}
+	if file == nil || file.Content == nil {
+		return NewBuildConfig(nil), nil
+	} else {
+		cfgEncoded := *file.Content
+		cfg, err := base64.StdEncoding.DecodeString(cfgEncoded)
+		if err != nil {
+			return nil, err
+		}
+		return NewBuildConfig(cfg), nil
+	}
 }
 
 func (self *GitHub) GetProjects(token string, username string) ([]ProjectData, error) {

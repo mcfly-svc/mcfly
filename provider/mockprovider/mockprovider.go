@@ -44,6 +44,11 @@ func (p *MockProvider) GetBuildData(token, buildHandle, projectHandle string) (*
 	return args.Get(0).(*provider.BuildData), args.Error(1)
 }
 
+func (p *MockProvider) GetBuildConfig(token, buildHandle, projectHandle string) (*provider.BuildConfig, error) {
+	args := p.Called(token, buildHandle, projectHandle)
+	return args.Get(0).(*provider.BuildConfig), args.Error(1)
+}
+
 func (p *MockProvider) CreateProjectUpdateHook(token string, projectHandle string) error {
 	args := p.Called(token, projectHandle)
 	return args.Error(0)

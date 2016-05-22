@@ -36,3 +36,7 @@ func (self *Dropbox) DecodeProjectUpdateRequest(req *http.Request) (*ProjectUpda
 func (self *Dropbox) GetBuildData(token, buildHandle, projectHandle string) (*BuildData, error) {
 	return nil, fmt.Errorf("Not Implemented")
 }
+
+func (self *Dropbox) GetBuildConfig(token, buildHandle, projectHandle string) (*BuildConfig, error) {
+	return nil, fmt.Errorf("Not Implemented")
+}

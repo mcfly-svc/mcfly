@@ -114,6 +114,11 @@ func (self *MockGitHubClient) GetCommit(token, owner, repo, sha string,
 	return nil, nil, nil
 }
 
+func (self *MockGitHubClient) GetContents(token, owner, repo, path, sha string) (
+	*github.RepositoryContent, []*github.RepositoryContent, *github.Response, error) {
+	return nil, nil, nil, nil
+}
+
 func checkMockTokenInvalid(token string) error {
 	if token == "mock_invalid_gh_token" {
 		return provider.NewTokenInvalidErr("github")
@@ -249,6 +254,9 @@ func TestDecodeProjectUpdateRequest(t *testing.T) {
 		}
 	}
 }
+
+// TODO: test GetBuildData and GetBuildConfig
+//       and use testify mocks for MockGitHubClient
 
 func assertTokenInvalidErr(t *testing.T, err error) {
 	expectErrMsg := provider.NewTokenInvalidErr("github").Error()

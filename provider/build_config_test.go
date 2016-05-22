@@ -8,45 +8,49 @@ import (
 )
 
 func TestNewBuildConfig(t *testing.T) {
+	missingFile := provider.NewDefaultBuildConfig()
+	missingFile.Warnings = []provider.BuildConfigWarning{
+		{Message: "missing config file"},
+	}
+
 	tests := []struct {
-		JSON           []byte
-		ExpectConfig   *provider.BuildConfig
-		ExpectWarnings []provider.BuildConfigWarning
+		JSON         []byte
+		ExpectConfig *provider.BuildConfig
 	}{
 		{
 			JSON: []byte(`{ "site":"/public" }`),
 			ExpectConfig: &provider.BuildConfig{
 				JSON: []byte(`{ "site":"/public" }`),
-				Site: "/public",
+				Properties: &provider.BuildConfigProperties{
+					Site: "/public",
+				},
+				Warnings: make([]provider.BuildConfigWarning, 0),
 			},
-			ExpectWarnings: nil,
 		},
 		{
 			JSON:         nil,
-			ExpectConfig: provider.NewDefaultBuildConfig(),
-			ExpectWarnings: []provider.BuildConfigWarning{
-				{Message: "missing config file"},
-			},
+			ExpectConfig: missingFile,
 		},
 		{
 			JSON: []byte(`{jnk_json}`),
 			ExpectConfig: &provider.BuildConfig{
 				JSON: []byte(`{jnk_json}`),
-				Site: "/",
-			},
-			ExpectWarnings: []provider.BuildConfigWarning{
-				{
-					Message: "invalid character 'j' looking for beginning of object key string",
-					Line:    intPtr(1),
-					Char:    intPtr(1),
+				Properties: &provider.BuildConfigProperties{
+					Site: "/",
+				},
+				Warnings: []provider.BuildConfigWarning{
+					{
+						Message: "invalid character 'j' looking for beginning of object key string",
+						Line:    intPtr(1),
+						Char:    intPtr(1),
+					},
 				},
 			},
 		},
 	}
 
 	for _, test := range tests {
-		bc, warnings := provider.NewBuildConfig(test.JSON)
+		bc := provider.NewBuildConfig(test.JSON)
 		assert.Equal(t, test.ExpectConfig, bc)
-		assert.Equal(t, test.ExpectWarnings, warnings)
 	}
 }

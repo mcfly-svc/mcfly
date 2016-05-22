@@ -14,7 +14,6 @@ type ProjectData struct {
 type BuildData struct {
 	Url    *string
 	Handle string
-	Config *BuildConfig
 }
 
 type ProjectUpdateData struct {
@@ -45,6 +44,9 @@ type SourceProvider interface {
 
 	// GetBuildData gets data for a given build
 	GetBuildData(string, string, string) (*BuildData, error)
+
+	// GetBuildConfig gets the config (mspl.json) for a given build
+	GetBuildConfig(string, string, string) (*BuildConfig, error)
 }
 
 type SourceProviderConfig struct {
