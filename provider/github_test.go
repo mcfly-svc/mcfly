@@ -5,6 +5,7 @@ import (
 	"crypto/hmac"
 	"crypto/sha1"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"net/http"
 	"testing"
@@ -12,6 +13,7 @@ import (
 	"github.com/google/go-github/github"
 	"github.com/mikec/msplapi/provider"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 var mockyJoe3Repos *github.RepositoriesSearchResult
@@ -32,7 +34,9 @@ func init() {
 	}
 }
 
-type MockGitHubClient struct{}
+type MockGitHubClient struct {
+	mock.Mock
+}
 
 func (self *MockGitHubClient) GetCurrentUser(token string) (*github.User, *github.Response, error) {
 	if token == "mock_bad_token" {
@@ -78,11 +82,10 @@ func (self *MockGitHubClient) CreateHook(
 	repo string,
 	hook *github.Hook,
 ) (*github.Hook, *github.Response, error) {
-	if token == "invalid" {
-		return nil, nil, fmt.Errorf("Mock Error")
-	} else {
-		return nil, nil, nil
-	}
+	args := self.Called(token, owner, repo, hook)
+	r0, _ := args.Get(0).(*github.Hook)
+	r1, _ := args.Get(1).(*github.Response)
+	return r0, r1, args.Error(2)
 }
 
 func (self *MockGitHubClient) DeleteHook(
@@ -91,22 +94,16 @@ func (self *MockGitHubClient) DeleteHook(
 	repo string,
 	id int,
 ) (*github.Response, error) {
-	return nil, nil
+	args := self.Called(token, owner, repo, id)
+	r0, _ := args.Get(0).(*github.Response)
+	return r0, args.Error(1)
 }
 
 func (self *MockGitHubClient) ListHooks(token, owner, repo string) ([]github.Hook, *github.Response, error) {
-	if token == "hook_exists" {
-		return []github.Hook{
-			{
-				ID: intPtr(27),
-				Config: map[string]interface{}{
-					"url": "http://mocky.com/api/0/webhooks/github/project-update",
-				},
-			},
-		}, nil, nil
-	} else {
-		return nil, nil, nil
-	}
+	args := self.Called(token, owner, repo)
+	r0, _ := args.Get(0).([]github.Hook)
+	r1, _ := args.Get(1).(*github.Response)
+	return r0, r1, args.Error(2)
 }
 
 func (self *MockGitHubClient) GetCommit(token, owner, repo, sha string,
@@ -129,14 +126,7 @@ func checkMockTokenInvalid(token string) error {
 var gh provider.GitHub
 
 func init() {
-	srcProviderCfg := provider.SourceProviderConfig{
-		ProjectUpdateHookUrlFmt: fmt.Sprintf("http://mocky.com/api/0/webhooks/{provider}/project-update"),
-		WebhookSecret:           "mock_webhook_secret",
-	}
-	gh = provider.GitHub{
-		GitHubClient:         &MockGitHubClient{},
-		SourceProviderConfig: &srcProviderCfg,
-	}
+	gh = newGhProvider(nil)
 }
 
 func TestGetTokenDataBadCredentialsError(t *testing.T) {
@@ -198,15 +188,84 @@ func TestGetProjectsInvalidToken(t *testing.T) {
 }
 
 func TestCreateProjectUpdateHook(t *testing.T) {
-	runProjectHandleValidationTests(t, func(handle string) error {
-		return gh.CreateProjectUpdateHook("abc", handle)
-	})
+	tests := []struct {
+		ExistingHookReturn    *github.Hook
+		ExistingHookReturnErr error
+		DeleteHookReturnErr   error
+		CreateHookReturnErr   error
+		ExpectReturn          error
+	}{
+		{
+			ExistingHookReturn: &github.Hook{
+				ID: intPtr(123),
+				Config: map[string]interface{}{
+					"url": "http://mocky.com/api/0/webhooks/github/project-update",
+				},
+			},
+			ExistingHookReturnErr: nil,
+			DeleteHookReturnErr:   nil,
+			CreateHookReturnErr:   nil,
+			ExpectReturn:          nil,
+		},
+		{
+			ExistingHookReturn:    nil,
+			ExistingHookReturnErr: errors.New("mock existing hook error"),
+			DeleteHookReturnErr:   nil,
+			CreateHookReturnErr:   nil,
+			ExpectReturn:          errors.New("mock existing hook error"),
+		},
+		{
+			ExistingHookReturn: &github.Hook{
+				ID: intPtr(123),
+				Config: map[string]interface{}{
+					"url": "http://mocky.com/api/0/webhooks/github/project-update",
+				},
+			},
+			ExistingHookReturnErr: nil,
+			DeleteHookReturnErr:   errors.New("mock delete hook error"),
+			CreateHookReturnErr:   nil,
+			ExpectReturn:          errors.New("mock delete hook error"),
+		},
+		{
+			ExistingHookReturn: &github.Hook{
+				ID: intPtr(123),
+				Config: map[string]interface{}{
+					"url": "http://mocky.com/api/0/webhooks/github/project-update",
+				},
+			},
+			ExistingHookReturnErr: nil,
+			DeleteHookReturnErr:   nil,
+			CreateHookReturnErr:   errors.New("mock create hook error"),
+			ExpectReturn:          errors.New("mock create hook error"),
+		},
+	}
 
-	err := gh.CreateProjectUpdateHook("invalid", "asdf/asdflkj")
-	assert.NotNil(t, err, "Expected CreateHook error to be returned")
+	for _, test := range tests {
+		m := new(MockGitHubClient)
+		if test.ExistingHookReturn != nil {
+			m.On("ListHooks", "abc", "jim", "proj1").Return([]github.Hook{*test.ExistingHookReturn}, nil, nil)
+		} else {
+			m.On("ListHooks", "abc", "jim", "proj1").Return(nil, nil, test.ExistingHookReturnErr)
+		}
+		if test.ExistingHookReturn != nil {
+			if test.DeleteHookReturnErr != nil {
+				m.On("DeleteHook", "abc", "jim", "proj1", *test.ExistingHookReturn.ID).Return(
+					nil, test.DeleteHookReturnErr)
+			} else {
+				m.On("DeleteHook", "abc", "jim", "proj1", *test.ExistingHookReturn.ID).Return(nil, nil)
+			}
+			if test.CreateHookReturnErr != nil {
+				m.On("CreateHook", "abc", "jim", "proj1", mock.AnythingOfType("*github.Hook")).Return(
+					nil, nil, test.CreateHookReturnErr)
+			} else {
+				m.On("CreateHook", "abc", "jim", "proj1", mock.AnythingOfType("*github.Hook")).Return(nil, nil, nil)
+			}
+		}
+		ghp := newGhProvider(m)
+		ret := ghp.CreateProjectUpdateHook("abc", "jim/proj1")
+		assert.Equal(t, test.ExpectReturn, ret)
+	}
 
-	err = gh.CreateProjectUpdateHook("hook_exists", "asdf/asdflkj")
-	assert.Nil(t, err, "Expected CreateHook to return nil")
 }
 
 func TestDecodeProjectUpdateRequest(t *testing.T) {
@@ -325,6 +384,20 @@ func runProjectHandleValidationTests(t *testing.T, fn func(string) error) {
 		} else {
 			assert.NotNil(t, err, fmt.Sprintf("Expected `%s` to be an invalid project handle", tst.Handle))
 		}
+	}
+}
+
+func newGhProvider(mockGhClient *MockGitHubClient) provider.GitHub {
+	srcProviderCfg := provider.SourceProviderConfig{
+		ProjectUpdateHookUrlFmt: fmt.Sprintf("http://mocky.com/api/0/webhooks/{provider}/project-update"),
+		WebhookSecret:           "mock_webhook_secret",
+	}
+	if mockGhClient == nil {
+		mockGhClient = new(MockGitHubClient)
+	}
+	return provider.GitHub{
+		GitHubClient:         mockGhClient,
+		SourceProviderConfig: &srcProviderCfg,
 	}
 }
 
