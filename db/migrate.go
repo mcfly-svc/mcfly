@@ -13,10 +13,7 @@ import (
 
 // RunMigrate runs the migration scripts from db/migrations/. direction can be `up` or `down`.
 // Migration scripts are copied as binary data in migrations.go using github.com/jteeuwen/go-bindata
-func RunMigrate(
-	dbUrl string,
-	direction string,
-) {
+func (mdb *MsplDB) RunMigrate(direction string) {
 	var doMigrate func(string, string) ([]error, bool)
 	switch direction {
 	case "up":
@@ -39,10 +36,11 @@ func RunMigrate(
 		writeAssetToTmpDir(assetPath, assetFile, tmpDir)
 	}
 
-	errs, ok := doMigrate(dbUrl, fmt.Sprintf("./%s", tmpDir))
+	errs, ok := doMigrate(mdb.ConnectionString(), fmt.Sprintf("./%s", tmpDir))
 	if !ok {
 		for _, err := range errs {
 			fmt.Println("Migration Error: ", err)
+			checkDbNotFoundErr(err, mdb.DatabaseName)
 		}
 		return
 	}

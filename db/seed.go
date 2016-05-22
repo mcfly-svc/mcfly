@@ -3,30 +3,28 @@ package db
 import (
 	"fmt"
 
-	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"github.com/mikec/msplapi/models"
 )
 
 // Seed inserts seed data into the database. It runs Clean first to delete any existing data.
-func Seed(conn *sqlx.DB) {
-	Clean(conn)
-	db := &models.DB{conn}
+func (mdb *MsplDB) Seed() {
+	mdb.Clean()
 
 	for _, val := range []string{"jabroni.com", "schlockbox"} {
-		addProviderValue(db.DB, val)
+		addProviderValue(mdb, val)
 	}
 
 	u := &models.User{Name: strPtr("Matt Mockman"), AccessToken: "mock_seeded_access_token_123"}
-	insertUser(db, u)
+	insertUser(mdb, u)
 
-	insertProviderAccessToken(db, u.ID, &models.ProviderAccessToken{
+	insertProviderAccessToken(mdb, u.ID, &models.ProviderAccessToken{
 		Provider:         "jabroni.com",
 		ProviderUsername: "mattmocks",
 		AccessToken:      "mock_jabroni.com_token_123",
 	})
 
-	insertProviderAccessToken(db, u.ID, &models.ProviderAccessToken{
+	insertProviderAccessToken(mdb, u.ID, &models.ProviderAccessToken{
 		Provider:         "schlockbox",
 		ProviderUsername: "mattmocks@gmail.com",
 		AccessToken:      "mock_schlockbox_token_123",
@@ -37,61 +35,61 @@ func Seed(conn *sqlx.DB) {
 		SourceProvider: "jabroni.com",
 		SourceUrl:      "https://jabroni.com/mattmocks/project-1",
 	}
-	insertProject(db, u, p1)
+	insertProject(mdb, u, p1)
 
 	p2 := &models.Project{
 		Handle:         "mattmocks/project-2",
 		SourceProvider: "jabroni.com",
 		SourceUrl:      "https://jabroni.com/mattmocks/project-2",
 	}
-	insertProject(db, u, p2)
+	insertProject(mdb, u, p2)
 
 	p3 := &models.Project{
 		Handle:         "mattmocks/project-3",
 		SourceProvider: "jabroni.com",
 		SourceUrl:      "https://jabroni.com/mattmocks/project-3",
 	}
-	insertProject(db, u, p3)
+	insertProject(mdb, u, p3)
 
-	insertBuild(db, p3, &models.Build{
+	insertBuild(mdb, p3, &models.Build{
 		Handle:       "abc-1",
 		DeployStatus: "succeeded",
 		ProviderUrl:  strPtr("https://jabroni.com/mattmocks/project-3/builds/abc-1"),
 	})
 
-	insertBuild(db, p3, &models.Build{
+	insertBuild(mdb, p3, &models.Build{
 		Handle:       "abc-2",
 		DeployStatus: "succeeded",
 		ProviderUrl:  strPtr("https://jabroni.com/mattmocks/project-3/builds/abc-2"),
 	})
 
-	insertBuild(db, p3, &models.Build{
+	insertBuild(mdb, p3, &models.Build{
 		Handle:       "abc-3",
 		DeployStatus: "failed",
 		ProviderUrl:  strPtr("https://jabroni.com/mattmocks/project-3/builds/abc-3"),
 	})
 
-	insertBuild(db, p3, &models.Build{
+	insertBuild(mdb, p3, &models.Build{
 		Handle:       "abc-4",
 		DeployStatus: "succeeded",
 	})
 
-	insertBuild(db, p3, &models.Build{
+	insertBuild(mdb, p3, &models.Build{
 		Handle:       "abc-4",
 		DeployStatus: "pending",
 		ProviderUrl:  strPtr("https://jabroni.com/mattmocks/project-3/builds/abc-4"),
 	})
 
 	u2 := &models.User{Name: strPtr("Penelope Providerless"), AccessToken: "mock_token_for_user_with_no_provider_tokens"}
-	insertUser(db, u2)
+	insertUser(mdb, u2)
 
 	u3 := &models.User{
 		Name:        strPtr("Bethany Badprovidertoken"),
 		AccessToken: "mock_token_for_user_with_bad_jabroni.com_token",
 	}
-	insertUser(db, u3)
+	insertUser(mdb, u3)
 
-	insertProviderAccessToken(db, u3.ID, &models.ProviderAccessToken{
+	insertProviderAccessToken(mdb, u3.ID, &models.ProviderAccessToken{
 		Provider:         "jabroni.com",
 		ProviderUsername: "bbadprovidertoken",
 		AccessToken:      "bad_saved_jabroni.com_token_123",
@@ -99,36 +97,36 @@ func Seed(conn *sqlx.DB) {
 
 }
 
-func addProviderValue(db *sqlx.DB, val string) {
+func addProviderValue(mdb *MsplDB, val string) {
 	//fmt.Printf("Add provider value \"%s\"\n", val)
-	_, err := db.Exec(fmt.Sprintf("ALTER TYPE provider ADD VALUE '%s'", val))
+	_, err := mdb.Exec(fmt.Sprintf("ALTER TYPE provider ADD VALUE '%s'", val))
 	if !isDbErr(err, "duplicate_object") {
-		checkFatal(err)
+		checkDbNotFoundErr(err, mdb.DatabaseName)
 	}
 }
 
-func insertUser(db *models.DB, u *models.User) {
+func insertUser(mdb *MsplDB, u *models.User) {
 	//fmt.Printf("INSERT marsupi_user %+v\n", *u)
-	err := db.SaveUser(u)
-	checkFatal(err)
+	err := mdb.SaveUser(u)
+	checkDbNotFoundErr(err, mdb.DatabaseName)
 }
 
-func insertProviderAccessToken(db *models.DB, uid int64, pt *models.ProviderAccessToken) {
+func insertProviderAccessToken(mdb *MsplDB, uid int64, pt *models.ProviderAccessToken) {
 	//fmt.Printf("INSERT provider_access_token %+v for user %d\n", *pt, uid)
-	err := db.SetUserProviderToken(uid, pt)
-	checkFatal(err)
+	err := mdb.SetUserProviderToken(uid, pt)
+	checkDbNotFoundErr(err, mdb.DatabaseName)
 }
 
-func insertProject(db *models.DB, u *models.User, p *models.Project) {
+func insertProject(mdb *MsplDB, u *models.User, p *models.Project) {
 	//fmt.Printf("INSERT project %+v\n for user %d\n", *p, u.ID)
-	err := db.SaveProject(p, u)
-	checkFatal(err)
+	err := mdb.SaveProject(p, u)
+	checkDbNotFoundErr(err, mdb.DatabaseName)
 }
 
-func insertBuild(db *models.DB, p *models.Project, b *models.Build) {
+func insertBuild(mdb *MsplDB, p *models.Project, b *models.Build) {
 	//fmt.Printf("INSERT build %+v\n for project %d\n", *b, p.ID)
-	err := db.SaveBuild(b, p)
-	checkFatal(err)
+	err := mdb.SaveBuild(b, p)
+	checkDbNotFoundErr(err, mdb.DatabaseName)
 }
 
 func strPtr(s string) *string {

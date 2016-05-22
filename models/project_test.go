@@ -9,16 +9,16 @@ import (
 
 func TestDeleteUserProject(t *testing.T) {
 	resetDB()
-	user, err := DB.GetUserByAccessToken("mock_seeded_access_token_123")
+	user, err := mdb.GetUserByAccessToken("mock_seeded_access_token_123")
 	checkErr(t, err)
-	err = DB.DeleteUserProject(user, "jabroni.com", "mattmocks/project-2")
+	err = mdb.DeleteUserProject(user, "jabroni.com", "mattmocks/project-2")
 	checkErr(t, err)
-	projects, err := DB.GetUserProjects(user)
+	projects, err := mdb.GetUserProjects(user)
 	checkErr(t, err)
 	if len(projects) != 2 {
 		t.Error("Number of projects should be 2")
 	}
-	allProjects, err := DB.GetAllProjects()
+	allProjects, err := mdb.GetAllProjects()
 	checkErr(t, err)
 	if len(allProjects) != 2 {
 		t.Error("Number of projects should be 2")
@@ -27,7 +27,7 @@ func TestDeleteUserProject(t *testing.T) {
 
 func TestGetProject(t *testing.T) {
 	resetDB()
-	p, err := DB.GetProject("mattmocks/project-2", "jabroni.com")
+	p, err := mdb.GetProject("mattmocks/project-2", "jabroni.com")
 	checkErr(t, err)
 	assert.NotZero(t, p.ID, "GetProject should return a project with a non-zero ID")
 	assert.Equal(t, "mattmocks/project-2", p.Handle, "GetProject should return a project with the given handle")
@@ -35,7 +35,7 @@ func TestGetProject(t *testing.T) {
 
 func TestGetProjectThatDoesNotExist(t *testing.T) {
 	resetDB()
-	p, err := DB.GetProject("project/that-does-not-exist", "jabroni.com")
+	p, err := mdb.GetProject("project/that-does-not-exist", "jabroni.com")
 	assert.Nil(t, p, "GetProject should return nil")
 	assert.Equal(t, err, models.ErrNotFound)
 }

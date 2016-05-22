@@ -25,7 +25,7 @@ func NewRouter(
 	sourceProviders map[string]provider.SourceProvider,
 ) *mux.Router {
 
-	db, err := models.NewDB(cfg.DatabaseUrl)
+	db, err := models.NewDB(cfg.DatabaseUrl, cfg.DatabaseName, cfg.DatabaseUseSSL)
 	if err != nil {
 		log.Panic(err)
 	}

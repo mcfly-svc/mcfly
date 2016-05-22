@@ -1,4 +1,4 @@
-package api_test
+package models_test
 
 import "github.com/mikec/msplapi/config"
 

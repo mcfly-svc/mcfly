@@ -138,7 +138,7 @@ func assertNumUserProjects(t *testing.T, desc string, token string, expectNumPro
 
 func assertProjectHasBuildCommits(t *testing.T, desc string, project *models.Project, buildCommits map[string]bool) {
 	Convey(desc, t, func() {
-		builds, err := database.GetProjectBuilds(project)
+		builds, err := mdb.GetProjectBuilds(project)
 		if err != nil {
 			t.Error(err)
 		}

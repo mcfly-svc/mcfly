@@ -2,6 +2,8 @@ package models
 
 import (
 	"database/sql"
+	"fmt"
+	"strings"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -24,14 +26,34 @@ type Datastore interface {
 
 type DB struct {
 	*sqlx.DB
+	DatabaseUrl  string
+	DatabaseName string
+	UseSSL       bool
 }
 
-func NewDB(dbName string) (*DB, error) {
-	db, err := sqlx.Open("postgres", dbName)
+func NewDB(databaseUrl string, databaseName string, useSSL bool) (*DB, error) {
+	db := DB{
+		DatabaseUrl:  databaseUrl,
+		DatabaseName: databaseName,
+		UseSSL:       useSSL,
+	}
+	sqlxConn, err := sqlx.Open("postgres", db.ConnectionString())
 	if err != nil {
 		return nil, err
 	}
-	return &DB{db}, nil
+	db.DB = sqlxConn
+	return &db, nil
+}
+
+func (db *DB) ConnectionString() string {
+	url := strings.TrimRight(db.DatabaseUrl, "/")
+	if db.DatabaseName != "" {
+		url = fmt.Sprintf("%s/%s", url, db.DatabaseName)
+	}
+	if !db.UseSSL {
+		url = fmt.Sprintf("%s?sslmode=disable", url)
+	}
+	return url
 }
 
 func (db *DB) Get(dest interface{}, query string, args ...interface{}) *QueryExecError {

@@ -2,7 +2,6 @@ package api_test
 
 import (
 	"fmt"
-	"log"
 
 	_ "github.com/mattes/migrate/driver/postgres"
 	"github.com/mikec/msplapi/api"
@@ -10,7 +9,6 @@ import (
 	"github.com/mikec/msplapi/config"
 	"github.com/mikec/msplapi/db"
 	"github.com/mikec/msplapi/logging"
-	"github.com/mikec/msplapi/models"
 	"github.com/mikec/msplapi/mq"
 	"github.com/mikec/msplapi/provider"
 	"github.com/mikec/msplapi/provider/mockprovider"
@@ -27,7 +25,7 @@ var (
 	reader    io.Reader
 	apiClient *client.MsplClient
 	cfg       *config.Config
-	database  *models.DB
+	mdb       *db.MsplDB
 	jabroni   *mockprovider.MockProvider
 )
 
@@ -60,14 +58,12 @@ func (m *MockMessageChannel) CloseChannel() error {
 }
 
 func init() {
-	cfg = GetTestConfig()
-	dbs, err := models.NewDB(cfg.DatabaseUrl)
+	fmt.Println("INIT")
 
-	database = dbs
-	if err != nil {
-		log.Fatal(err)
-	}
-	createDB()
+	cfg = GetTestConfig()
+	msplDb := db.NewMsplDB(cfg.DatabaseUrl, cfg.DatabaseName, cfg.DatabaseUseSSL)
+	mdb = msplDb
+	initDB()
 
 	jabroni = new(mockprovider.MockProvider)
 	jabroni.On("Key").Return("jabroni.com")
@@ -124,6 +120,7 @@ func init() {
 }
 
 func TestMain(m *testing.M) {
+	fmt.Println("TEST MAIN")
 
 	ret := m.Run()
 
@@ -136,8 +133,8 @@ func NewApiClient(token string) *client.MsplClient {
 	return client.NewMsplClient(server.URL, token)
 }
 
-func createDB() {
-	db.Create(cfg.DatabaseUrl)
+func initDB() {
+	mdb.Init()
 }
 
 func resetDB() {
@@ -146,11 +143,11 @@ func resetDB() {
 }
 
 func cleanupDB() {
-	db.Clean(database.DB)
+	mdb.Clean()
 }
 
 func seedDB() {
-	db.Seed(database.DB)
+	mdb.Seed()
 }
 
 func strPtr(v string) *string { return &v }

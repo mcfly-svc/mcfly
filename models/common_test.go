@@ -4,23 +4,19 @@ import (
 	"testing"
 
 	"github.com/mikec/msplapi/db"
-	"github.com/mikec/msplapi/models"
 )
 
 var (
-	DB *models.DB
+	mdb *db.MsplDB
 )
 
-func getDB() *models.DB {
-	return DB
+func getMsplDB() *db.MsplDB {
+	return mdb
 }
 
 func init() {
-	newDb, err := models.NewDB("postgres://localhost:5432/marsupi_test?sslmode=disable")
-	if err != nil {
-		panic(err)
-	}
-	DB = newDb
+	cfg := GetTestConfig()
+	mdb = db.NewMsplDB(cfg.DatabaseUrl, cfg.DatabaseName, cfg.DatabaseUseSSL)
 }
 
 func resetDB() {
@@ -29,11 +25,11 @@ func resetDB() {
 }
 
 func cleanupDB() {
-	db.Clean(DB.DB)
+	mdb.Clean()
 }
 
 func seedDB() {
-	db.Seed(DB.DB)
+	mdb.Seed()
 }
 
 func checkErr(t *testing.T, err error) {

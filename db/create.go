@@ -1,7 +1,15 @@
 package db
 
-// Create destroys and creates the database by running all migrations down and then up
-func Create(dbUrl string) {
-	RunMigrate(dbUrl, "down")
-	RunMigrate(dbUrl, "up")
+import "fmt"
+
+// Creates a new database
+func (mdb *MsplDB) Create(databaseName string) {
+	_, err := mdb.Exec(fmt.Sprintf("CREATE DATABASE %s", databaseName))
+	if err != nil {
+		if isDbErr(err, "duplicate_database") {
+			fmt.Printf("Database %s already exists!\n", databaseName)
+		} else {
+			check(err)
+		}
+	}
 }
