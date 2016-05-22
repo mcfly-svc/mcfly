@@ -255,8 +255,54 @@ func TestDecodeProjectUpdateRequest(t *testing.T) {
 	}
 }
 
+/*
+
 // TODO: test GetBuildData and GetBuildConfig
 //       and use testify mocks for MockGitHubClient
+
+func TestGetBuildConfig(t *testing.T) {
+	tests := []struct{
+		Token string,
+		Sha string,
+		ProjectHandle string,
+		ExpectBuildConfig *provider.BuildConfig,
+		ExpectErr error
+	}{
+		{
+			Token: "valid_token",
+			Sha: "valid_sha",
+			ProjectHandle:
+		}
+	}
+}*/
+
+func TestNewGitHubProjectHandle(t *testing.T) {
+	tests := []struct {
+		Handle              string
+		ExpectProjectHandle *provider.GitHubProjectHandle
+		ExpectErr           error
+	}{
+		{
+			Handle: "valid/handle",
+			ExpectProjectHandle: &provider.GitHubProjectHandle{
+				Owner: "valid",
+				Repo:  "handle",
+			},
+			ExpectErr: nil,
+		},
+		{
+			Handle:              "invalid/handle/now",
+			ExpectProjectHandle: nil,
+			ExpectErr:           fmt.Errorf("Invalid project handle `invalid/handle/now`"),
+		},
+	}
+
+	for _, test := range tests {
+		ph, err := provider.NewGitHubProjectHandle(test.Handle)
+		assert.Equal(t, test.ExpectErr, err)
+		assert.Equal(t, test.ExpectProjectHandle, ph)
+	}
+}
 
 func assertTokenInvalidErr(t *testing.T, err error) {
 	expectErrMsg := provider.NewTokenInvalidErr("github").Error()

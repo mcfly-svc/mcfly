@@ -121,7 +121,7 @@ func (self *GitHub) GetTokenData(token string) (*TokenDataResponse, error) {
 }
 
 func (self *GitHub) GetProjectData(token string, projectHandle string) (*ProjectData, error) {
-	ph, err := NewProjectHandle(projectHandle)
+	ph, err := NewGitHubProjectHandle(projectHandle)
 	if err != nil {
 		return nil, NewInvalidProjectHandleErr(self.Key(), projectHandle)
 	}
@@ -133,7 +133,7 @@ func (self *GitHub) GetProjectData(token string, projectHandle string) (*Project
 }
 
 func (self *GitHub) GetBuildData(token, sha, projectHandle string) (*BuildData, error) {
-	ph, err := NewProjectHandle(projectHandle)
+	ph, err := NewGitHubProjectHandle(projectHandle)
 	if err != nil {
 		return nil, NewInvalidProjectHandleErr(self.Key(), projectHandle)
 	}
@@ -148,7 +148,7 @@ func (self *GitHub) GetBuildData(token, sha, projectHandle string) (*BuildData, 
 }
 
 func (self *GitHub) GetBuildConfig(token, sha, projectHandle string) (*BuildConfig, error) {
-	ph, err := NewProjectHandle(projectHandle)
+	ph, err := NewGitHubProjectHandle(projectHandle)
 	if err != nil {
 		return nil, NewInvalidProjectHandleErr(self.Key(), projectHandle)
 	}
@@ -181,7 +181,7 @@ func (self *GitHub) GetProjects(token string, username string) ([]ProjectData, e
 }
 
 func (self *GitHub) CreateProjectUpdateHook(token string, projectHandle string) error {
-	ph, err := NewProjectHandle(projectHandle)
+	ph, err := NewGitHubProjectHandle(projectHandle)
 	if err != nil {
 		return NewInvalidProjectHandleErr(self.Key(), projectHandle)
 	}
@@ -310,20 +310,20 @@ func checkSig(body []byte, signature, key string) bool {
 	return signature == expectedSig
 }
 
-type ProjectHandle struct {
+type GitHubProjectHandle struct {
 	Owner string
 	Repo  string
 }
 
-func NewProjectHandle(projectHandle string) (*ProjectHandle, error) {
+func NewGitHubProjectHandle(projectHandle string) (*GitHubProjectHandle, error) {
 	s := strings.Split(projectHandle, "/")
 	if len(s) != 2 {
 		return nil, fmt.Errorf("Invalid project handle `%s`", projectHandle)
 	}
-	return &ProjectHandle{s[0], s[1]}, nil
+	return &GitHubProjectHandle{s[0], s[1]}, nil
 }
 
-func (ph ProjectHandle) String() string {
+func (ph GitHubProjectHandle) String() string {
 	return fmt.Sprintf("%s/%s", ph.Owner, ph.Repo)
 }
 
