@@ -1,4 +1,4 @@
-all: get build test
+all: build test
 
 get:
 	go get -u github.com/stretchr/testify/mock
@@ -24,7 +24,9 @@ database:
 	msplapi init-db marsupi_test
 	msplapi seed-db marsupi_test
 
-ngrok:
+setup: get build database
+
+run-ngrok:
 	ngrok http -subdomain=msplapi 8081
 
 # gofmt

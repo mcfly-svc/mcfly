@@ -7,15 +7,20 @@ Data access layer for marsupi
 Setup
 =====
 
-Run postgres SQL locally
+Install and run *Postgres*: [Postgres App](http://postgresapp.com/) on OSX is usually the easiest way
 
-`make`
+Install and run *RabbitMQ*: `brew update` + `brew install rabbitmq` + `rabbitmq-server`
+[https://www.rabbitmq.com/install-homebrew.html](https://www.rabbitmq.com/install-homebrew.html) for more help.
 
-If you're running on localhost, you need to run [ngrok](https://ngrok.com) `ngrok http -subdomain=msplapi 8081` for webhooks to work. Upgrading to ngrok Pro plan is required.
+Build msplapi and setup the datbase: `make setup`
+
+If you're running on localhost, you need to install and run [ngrok](https://ngrok.com) for webhooks to work. Upgrading to ngrok Pro plan is required.
+
+`make run-ngrok` to run it
 
 
-Run API Server
-==============
+Run
+===
 
 `msplapi run`
 
@@ -23,25 +28,19 @@ Run API Server
 Testing
 =======
 
-The api_test package needs postgres to be running. Connection limit needs to be increased (set `max_connections = 1000` in `postgresql.conf`
+The api_test package needs postgres to be running. Connection limit needs to be increased (set `max_connections = 1000` in `postgresql.conf`)
 
 `make test`
 
 
-Database
+Commands
 ========
 
-`msplapi migrate up`
-`msplapi migrate down`
-`msplapi create-db`
-`msplapi clean-db`
-`msplapi seed-db`
+`msplapi` shows available commands
+
 
 Environment Config
 ==================
 
-```
-# URL for the api service
-export MSPL_API_URL=http://msplapi.ngrok.io
-export MSPL_DATABASE_URL=postgres://localhost:5432/marsupi?sslmode=disable
-```
+see `config/config.go`
+
