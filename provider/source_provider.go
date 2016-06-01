@@ -33,7 +33,7 @@ type SourceProvider interface {
 	GetProjects(string, string) ([]ProjectData, error)
 
 	// CreateProjectUpdateHook creates a webhook on the source provider that will notify
-	// msplapi when a given project is updated
+	// mcfly when a given project is updated
 	CreateProjectUpdateHook(string, string) error
 
 	// DecodeProjectUpdateRequest decodes the request made to the ProjectUpdate webhook
@@ -45,7 +45,7 @@ type SourceProvider interface {
 	// GetBuildData gets data for a given build
 	GetBuildData(string, string, string) (*BuildData, error)
 
-	// GetBuildConfig gets the config (mspl.json) for a given build
+	// GetBuildConfig gets the config (mcfly.json) for a given build
 	GetBuildConfig(string, string, string) (*BuildConfig, error)
 }
 

@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/mikec/msplapi/api/apidata"
-	"github.com/mikec/msplapi/logging"
+	"github.com/mcfly-svc/mcfly/api/apidata"
+	"github.com/mcfly-svc/mcfly/logging"
 )
 
 type Responder struct {

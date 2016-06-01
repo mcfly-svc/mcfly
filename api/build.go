@@ -1,8 +1,8 @@
 package api
 
 import (
-	"github.com/mikec/msplapi/api/apidata"
-	"github.com/mikec/msplapi/models"
+	"github.com/mcfly-svc/mcfly/api/apidata"
+	"github.com/mcfly-svc/mcfly/models"
 )
 
 func (handlers *Handlers) SaveBuild(r *Responder, ctx *RequestContext) {

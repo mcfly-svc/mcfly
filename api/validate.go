@@ -6,7 +6,7 @@ import (
 
 	"gopkg.in/validator.v2"
 
-	"github.com/mikec/msplapi/models"
+	"github.com/mcfly-svc/mcfly/models"
 )
 
 // ValidateAuthorization checks the "Authorization" header in the request. If this header doesn't

@@ -1,10 +1,10 @@
 package api
 
 import (
-	"github.com/mikec/msplapi/api/apidata"
-	"github.com/mikec/msplapi/logging"
-	"github.com/mikec/msplapi/models"
-	"github.com/mikec/msplapi/provider"
+	"github.com/mcfly-svc/mcfly/api/apidata"
+	"github.com/mcfly-svc/mcfly/logging"
+	"github.com/mcfly-svc/mcfly/models"
+	"github.com/mcfly-svc/mcfly/provider"
 )
 
 func (handlers *Handlers) PostProject(r *Responder, ctx *RequestContext) {

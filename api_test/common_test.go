@@ -7,10 +7,10 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/mikec/msplapi/api"
-	"github.com/mikec/msplapi/api/apidata"
-	"github.com/mikec/msplapi/client"
-	"github.com/mikec/msplapi/models"
+	"github.com/mcfly-svc/mcfly/api"
+	"github.com/mcfly-svc/mcfly/api/apidata"
+	"github.com/mcfly-svc/mcfly/client"
+	"github.com/mcfly-svc/mcfly/models"
 	. "github.com/smartystreets/goconvey/convey"
 )
 

@@ -3,7 +3,7 @@ package api_test
 import (
 	"testing"
 
-	"github.com/mikec/msplapi/api"
+	"github.com/mcfly-svc/mcfly/api"
 )
 
 func TestDeploy(t *testing.T) {

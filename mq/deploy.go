@@ -9,10 +9,10 @@ type DeployQueueMessage struct {
 	SourceProviderAccessToken string `json:"source_provider_access_token"`
 }
 
-func (rc *MsplChannel) SendDeployQueueMessage(deployMsg *DeployQueueMessage) error {
+func (rc *McflyChannel) SendDeployQueueMessage(deployMsg *DeployQueueMessage) error {
 	return rc.Send(rc.DeployQueue, deployMsg)
 }
 
-func (rc *MsplChannel) ReceiveDeployQueueMessage() (<-chan amqp.Delivery, error) {
+func (rc *McflyChannel) ReceiveDeployQueueMessage() (<-chan amqp.Delivery, error) {
 	return rc.Receive(rc.DeployQueue)
 }

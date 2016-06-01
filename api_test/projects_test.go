@@ -3,9 +3,9 @@ package api_test
 import (
 	"testing"
 
-	"github.com/mikec/msplapi/api"
-	"github.com/mikec/msplapi/api/apidata"
-	"github.com/mikec/msplapi/provider"
+	"github.com/mcfly-svc/mcfly/api"
+	"github.com/mcfly-svc/mcfly/api/apidata"
+	"github.com/mcfly-svc/mcfly/provider"
 )
 
 func TestPostProject(t *testing.T) {
@@ -118,8 +118,8 @@ func TestGetProjects(t *testing.T) {
 		InvalidAuthorizationTokenErrorTest(""),
 		{
 			"",
-			"a request to get projects added to mspl",
-			"a list of mspl projects",
+			"a request to get projects added to mcfly",
+			"a list of mcfly projects",
 			200,
 			[]apidata.ProjectResp{
 				{"mattmocks/project-1", "https://jabroni.com/mattmocks/project-1", "jabroni.com"},
@@ -153,7 +153,7 @@ func TestDeleteProject(t *testing.T) {
 
 	et := &EndpointTest{
 		`{"provider":"jabroni.com", "handle":"mattmocks/project-1"}`,
-		"a request to delete a project added to mspl",
+		"a request to delete a project added to mcfly",
 		"a success response",
 		200,
 		api.NewSuccessResponse(),

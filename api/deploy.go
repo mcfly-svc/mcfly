@@ -1,8 +1,8 @@
 package api
 
 import (
-	"github.com/mikec/msplapi/api/apidata"
-	"github.com/mikec/msplapi/mq"
+	"github.com/mcfly-svc/mcfly/api/apidata"
+	"github.com/mcfly-svc/mcfly/mq"
 )
 
 func (handlers *Handlers) Deploy(r *Responder, ctx *RequestContext) {

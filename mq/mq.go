@@ -14,13 +14,13 @@ type MessageChannel interface {
 	CloseChannel() error
 }
 
-func CreateChannel(rabbitMQUrl string) *MsplChannel {
+func CreateChannel(rabbitMQUrl string) *McflyChannel {
 
 	conn := connect(rabbitMQUrl)
 	ch := openChannel(conn)
 	deployQueue := declareQueue(ch, "deploy")
 
-	return &MsplChannel{
+	return &McflyChannel{
 		Connection:  conn,
 		Channel:     ch,
 		DeployQueue: deployQueue,
@@ -28,13 +28,13 @@ func CreateChannel(rabbitMQUrl string) *MsplChannel {
 	}
 }
 
-type MsplChannel struct {
+type McflyChannel struct {
 	Connection  *amqp.Connection
 	Channel     *amqp.Channel
 	DeployQueue *amqp.Queue
 }
 
-func (rc *MsplChannel) Send(q *amqp.Queue, v interface{}) error {
+func (rc *McflyChannel) Send(q *amqp.Queue, v interface{}) error {
 	json, err := json.Marshal(v)
 	if err != nil {
 		return NewJsonMarshalError(err, v)
@@ -55,7 +55,7 @@ func (rc *MsplChannel) Send(q *amqp.Queue, v interface{}) error {
 	return nil
 }
 
-func (rc *MsplChannel) Receive(q *amqp.Queue) (<-chan amqp.Delivery, error) {
+func (rc *McflyChannel) Receive(q *amqp.Queue) (<-chan amqp.Delivery, error) {
 	msgs, err := rc.Channel.Consume(
 		q.Name, // queue
 		"",     // consumer
@@ -71,11 +71,11 @@ func (rc *MsplChannel) Receive(q *amqp.Queue) (<-chan amqp.Delivery, error) {
 	return msgs, nil
 }
 
-func (rc *MsplChannel) CloseConnection() error {
+func (rc *McflyChannel) CloseConnection() error {
 	return rc.Connection.Close()
 }
 
-func (rc *MsplChannel) CloseChannel() error {
+func (rc *McflyChannel) CloseChannel() error {
 	return rc.Channel.Close()
 }
 

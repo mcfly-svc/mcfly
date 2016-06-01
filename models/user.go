@@ -16,7 +16,7 @@ type ProviderAccessToken struct {
 // SaveUser saves a user and returns the new user's ID
 func (db *DB) SaveUser(u *User) error {
 	var id int64
-	q := `INSERT INTO marsupi_user(name, access_token) VALUES($1, $2) RETURNING id`
+	q := `INSERT INTO mcfly_user(name, access_token) VALUES($1, $2) RETURNING id`
 	err := db.QueryRowScan(&id, q, u.Name, u.AccessToken)
 	if err != nil {
 		return err
@@ -36,10 +36,10 @@ func (db *DB) SetUserProviderToken(userID int64, providerToken *ProviderAccessTo
 	return nil
 }
 
-// GetUserByAccessToken gets a user by their Marsupi access token
+// GetUserByAccessToken gets a user by their McFly access token
 func (db *DB) GetUserByAccessToken(accessToken string) (*User, error) {
 	user := &User{}
-	q := `SELECT * FROM marsupi_user WHERE access_token=$1`
+	q := `SELECT * FROM mcfly_user WHERE access_token=$1`
 	err := db.Get(user, q, accessToken)
 	if err != nil {
 		if err.NoRows {
@@ -54,9 +54,9 @@ func (db *DB) GetUserByAccessToken(accessToken string) (*User, error) {
 // GetUserByProviderToken gets a user by one of their provider access tokens
 func (db *DB) GetUserByProviderToken(providerToken *ProviderAccessToken) (*User, error) {
 	user := &User{}
-	q := `SELECT marsupi_user.* FROM marsupi_user 
+	q := `SELECT mcfly_user.* FROM mcfly_user 
 				INNER JOIN provider_access_token
-				ON marsupi_user.id = provider_access_token.user_id
+				ON mcfly_user.id = provider_access_token.user_id
 				WHERE provider_access_token.provider=$1
 				AND provider_access_token.provider_username=$2
 				AND provider_access_token.access_token=$3`
@@ -74,8 +74,8 @@ func (db *DB) GetUserByProviderToken(providerToken *ProviderAccessToken) (*User,
 // GetUserByProject gets a user by one of their project handles
 func (db *DB) GetUserByProject(project *Project) (*User, error) {
 	user := &User{}
-	q := `SELECT marsupi_user.* FROM marsupi_user 
-				INNER JOIN user_project ON marsupi_user.id = user_project.user_id
+	q := `SELECT mcfly_user.* FROM mcfly_user 
+				INNER JOIN user_project ON mcfly_user.id = user_project.user_id
 				INNER JOIN project ON user_project.project_id = project.id
 				WHERE project.handle=$1
 				AND project.source_provider=$2`
@@ -93,11 +93,11 @@ func (db *DB) GetUserByProject(project *Project) (*User, error) {
 // GetProviderTokenForUser gets a provider token for a given user and provider
 func (db *DB) GetProviderTokenForUser(user *User, provider string) (*ProviderAccessToken, error) {
 	pt := &ProviderAccessToken{}
-	q := `SELECT provider_access_token.* FROM marsupi_user
+	q := `SELECT provider_access_token.* FROM mcfly_user
 				INNER JOIN provider_access_token
-				ON marsupi_user.id = provider_access_token.user_id
+				ON mcfly_user.id = provider_access_token.user_id
 				WHERE provider_access_token.provider=$1
-				AND marsupi_user.id=$2`
+				AND mcfly_user.id=$2`
 	err := db.Get(pt, q, provider, user.ID)
 	if err != nil {
 		if err.NoRows {

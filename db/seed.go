@@ -4,11 +4,11 @@ import (
 	"fmt"
 
 	_ "github.com/lib/pq"
-	"github.com/mikec/msplapi/models"
+	"github.com/mcfly-svc/mcfly/models"
 )
 
 // Seed inserts seed data into the database. It runs Clean first to delete any existing data.
-func (mdb *MsplDB) Seed() {
+func (mdb *McflyDB) Seed() {
 	mdb.Clean()
 
 	for _, val := range []string{"jabroni.com", "schlockbox"} {
@@ -97,7 +97,7 @@ func (mdb *MsplDB) Seed() {
 
 }
 
-func addProviderValue(mdb *MsplDB, val string) {
+func addProviderValue(mdb *McflyDB, val string) {
 	//fmt.Printf("Add provider value \"%s\"\n", val)
 	_, err := mdb.Exec(fmt.Sprintf("ALTER TYPE provider ADD VALUE '%s'", val))
 	if !isDbErr(err, "duplicate_object") {
@@ -105,25 +105,25 @@ func addProviderValue(mdb *MsplDB, val string) {
 	}
 }
 
-func insertUser(mdb *MsplDB, u *models.User) {
-	//fmt.Printf("INSERT marsupi_user %+v\n", *u)
+func insertUser(mdb *McflyDB, u *models.User) {
+	//fmt.Printf("INSERT mcfly_user %+v\n", *u)
 	err := mdb.SaveUser(u)
 	checkDbNotFoundErr(err, mdb.DatabaseName)
 }
 
-func insertProviderAccessToken(mdb *MsplDB, uid int64, pt *models.ProviderAccessToken) {
+func insertProviderAccessToken(mdb *McflyDB, uid int64, pt *models.ProviderAccessToken) {
 	//fmt.Printf("INSERT provider_access_token %+v for user %d\n", *pt, uid)
 	err := mdb.SetUserProviderToken(uid, pt)
 	checkDbNotFoundErr(err, mdb.DatabaseName)
 }
 
-func insertProject(mdb *MsplDB, u *models.User, p *models.Project) {
+func insertProject(mdb *McflyDB, u *models.User, p *models.Project) {
 	//fmt.Printf("INSERT project %+v\n for user %d\n", *p, u.ID)
 	err := mdb.SaveProject(p, u)
 	checkDbNotFoundErr(err, mdb.DatabaseName)
 }
 
-func insertBuild(mdb *MsplDB, p *models.Project, b *models.Build) {
+func insertBuild(mdb *McflyDB, p *models.Project, b *models.Build) {
 	//fmt.Printf("INSERT build %+v\n for project %d\n", *b, p.ID)
 	err := mdb.SaveBuild(b, p)
 	checkDbNotFoundErr(err, mdb.DatabaseName)

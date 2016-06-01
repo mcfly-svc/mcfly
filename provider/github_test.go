@@ -11,7 +11,7 @@ import (
 	"testing"
 
 	"github.com/google/go-github/github"
-	"github.com/mikec/msplapi/provider"
+	"github.com/mcfly-svc/mcfly/provider"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )

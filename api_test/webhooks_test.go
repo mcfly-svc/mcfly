@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/mikec/msplapi/api"
-	"github.com/mikec/msplapi/provider"
+	"github.com/mcfly-svc/mcfly/api"
+	"github.com/mcfly-svc/mcfly/provider"
 	"github.com/stretchr/testify/assert"
 )
 

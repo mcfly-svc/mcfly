@@ -4,14 +4,14 @@ import (
 	"fmt"
 
 	_ "github.com/mattes/migrate/driver/postgres"
-	"github.com/mikec/msplapi/api"
-	"github.com/mikec/msplapi/client"
-	"github.com/mikec/msplapi/config"
-	"github.com/mikec/msplapi/db"
-	"github.com/mikec/msplapi/logging"
-	"github.com/mikec/msplapi/mq"
-	"github.com/mikec/msplapi/provider"
-	"github.com/mikec/msplapi/provider/mockprovider"
+	"github.com/mcfly-svc/mcfly/api"
+	"github.com/mcfly-svc/mcfly/client"
+	"github.com/mcfly-svc/mcfly/config"
+	"github.com/mcfly-svc/mcfly/db"
+	"github.com/mcfly-svc/mcfly/logging"
+	"github.com/mcfly-svc/mcfly/mq"
+	"github.com/mcfly-svc/mcfly/provider"
+	"github.com/mcfly-svc/mcfly/provider/mockprovider"
 	"github.com/streadway/amqp"
 
 	"io"
@@ -23,9 +23,9 @@ import (
 var (
 	server    *httptest.Server
 	reader    io.Reader
-	apiClient *client.MsplClient
+	apiClient *client.McflyClient
 	cfg       *config.Config
-	mdb       *db.MsplDB
+	mdb       *db.McflyDB
 	jabroni   *mockprovider.MockProvider
 )
 
@@ -61,8 +61,8 @@ func init() {
 	fmt.Println("INIT")
 
 	cfg = GetTestConfig()
-	msplDb := db.NewMsplDB(cfg.DatabaseUrl, cfg.DatabaseName, cfg.DatabaseUseSSL)
-	mdb = msplDb
+	mcflyDb := db.NewMcflyDB(cfg.DatabaseUrl, cfg.DatabaseName, cfg.DatabaseUseSSL)
+	mdb = mcflyDb
 	initDB()
 
 	jabroni = new(mockprovider.MockProvider)
@@ -116,7 +116,7 @@ func init() {
 			sourceProviders,
 		),
 	)
-	apiClient = client.NewMsplClient(server.URL, "")
+	apiClient = client.NewMcflyClient(server.URL, "")
 }
 
 func TestMain(m *testing.M) {
@@ -129,8 +129,8 @@ func TestMain(m *testing.M) {
 	os.Exit(ret)
 }
 
-func NewApiClient(token string) *client.MsplClient {
-	return client.NewMsplClient(server.URL, token)
+func NewApiClient(token string) *client.McflyClient {
+	return client.NewMcflyClient(server.URL, token)
 }
 
 func initDB() {

@@ -3,7 +3,7 @@ package provider_test
 import (
 	"testing"
 
-	"github.com/mikec/msplapi/provider"
+	"github.com/mcfly-svc/mcfly/provider"
 	"github.com/stretchr/testify/assert"
 )
 

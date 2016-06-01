@@ -3,7 +3,7 @@ package api
 import (
 	"net/http"
 
-	"github.com/mikec/msplapi/api/apidata"
+	"github.com/mcfly-svc/mcfly/api/apidata"
 )
 
 type Route struct {

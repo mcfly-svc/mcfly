@@ -152,7 +152,7 @@ func (self *GitHub) GetBuildConfig(token, sha, projectHandle string) (*BuildConf
 	if err != nil {
 		return nil, NewInvalidProjectHandleErr(self.Key(), projectHandle)
 	}
-	file, _, _, err := self.GetContents(token, ph.Owner, ph.Repo, "mspl.json", sha)
+	file, _, _, err := self.GetContents(token, ph.Owner, ph.Repo, "mcfly.json", sha)
 	if err != nil {
 		return nil, err
 	}

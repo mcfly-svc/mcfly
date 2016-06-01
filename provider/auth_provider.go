@@ -7,7 +7,7 @@ type TokenDataResponse struct {
 	UserName         *string
 }
 
-// AuthProvider is a service used for authenticating to msplapi
+// AuthProvider is a service used for authenticating to mcfly
 type AuthProvider interface {
 	Provider
 

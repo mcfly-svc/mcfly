@@ -3,8 +3,8 @@ package api_test
 import (
 	"testing"
 
-	"github.com/mikec/msplapi/api"
-	"github.com/mikec/msplapi/api/apidata"
+	"github.com/mcfly-svc/mcfly/api"
+	"github.com/mcfly-svc/mcfly/api/apidata"
 )
 
 func TestLogin(t *testing.T) {

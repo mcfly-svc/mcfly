@@ -1,12 +1,12 @@
 package api_test
 
-import "github.com/mikec/msplapi/config"
+import "github.com/mcfly-svc/mcfly/config"
 
 func GetTestConfig() *config.Config {
 	return &config.Config{
-		ApiUrl:         "http://msplapi.ngrok.io",
+		ApiUrl:         "http://mcfly.ngrok.io",
 		DatabaseUrl:    "postgres://localhost:5432",
-		DatabaseName:   "marsupi_test",
+		DatabaseName:   "mcfly_test",
 		DatabaseUseSSL: false,
 		WebhookSecret:  "mock_webhook_secret",
 	}

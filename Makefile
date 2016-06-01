@@ -9,25 +9,25 @@ build:
 	go install
 
 test: build
-	msplapi init-db marsupi_test
-	msplapi seed-db marsupi_test
+	mcfly init-db mcfly_test
+	mcfly seed-db mcfly_test
 	go test ./...
 
 run: build
-	msplapi run
+	mcfly run
 
 database:
-	msplapi create-db marsupi
-	msplapi init-db marsupi
-	msplapi seed-db marsupi
-	msplapi create-db marsupi_test
-	msplapi init-db marsupi_test
-	msplapi seed-db marsupi_test
+	mcfly create-db mcfly
+	mcfly init-db mcfly
+	mcfly seed-db mcfly
+	mcfly create-db mcfly_test
+	mcfly init-db mcfly_test
+	mcfly seed-db mcfly_test
 
 setup: get build database
 
 run-ngrok:
-	ngrok http -subdomain=msplapi 8081
+	ngrok http -subdomain=mcfly 8081
 
 # gofmt
 # govet

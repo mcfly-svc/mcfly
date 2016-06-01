@@ -3,20 +3,20 @@ package models_test
 import (
 	"testing"
 
-	"github.com/mikec/msplapi/db"
+	"github.com/mcfly-svc/mcfly/db"
 )
 
 var (
-	mdb *db.MsplDB
+	mdb *db.McflyDB
 )
 
-func getMsplDB() *db.MsplDB {
+func getMcflyDB() *db.McflyDB {
 	return mdb
 }
 
 func init() {
 	cfg := GetTestConfig()
-	mdb = db.NewMsplDB(cfg.DatabaseUrl, cfg.DatabaseName, cfg.DatabaseUseSSL)
+	mdb = db.NewMcflyDB(cfg.DatabaseUrl, cfg.DatabaseName, cfg.DatabaseUseSSL)
 }
 
 func resetDB() {

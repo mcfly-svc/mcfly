@@ -3,7 +3,7 @@ package api
 import (
 	"fmt"
 
-	"github.com/mikec/msplapi/api/apidata"
+	"github.com/mcfly-svc/mcfly/api/apidata"
 )
 
 func NewApiErr(errorMessage string) *apidata.ApiError {

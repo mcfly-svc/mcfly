@@ -6,17 +6,17 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
-	"github.com/mikec/msplapi/models"
+	"github.com/mcfly-svc/mcfly/models"
 )
 
-type MsplDB struct {
+type McflyDB struct {
 	*models.DB
 }
 
-func NewMsplDB(databaseUrl string, databaseName string, useSSL bool) *MsplDB {
+func NewMcflyDB(databaseUrl string, databaseName string, useSSL bool) *McflyDB {
 	modelsDb, err := models.NewDB(databaseUrl, databaseName, useSSL)
 	check(err)
-	return &MsplDB{modelsDb}
+	return &McflyDB{modelsDb}
 }
 
 func check(err error) {
@@ -37,7 +37,7 @@ func checkDbNotFoundErr(err error, dbName string) {
 	if ok {
 		if pqErr.Code.Name() == "invalid_catalog_name" {
 			log.Fatal(
-				fmt.Errorf("Database `%s` does not exist. Run `make database` or `msplapi create-db %s`", dbName, dbName),
+				fmt.Errorf("Database `%s` does not exist. Run `make database` or `mcfly create-db %s`", dbName, dbName),
 			)
 		}
 	}

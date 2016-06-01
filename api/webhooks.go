@@ -3,9 +3,9 @@ package api
 import (
 	"fmt"
 
-	"github.com/mikec/msplapi/logging"
-	"github.com/mikec/msplapi/models"
-	"github.com/mikec/msplapi/mq"
+	"github.com/mcfly-svc/mcfly/logging"
+	"github.com/mcfly-svc/mcfly/models"
+	"github.com/mcfly-svc/mcfly/mq"
 )
 
 func (handlers *Handlers) ProjectUpdateWebhook(r *Responder, ctx *RequestContext) {

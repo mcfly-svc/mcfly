@@ -3,7 +3,7 @@ package models_test
 import (
 	"testing"
 
-	"github.com/mikec/msplapi/models"
+	"github.com/mcfly-svc/mcfly/models"
 	"github.com/stretchr/testify/assert"
 )
 

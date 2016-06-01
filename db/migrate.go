@@ -13,7 +13,7 @@ import (
 
 // RunMigrate runs the migration scripts from db/migrations/. direction can be `up` or `down`.
 // Migration scripts are copied as binary data in migrations.go using github.com/jteeuwen/go-bindata
-func (mdb *MsplDB) RunMigrate(direction string) {
+func (mdb *McflyDB) RunMigrate(direction string) {
 	var doMigrate func(string, string) ([]error, bool)
 	switch direction {
 	case "up":

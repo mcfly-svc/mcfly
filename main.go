@@ -8,12 +8,12 @@ import (
 	"os"
 
 	"github.com/chrismrivera/cmd"
-	"github.com/mikec/msplapi/api"
-	"github.com/mikec/msplapi/config"
-	"github.com/mikec/msplapi/db"
-	"github.com/mikec/msplapi/logging"
-	"github.com/mikec/msplapi/mq"
-	"github.com/mikec/msplapi/provider"
+	"github.com/mcfly-svc/mcfly/api"
+	"github.com/mcfly-svc/mcfly/config"
+	"github.com/mcfly-svc/mcfly/db"
+	"github.com/mcfly-svc/mcfly/logging"
+	"github.com/mcfly-svc/mcfly/mq"
+	"github.com/mcfly-svc/mcfly/provider"
 
 	_ "github.com/mattes/migrate/driver/postgres"
 )
@@ -36,7 +36,7 @@ func main() {
 	cmdr.AddCommand(dbCleanCmd)
 	cmdr.AddCommand(dbSeedCmd)
 
-	cmdr.Description = "Marsupi CLI"
+	cmdr.Description = "McFly CLI"
 	if err := cmdr.Run(os.Args); err != nil {
 		if ue, ok := err.(*cmd.UsageErr); ok {
 			ue.ShowUsage()
@@ -49,7 +49,7 @@ func main() {
 }
 
 var runServerCmd = cmd.NewCommand(
-	"run", "Server", "Runs the msplapi server",
+	"run", "Server", "Runs the mcfly server",
 	func(cmd *cmd.Command) {},
 	func(cmd *cmd.Command) error {
 		RunServer()
@@ -150,8 +150,8 @@ func RunServer() {
 	log.Fatal(http.ListenAndServe(":8081", router))
 }
 
-func newDbConn(databaseName string) *db.MsplDB {
-	mdb := db.NewMsplDB(cfg.DatabaseUrl, databaseName, cfg.DatabaseUseSSL)
+func newDbConn(databaseName string) *db.McflyDB {
+	mdb := db.NewMcflyDB(cfg.DatabaseUrl, databaseName, cfg.DatabaseUseSSL)
 	return mdb
 }
 

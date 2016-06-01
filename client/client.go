@@ -1,8 +1,8 @@
 package client
 
 import (
-	"github.com/mikec/msplapi/api/apidata"
-	"github.com/mikec/msplapi/provider"
+	"github.com/mcfly-svc/mcfly/api/apidata"
+	"github.com/mcfly-svc/mcfly/provider"
 
 	"bytes"
 	"encoding/json"
@@ -29,36 +29,36 @@ type ClientResponse struct {
 	StatusCode int
 }
 
-type MsplClient struct {
+type McflyClient struct {
 	ServerURL   string
 	AccessToken string
 }
 
-func NewMsplClient(serverURL string, token string) *MsplClient {
-	return &MsplClient{serverURL, token}
+func NewMcflyClient(serverURL string, token string) *McflyClient {
+	return &McflyClient{serverURL, token}
 }
 
-func (self *MsplClient) Login(request *apidata.LoginReq) (*ClientResponse, *http.Response, error) {
-	return self.DoMsplClientRequest("POST", "login", request, &apidata.LoginResp{})
+func (self *McflyClient) Login(request *apidata.LoginReq) (*ClientResponse, *http.Response, error) {
+	return self.DoMcflyClientRequest("POST", "login", request, &apidata.LoginResp{})
 }
 
-func (self *MsplClient) AddProject(request *apidata.ProjectReq) (*ClientResponse, *http.Response, error) {
-	return self.DoMsplClientRequest("POST", "projects", request, &apidata.ApiResponse{})
+func (self *McflyClient) AddProject(request *apidata.ProjectReq) (*ClientResponse, *http.Response, error) {
+	return self.DoMcflyClientRequest("POST", "projects", request, &apidata.ApiResponse{})
 }
 
-func (self *MsplClient) DeleteProject(request *apidata.ProjectReq) (*ClientResponse, *http.Response, error) {
-	return self.DoMsplClientRequest("DELETE", "projects", request, &apidata.ApiResponse{})
+func (self *McflyClient) DeleteProject(request *apidata.ProjectReq) (*ClientResponse, *http.Response, error) {
+	return self.DoMcflyClientRequest("DELETE", "projects", request, &apidata.ApiResponse{})
 }
 
-func (self *MsplClient) Deploy(request *apidata.DeployReq) (*ClientResponse, *http.Response, error) {
-	return self.DoMsplClientRequest("POST", "deploy", request, &apidata.ApiResponse{})
+func (self *McflyClient) Deploy(request *apidata.DeployReq) (*ClientResponse, *http.Response, error) {
+	return self.DoMcflyClientRequest("POST", "deploy", request, &apidata.ApiResponse{})
 }
 
-func (self *MsplClient) SaveBuild(request *apidata.BuildReq) (*ClientResponse, *http.Response, error) {
-	return self.DoMsplClientRequest("POST", "builds", request, &apidata.ApiResponse{})
+func (self *McflyClient) SaveBuild(request *apidata.BuildReq) (*ClientResponse, *http.Response, error) {
+	return self.DoMcflyClientRequest("POST", "builds", request, &apidata.ApiResponse{})
 }
 
-func (self *MsplClient) GetProviderProjects(providerKey string) (*ClientResponse, *http.Response, error) {
+func (self *McflyClient) GetProviderProjects(providerKey string) (*ClientResponse, *http.Response, error) {
 	res, err := self.DoGet(fmt.Sprintf("%s/projects", providerKey), nil)
 	if err != nil {
 		return nil, nil, err
@@ -68,7 +68,7 @@ func (self *MsplClient) GetProviderProjects(providerKey string) (*ClientResponse
 	return decodeResponse(res, &pData)
 }
 
-func (self *MsplClient) GetProjects() (*ClientResponse, *http.Response, error) {
+func (self *McflyClient) GetProjects() (*ClientResponse, *http.Response, error) {
 	res, err := self.DoGet("projects", nil)
 	if err != nil {
 		return nil, nil, err
@@ -78,7 +78,7 @@ func (self *MsplClient) GetProjects() (*ClientResponse, *http.Response, error) {
 	return decodeResponse(res, &projects)
 }
 
-func (self *MsplClient) DoMsplClientRequest(
+func (self *McflyClient) DoMcflyClientRequest(
 	method, endpoint string,
 	reqData interface{},
 	respData interface{},
@@ -95,23 +95,23 @@ func (self *MsplClient) DoMsplClientRequest(
 	return decodeResponse(res, respData)
 }
 
-func (self *MsplClient) EndpointUrl(endpointName string) string {
+func (self *McflyClient) EndpointUrl(endpointName string) string {
 	return fmt.Sprintf("%s/api/0/%s", self.ServerURL, endpointName)
 }
 
-func (self *MsplClient) DoGet(endpoint string, opts *RequestOptions) (*http.Response, error) {
+func (self *McflyClient) DoGet(endpoint string, opts *RequestOptions) (*http.Response, error) {
 	return self.DoReq("GET", endpoint, nil, opts)
 }
 
-func (self *MsplClient) DoPost(endpoint string, JSON *string, opts *RequestOptions) (*http.Response, error) {
+func (self *McflyClient) DoPost(endpoint string, JSON *string, opts *RequestOptions) (*http.Response, error) {
 	return self.DoReq("POST", endpoint, JSON, opts)
 }
 
-func (self *MsplClient) DoDelete(endpoint string, JSON *string, opts *RequestOptions) (*http.Response, error) {
+func (self *McflyClient) DoDelete(endpoint string, JSON *string, opts *RequestOptions) (*http.Response, error) {
 	return self.DoReq("DELETE", endpoint, JSON, opts)
 }
 
-func (self *MsplClient) DoReq(method string, endpoint string, JSON *string, opts *RequestOptions) (*http.Response, error) {
+func (self *McflyClient) DoReq(method string, endpoint string, JSON *string, opts *RequestOptions) (*http.Response, error) {
 	if opts == nil {
 		opts = NewRequestOptions()
 	}

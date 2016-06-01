@@ -5,9 +5,9 @@ import (
 	"reflect"
 
 	"github.com/gorilla/mux"
-	"github.com/mikec/msplapi/models"
-	"github.com/mikec/msplapi/mq"
-	"github.com/mikec/msplapi/provider"
+	"github.com/mcfly-svc/mcfly/models"
+	"github.com/mcfly-svc/mcfly/mq"
+	"github.com/mcfly-svc/mcfly/provider"
 )
 
 type Handlers struct {

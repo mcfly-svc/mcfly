@@ -5,11 +5,11 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/mikec/msplapi/config"
-	"github.com/mikec/msplapi/mq"
+	"github.com/mcfly-svc/mcfly/config"
+	"github.com/mcfly-svc/mcfly/mq"
 
-	"github.com/mikec/msplapi/models"
-	"github.com/mikec/msplapi/provider"
+	"github.com/mcfly-svc/mcfly/models"
+	"github.com/mcfly-svc/mcfly/provider"
 )
 
 type RequestLogger interface {
